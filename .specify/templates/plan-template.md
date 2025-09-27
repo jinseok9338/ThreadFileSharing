@@ -54,32 +54,61 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 **Test-First Development**:
 
 - [ ] Feature spec includes testable acceptance criteria
-- [ ] Test strategy defined for backend (JUnit) and frontend (Jest)
-- [ ] Integration test plan for React-Spring Boot communication
+- [ ] Bruno API tests planned for all endpoints
+- [ ] Test strategy defined for backend (Jest + NestJS) and frontend (Jest + RTL)
+- [ ] Integration test plan for React-NestJS API and WebSocket communication
+- [ ] E2E test plan for real-time chat and file upload flows
 
-**Containerization Standard**:
+**Authentication-First Architecture**:
 
-- [ ] Docker strategy defined for all services
-- [ ] Docker Compose plan for local development
-- [ ] Dokploy deployment considerations documented
+- [ ] User roles and permissions defined (creator, member, read-only)
+- [ ] JWT authentication strategy planned
+- [ ] NestJS Guards and authorization planned
+- [ ] Secure password handling considered
 
-**Full-Stack Type Safety**:
+**Real-Time Communication**:
 
-- [ ] TypeScript planned for React components
-- [ ] Java DTOs defined for API contracts
-- [ ] API schema consistency verified
+- [ ] WebSocket events and handlers identified
+- [ ] Socket.io integration planned for frontend and backend
+- [ ] Connection management and reconnection strategy defined
+- [ ] Real-time features properly scoped (chat, notifications, presence)
 
-**JPA Data Integrity**:
+**Shared Type System**:
+
+- [ ] Shared types package structure planned
+- [ ] API contract types defined in shared package
+- [ ] Socket.io event interfaces centralized
+- [ ] Zod schemas planned for validation and type generation
+- [ ] TypeORM entity types exported to shared package
+
+**File-Centric Design**:
+
+- [ ] File upload and storage strategy defined
+- [ ] Thread-file association model planned
+- [ ] File access control and permissions considered
+- [ ] File type validation and security measures identified
+
+**Data Integrity**:
 
 - [ ] Database entities and relationships identified
-- [ ] Migration strategy planned (Flyway)
+- [ ] TypeORM migration strategy planned
 - [ ] Transaction boundaries considered
+- [ ] Business rule constraints defined
 
-**Deployment Readiness**:
+**Screen-First Design**:
 
-- [ ] Environment configuration strategy defined
-- [ ] Health check endpoints planned
-- [ ] Docker image optimization considered
+- [ ] User interface wireframes planned for all screens
+- [ ] shadcn/ui component specifications documented
+- [ ] User flows and navigation paths mapped
+- [ ] Responsive design strategy defined (mobile/desktop)
+- [ ] Accessibility requirements considered
+
+**Containerization & Deployment**:
+
+- [ ] Workspace structure defined (packages/shared, packages/backend, packages/frontend)
+- [ ] Docker strategy defined for all packages
+- [ ] Docker Compose plan for local development (NestJS, React, PostgreSQL, Redis)
+- [ ] Dokploy deployment considerations documented
 
 ## Project Structure
 
@@ -117,27 +146,59 @@ tests/
 ├── integration/
 └── unit/
 
-# Option 2: Web application (Spring Boot + React)
-backend/
-├── src/main/java/
-│   ├── controller/
-│   ├── service/
-│   ├── repository/
-│   ├── entity/
-│   └── dto/
-├── src/test/java/
-├── Dockerfile
-└── pom.xml
+# Option 2: Workspace application (NestJS + React + Shared Types)
+docs/
+├── business/
+│   ├── user-management.md
+│   ├── thread-management.md
+│   ├── file-sharing.md
+│   ├── chat-system.md
+│   ├── permissions.md
+│   └── business-rules.md
+└── screens/
+    ├── wireframes/
+    │   ├── main-layout.md
+    │   ├── chat-interface.md
+    │   └── thread-detail.md
+    ├── components/
+    │   └── shadcn-components.md
+    └── user-flows/
+        └── main-user-flows.md
 
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   └── types/
-├── tests/
-├── Dockerfile
-└── package.json
+packages/
+├── shared/
+│   ├── src/
+│   │   ├── types/
+│   │   ├── schemas/
+│   │   └── constants/
+│   └── package.json
+├── backend/
+│   ├── src/
+│   │   ├── auth/
+│   │   ├── chat/
+│   │   ├── threads/
+│   │   ├── files/
+│   │   └── users/
+│   ├── test/
+│   ├── Dockerfile
+│   └── package.json
+└── frontend/
+    ├── src/
+    │   ├── components/
+    │   ├── pages/
+    │   ├── hooks/
+    │   ├── services/
+    │   └── utils/
+    ├── __tests__/
+    ├── Dockerfile
+    └── package.json
+
+tests/
+└── bruno/
+    ├── auth/
+    ├── chat/
+    ├── threads/
+    └── files/
 
 # [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
 api/
@@ -201,7 +262,20 @@ _Prerequisites: research.md complete_
    - Each story → integration test scenario
    - Quickstart test = story validation steps
 
-5. **Update agent file incrementally** (O(1) operation):
+5. **Document business logic** in `docs/business/`:
+
+   - Extract domain rules from feature requirements
+   - Document user flows and business constraints
+   - Create reference for implementation teams
+
+6. **Design screen wireframes** in `docs/screens/`:
+
+   - Create wireframes for all user interfaces
+   - Specify shadcn/ui component usage
+   - Document user flows and navigation paths
+   - Plan responsive design for mobile/desktop
+
+7. **Update agent file incrementally** (O(1) operation):
    - Run `.specify/scripts/bash/update-agent-context.sh cursor`
      **IMPORTANT**: Execute it exactly as specified above. Do not add or remove any arguments.
    - If exists: Add only NEW tech from current plan
@@ -210,7 +284,7 @@ _Prerequisites: research.md complete_
    - Keep under 150 lines for token efficiency
    - Output to repository root
 
-**Output**: data-model.md, /contracts/\*, failing tests, quickstart.md, agent-specific file
+**Output**: data-model.md, /contracts/\*, failing tests, quickstart.md, docs/business/\*, docs/screens/\*, agent-specific file
 
 ## Phase 2: Task Planning Approach
 
@@ -274,4 +348,4 @@ _This checklist is updated during execution flow_
 
 ---
 
-_Based on Constitution v1.0.0 - See `.specify/memory/constitution.md`_
+_Based on Constitution v1.2.0 - See `.specify/memory/constitution.md`_

@@ -40,58 +40,83 @@
 
 ## Path Conventions
 
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- **Workspace project**: `packages/shared/`, `packages/backend/`, `packages/frontend/`
+- **Bruno tests**: `tests/bruno/` at repository root
+- **Package tests**: `packages/*/test/` or `packages/*/**tests**/`
+- Paths shown below assume workspace structure from plan.md
 
 ## Phase 3.1: Setup
 
-- [ ] T001 Create project structure per implementation plan
-- [ ] T002 [P] Initialize Spring Boot backend with Maven and JPA dependencies
-- [ ] T003 [P] Initialize React frontend with TypeScript and testing dependencies
-- [ ] T004 [P] Configure Docker and Docker Compose for local development
-- [ ] T005 [P] Configure linting and formatting tools (ESLint, Prettier, Checkstyle)
+- [ ] T001 Create workspace structure (packages/shared, packages/backend, packages/frontend, docs/business, docs/screens)
+- [ ] T002 [P] Initialize shared types package with TypeScript and Zod
+- [ ] T003 [P] Initialize NestJS backend with Fastify, TypeORM, and Socket.io dependencies
+- [ ] T004 [P] Initialize React frontend with React Router, Tailwind CSS 4, shadcn/ui, and Socket.io client
+- [ ] T005 [P] Configure workspace dependencies and shared package imports
+- [ ] T006 [P] Setup Bruno API testing environment in tests/bruno/
+- [ ] T007 [P] Configure Docker and Docker Compose (NestJS, React, PostgreSQL, Redis)
+- [ ] T008 [P] Configure linting and formatting tools (ESLint, Prettier for all packages)
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
-- [ ] T006 [P] Contract test POST /api/users in backend/src/test/java/contract/UsersPostTest.java
-- [ ] T007 [P] Contract test GET /api/users/{id} in backend/src/test/java/contract/UsersGetTest.java
-- [ ] T008 [P] Integration test user registration in backend/src/test/java/integration/RegistrationTest.java
-- [ ] T009 [P] React component tests in frontend/src/components/**tests**/
-- [ ] T010 [P] Frontend-backend integration tests using Jest and test containers
+- [ ] T009 [P] Bruno API test POST /api/auth/register in tests/bruno/auth/register.bru
+- [ ] T010 [P] Bruno API test POST /api/auth/login in tests/bruno/auth/login.bru
+- [ ] T011 [P] Bruno API test GET /api/chat/messages in tests/bruno/chat/messages.bru
+- [ ] T012 [P] Backend unit tests in packages/backend/test/auth/auth.controller.spec.ts
+- [ ] T013 [P] WebSocket event tests in packages/backend/test/chat/chat.gateway.spec.ts
+- [ ] T014 [P] React component tests in packages/frontend/src/components/**tests**/
+- [ ] T015 [P] E2E tests for real-time chat flow using Jest and Socket.io client
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
-- [ ] T011 [P] JPA User entity in backend/src/main/java/entity/User.java
-- [ ] T012 [P] UserRepository interface in backend/src/main/java/repository/UserRepository.java
-- [ ] T013 [P] UserService with @Transactional in backend/src/main/java/service/UserService.java
-- [ ] T014 [P] UserController REST endpoints in backend/src/main/java/controller/UserController.java
-- [ ] T015 [P] User DTO classes in backend/src/main/java/dto/
-- [ ] T016 [P] React User components with TypeScript in frontend/src/components/
-- [ ] T017 [P] API service layer in frontend/src/services/userService.ts
-- [ ] T018 Input validation with Bean Validation
-- [ ] T019 Error handling and logging
+- [ ] T016 [P] Document business logic in docs/business/ (user flows, permissions, rules)
+- [ ] T017 [P] Create screen wireframes in docs/screens/wireframes/
+- [ ] T018 [P] Document shadcn/ui component specifications in docs/screens/components/
+- [ ] T019 [P] Shared types for User, Chat, Thread in packages/shared/src/types/
+- [ ] T020 [P] Zod schemas for validation in packages/shared/src/schemas/
+- [ ] T021 [P] User entity with TypeORM in packages/backend/src/users/entities/user.entity.ts
+- [ ] T022 [P] Auth module with JWT strategy in packages/backend/src/auth/auth.module.ts
+- [ ] T023 [P] Auth service with bcrypt in packages/backend/src/auth/auth.service.ts
+- [ ] T024 [P] Auth controller with Guards in packages/backend/src/auth/auth.controller.ts
+- [ ] T025 [P] Chat gateway with Socket.io in packages/backend/src/chat/chat.gateway.ts
+- [ ] T026 [P] Thread entity and service in packages/backend/src/threads/
+- [ ] T027 [P] File upload service with Multer in packages/backend/src/files/files.service.ts
+- [ ] T028 [P] React auth components with shadcn/ui in packages/frontend/src/components/auth/
+- [ ] T029 [P] React chat components with shadcn/ui in packages/frontend/src/components/chat/
+- [ ] T030 [P] React Router setup and navigation in packages/frontend/src/routes/
+- [ ] T031 [P] Socket.io client service in packages/frontend/src/services/socketService.ts
+- [ ] T032 Input validation with class-validator and shared schemas
+- [ ] T033 Error handling and logging with Winston
 
 ## Phase 3.4: Integration
 
-- [ ] T020 Configure JPA with PostgreSQL and Flyway migrations
-- [ ] T021 Spring Security configuration and JWT auth
-- [ ] T022 CORS configuration for React frontend
-- [ ] T023 Docker health check endpoints
-- [ ] T024 Request/response logging with Logback
+- [ ] T034 Configure TypeORM with PostgreSQL and migrations
+- [ ] T035 JWT authentication middleware and Guards
+- [ ] T036 CORS configuration for React frontend
+- [ ] T037 File storage configuration (local or S3)
+- [ ] T038 Redis session store configuration
+- [ ] T039 Workspace package linking and shared types import
+- [ ] T040 Tailwind CSS 4 and shadcn/ui integration
+- [ ] T041 Docker health check endpoints
+- [ ] T042 Request/response logging with Winston
 
 ## Phase 3.5: Polish
 
-- [ ] T025 [P] Unit tests for validation in backend/src/test/java/unit/
-- [ ] T026 [P] Frontend unit tests in frontend/src/components/**tests**/
-- [ ] T027 Performance tests with Spring Boot Actuator metrics
-- [ ] T028 [P] Update API documentation
-- [ ] T029 Code refactoring and duplication removal
-- [ ] T030 Docker image optimization for production
-- [ ] T031 Run integration testing suite
+- [ ] T043 [P] Unit tests for validation in packages/backend/test/unit/
+- [ ] T044 [P] Frontend unit tests in packages/frontend/src/components/**tests**/
+- [ ] T045 [P] Shared types validation tests in packages/shared/test/
+- [ ] T046 Performance tests with NestJS metrics and monitoring
+- [ ] T047 [P] Update API documentation with Swagger
+- [ ] T048 [P] Complete Bruno API test coverage for all endpoints
+- [ ] T049 [P] Update business and screen documentation with implementation details
+- [ ] T050 [P] Responsive design testing for mobile/desktop
+- [ ] T051 Code refactoring and duplication removal across packages
+- [ ] T052 Docker image optimization for production
+- [ ] T053 Run E2E testing suite with real-time features
+- [ ] T054 Security audit for file uploads and authentication
+- [ ] T055 Type safety validation across all packages
+- [ ] T056 Accessibility testing for shadcn/ui components
 
 ## Dependencies
 
