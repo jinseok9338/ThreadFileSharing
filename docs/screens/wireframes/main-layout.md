@@ -2,22 +2,51 @@
 
 <!-- 메인 레이아웃의 와이어프레임을 ASCII 아트로 문서화합니다 -->
 
-## Desktop Layout (1200px+)
+## Backend API Layout Structure
 
-<!-- 데스크톱 레이아웃 와이어프레임 -->
+<!-- API 엔드포인트 구조 설계 -->
 
-## Tablet Layout (768px - 1199px)
+### Health Check Endpoints
 
-<!-- 태블릿 레이아웃 와이어프레임 -->
+```
+GET /health              - Basic health status
+GET /health/database     - Database connection status
+GET /health/ready        - Readiness probe
+GET /health/live         - Liveness probe
+```
 
-## Mobile Layout (< 768px)
+### API Response Structure
 
-<!-- 모바일 레이아웃 와이어프레임 -->
+```json
+{
+  "status": "ok|error",
+  "timestamp": "ISO-8601",
+  "data": {},
+  "error": {
+    "message": "string",
+    "details": {}
+  }
+}
+```
 
 ## Component Specifications
 
-<!-- 각 컴포넌트별 상세 명세 -->
+<!-- API 컴포넌트별 상세 명세 -->
+
+### Health Check Components
+
+- Status monitoring endpoints
+- Database connectivity validation
+- Application readiness indicators
+- Error response formatting
 
 ## State Management
 
-<!-- 레이아웃 상태 관리 -->
+<!-- API 상태 관리 -->
+
+### Application States
+
+- Healthy/Unhealthy status
+- Database connection state
+- Migration execution status
+- Environment configuration state

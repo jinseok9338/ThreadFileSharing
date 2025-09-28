@@ -1,0 +1,25 @@
+# ThreadFileSharing Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2025-09-28
+
+## Active Technologies
+- Node.js 18+, TypeScript 5+ + NestJS 10+, Fastify, TypeORM, PostgreSQL 15+, Docker, Bruno (001-backend-db-postgres)
+
+## Project Structure
+```
+backend/
+frontend/
+tests/
+```
+
+## Commands
+npm test [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] npm run lint
+
+## Code Style
+Node.js 18+, TypeScript 5+: Follow standard conventions
+
+## Recent Changes
+- 001-backend-db-postgres: Added Node.js 18+, TypeScript 5+ + NestJS 10+, Fastify, TypeORM, PostgreSQL 15+, Docker, Bruno
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->

@@ -1,0 +1,33 @@
+meta {
+  name: Liveness Probe
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/health/live
+}
+
+assert {
+  res.status: eq 200
+  res.body.alive: eq true
+  res.body.timestamp: isDefined
+}
+
+tests {
+  test("Application should be alive", function() {
+    expect(res.body.alive).to.be.true;
+    expect(res.body.timestamp).to.be.a('string');
+  });
+  
+  test("Timestamp should be recent", function() {
+    const responseTime = new Date(res.body.timestamp);
+    const now = new Date();
+    const timeDiff = Math.abs(now - responseTime);
+    expect(timeDiff).to.be.below(5000); // 5초 이내
+  });
+  
+  test("Response should be very fast for liveness probe", function() {
+    expect(res.responseTime).to.be.below(30);
+  });
+}

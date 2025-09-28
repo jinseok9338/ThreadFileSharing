@@ -1,0 +1,253 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "ThreadFileSharing Backend - Health API",
+    "version": "1.0.0",
+    "description": "Health check and system status endpoints for backend setup validation"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Basic health check",
+        "description": "Returns basic application health status",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Application is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Application is unhealthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/database": {
+      "get": {
+        "summary": "Database connection health check",
+        "description": "Validates database connectivity and basic operations",
+        "operationId": "getDatabaseHealth",
+        "responses": {
+          "200": {
+            "description": "Database connection is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatabaseHealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database connection failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "summary": "Readiness probe",
+        "description": "Kubernetes/Docker readiness probe endpoint",
+        "operationId": "getReadiness",
+        "responses": {
+          "200": {
+            "description": "Application is ready to serve requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Application is not ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "summary": "Liveness probe",
+        "description": "Kubernetes/Docker liveness probe endpoint",
+        "operationId": "getLiveness",
+        "responses": {
+          "200": {
+            "description": "Application is alive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LivenessResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Application is not responding",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "required": ["status", "timestamp", "uptime"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ok", "error"],
+            "description": "Overall health status"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Current server timestamp"
+          },
+          "uptime": {
+            "type": "number",
+            "description": "Application uptime in seconds"
+          },
+          "version": {
+            "type": "string",
+            "description": "Application version"
+          }
+        }
+      },
+      "DatabaseHealthResponse": {
+        "type": "object",
+        "required": ["status", "connection", "migrations"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ok", "error"],
+            "description": "Database health status"
+          },
+          "connection": {
+            "type": "object",
+            "properties": {
+              "connected": {
+                "type": "boolean"
+              },
+              "database": {
+                "type": "string"
+              },
+              "host": {
+                "type": "string"
+              }
+            }
+          },
+          "migrations": {
+            "type": "object",
+            "properties": {
+              "pending": {
+                "type": "number"
+              },
+              "executed": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      },
+      "ReadinessResponse": {
+        "type": "object",
+        "required": ["ready", "checks"],
+        "properties": {
+          "ready": {
+            "type": "boolean",
+            "description": "Overall readiness status"
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "database": {
+                "type": "boolean"
+              },
+              "migrations": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "LivenessResponse": {
+        "type": "object",
+        "required": ["alive", "timestamp"],
+        "properties": {
+          "alive": {
+            "type": "boolean",
+            "description": "Application liveness status"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error", "message", "timestamp"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error type"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error description"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional error details"
+          }
+        }
+      }
+    }
+  }
+}
