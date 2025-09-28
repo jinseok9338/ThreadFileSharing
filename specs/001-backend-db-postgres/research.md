@@ -147,3 +147,4 @@ JWT_SECRET=your-secret-key
 - Port conflict resolution
 - Container health checks
 - Resource limit configuration
+
