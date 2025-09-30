@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
+import { DatabaseModule } from './database/database.module';
 import * as path from 'path';
 
 @Module({
@@ -18,6 +19,7 @@ import * as path from 'path';
       ],
       isGlobal: true, // 전역에서 사용 가능하도록 설정
     }),
+    DatabaseModule,
     HealthModule,
   ],
   controllers: [AppController],

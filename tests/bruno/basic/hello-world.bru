@@ -5,17 +5,17 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}
+  url: {{baseUrl}}/api/v1
 }
 
 assert {
   res.status: eq 200
-  res.body: eq Hello World2!
+  res.body: eq Hello World!
 }
 
 tests {
-  test("Response should be Hello World2!", function() {
-    expect(res.body).to.equal("Hello World2!");
+  test("Response should be Hello World!", function() {
+    expect(res.body).to.equal("Hello World!");
   });
   
   test("Response time should be less than 100ms", function() {
