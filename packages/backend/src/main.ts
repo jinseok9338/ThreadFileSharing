@@ -6,6 +6,8 @@ import {
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 async function bootstrap() {
   // 환경 변수 검증
@@ -32,6 +34,12 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
+  // 글로벌 필터 설정 (에러 처리)
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  // 글로벌 인터셉터 설정 (응답 래핑)
+  app.useGlobalInterceptors(new ResponseInterceptor());
+
   // 글로벌 파이프 설정
   app.useGlobalPipes(
     new ValidationPipe({
@@ -56,6 +64,11 @@ async function bootstrap() {
     .setTitle('ThreadFileSharing API')
     .setDescription('파일 중심의 팀 협업 플랫폼 API 문서')
     .setVersion('1.0.0')
+    .addBearerAuth()
+    .addTag('Authentication', '사용자 인증 및 회원가입')
+    .addTag('Users', '사용자 프로필 관리')
+    .addTag('Companies', '회사 정보 및 멤버 관리')
+    .addTag('Invitations', '회사 초대 시스템')
     .addTag('health', '시스템 상태 및 헬스체크')
     .build();
   const document = SwaggerModule.createDocument(app, config);

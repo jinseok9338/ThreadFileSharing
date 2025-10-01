@@ -2,6 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseService } from './database.service';
+import { User } from '../user/entities/user.entity';
+import { Company } from '../company/entities/company.entity';
+import { RefreshToken } from '../refresh-token/entities/refresh-token.entity';
+import { CompanyInvitation } from '../invitation/entities/company-invitation.entity';
+import { ThreadParticipant } from '../thread-participant/entities/thread-participant.entity';
+import { Team } from '../team/entities/team.entity';
+import { TeamMember } from '../team/entities/team-member.entity';
 
 @Module({
   imports: [
@@ -17,8 +24,16 @@ import { DatabaseService } from './database.service';
           'DATABASE_NAME',
           'threadfilesharing',
         ),
-        entities: [],
-        synchronize: configService.get<string>('NODE_ENV') === 'local',
+        entities: [
+          User,
+          Company,
+          RefreshToken,
+          CompanyInvitation,
+          ThreadParticipant,
+          Team,
+          TeamMember,
+        ],
+        synchronize: false,
         logging: configService.get<string>('NODE_ENV') === 'local',
       }),
       inject: [ConfigService],

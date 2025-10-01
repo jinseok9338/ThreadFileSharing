@@ -1,0 +1,51 @@
+meta {
+  name: Login with valid credentials
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "jinseok9338@gmail.com",
+    "password": "Password123!"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.user.email: eq jinseok9338@gmail.com
+  res.body.user.company_role: eq owner
+  res.body.accessToken: isDefined
+  res.body.refreshToken: isDefined
+}
+
+tests {
+  test("Should return user data", function() {
+    expect(res.body.user).to.be.an("object");
+    expect(res.body.user.email).to.equal("jinseok9338@gmail.com");
+  });
+  
+  test("Should return JWT tokens", function() {
+    expect(res.body.accessToken).to.be.a("string");
+    expect(res.body.refreshToken).to.be.a("string");
+  });
+  
+  test("Should include company info", function() {
+    expect(res.body.company).to.be.an("object");
+    expect(res.body.company.slug).to.equal("anchors");
+  });
+}
+
+script:post-response {
+  // Save tokens for subsequent tests
+  bru.setEnvVar("accessToken", res.body.accessToken);
+  bru.setEnvVar("refreshToken", res.body.refreshToken);
+  bru.setEnvVar("userId", res.body.user.id);
+}
+

@@ -1,0 +1,40 @@
+meta {
+  name: Get current user profile
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isDefined
+  res.body.email: eq jinseok9338@gmail.com
+  res.body.company_role: eq owner
+}
+
+tests {
+  test("Should return user profile", function() {
+    expect(res.body).to.be.an("object");
+    expect(res.body.id).to.be.a("string");
+    expect(res.body.email).to.equal("jinseok9338@gmail.com");
+  });
+  
+  test("Should include company info", function() {
+    expect(res.body.company).to.be.an("object");
+    expect(res.body.company.slug).to.equal("anchors");
+  });
+  
+  test("Should not expose sensitive data", function() {
+    expect(res.body.password_hash).to.be.undefined;
+  });
+}
+
