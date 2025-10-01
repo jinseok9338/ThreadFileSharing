@@ -17,6 +17,7 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { QueryProvider } from "./providers/query-provider";
+import { ThemeProvider, themeInitScript } from "./components/theme-provider";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -39,6 +40,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        {/* 초기 테마 로딩 스크립트 - 깜빡임 방지 */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
         {children}
@@ -52,7 +55,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <QueryProvider>
-      <Outlet />
+      <ThemeProvider>
+        <Outlet />
+      </ThemeProvider>
     </QueryProvider>
   );
 }

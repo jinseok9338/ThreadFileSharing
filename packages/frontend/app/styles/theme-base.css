@@ -1,0 +1,5 @@
+/* Theme Base - 모든 테마에 공통으로 적용되는 설정 */
+
+:root {
+  --radius: 0.625rem;
+}

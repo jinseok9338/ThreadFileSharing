@@ -1,0 +1,59 @@
+/* VSCode Theme */
+
+[data-theme="vscode"] {
+  --background: #e8f8ff;
+  --foreground: #080b14;
+  --card: #f2fafe;
+  --card-foreground: #080b14;
+  --popover: #f3faff;
+  --popover-foreground: #080b14;
+  --primary: #26acf4;
+  --primary-foreground: #d8effc;
+  --secondary: #cee6f2;
+  --secondary-foreground: #080b14;
+  --muted: #cedee5;
+  --muted-foreground: #2d404a;
+  --accent: #ccdae3;
+  --accent-foreground: #183d4d;
+  --destructive: #f1113e;
+  --border: #b9c6d0;
+  --input: #b9c6d0;
+  --ring: #297aa4;
+  --chart-1: #0b83ab;
+  --chart-2: #40518d;
+  --chart-3: #00aa6d;
+  --chart-4: #bdb062;
+  --chart-5: #8059bb;
+  --sidebar: #e2e9ee;
+  --sidebar-foreground: #080b14;
+  --sidebar-primary: #0b83ab;
+  --sidebar-primary-foreground: #f4feff;
+  --sidebar-accent: #ccdae3;
+  --sidebar-accent-foreground: #080b14;
+  --sidebar-border: #b9c6d0;
+  --sidebar-ring: #0b83ab;
+
+  --font-sans:
+    "Source Code Pro", "Geist", "Geist Fallback", ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif:
+    "Source Serif 4", "Geist", "Geist Fallback", ui-serif, Georgia, Cambria,
+    "Times New Roman", Times, serif;
+  --font-mono:
+    "Source Code Pro", "Geist Mono", "Geist Mono Fallback", ui-monospace,
+    SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+
+  --radius: 0rem;
+
+  --shadow-2xs: 0px 1px 2.5px 0px rgb(32 104 140 / 0.03);
+  --shadow-xs: 0px 1px 2.5px 0px rgb(32 104 140 / 0.03);
+  --shadow-sm: 0px 1px 2.5px 0px rgb(32 104 140 / 0.06), 0px 1px 2px -1px rgb(32 104 140 / 0.06);
+  --shadow: 0px 1px 2.5px 0px rgb(32 104 140 / 0.06), 0px 1px 2px -1px rgb(32 104 140 / 0.06);
+  --shadow-md: 0px 1px 2.5px 0px rgb(32 104 140 / 0.06), 0px 2px 4px -1px rgb(32 104 140 / 0.06);
+  --shadow-lg: 0px 1px 2.5px 0px rgb(32 104 140 / 0.06), 0px 4px 6px -1px rgb(32 104 140 / 0.06);
+  --shadow-xl: 0px 1px 2.5px 0px rgb(32 104 140 / 0.06), 0px 8px 10px -1px rgb(32 104 140 / 0.06);
+  --shadow-2xl: 0px 1px 2.5px 0px rgb(32 104 140 / 0.15);
+}
