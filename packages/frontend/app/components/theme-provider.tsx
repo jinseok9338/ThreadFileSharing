@@ -10,47 +10,25 @@ import { useTheme } from "~/hooks/useTheme";
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { theme, isDark } = useTheme();
 
-  // 초기 로딩 시 깜빡임 방지를 위한 스크립트는 Layout에서 처리
   useEffect(() => {
-    // 이미 useTheme hook에서 HTML 속성을 동기화하지만,
-    // 혹시 모를 동기화 문제를 방지하기 위해 한 번 더 확인
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", theme);
+    // 클라이언트에서만 DOM 조작
+    if (typeof window !== "undefined") {
+      const html = document.documentElement;
+
+      // 테마 속성 설정
+      html.setAttribute("data-theme", theme);
+
+      // 다크 모드 클래스 토글
       if (isDark) {
-        document.documentElement.classList.add("dark");
+        html.classList.add("dark");
       } else {
-        document.documentElement.classList.remove("dark");
+        html.classList.remove("dark");
       }
+
+      // color-scheme 설정
+      html.style.colorScheme = isDark ? "dark" : "light";
     }
   }, [theme, isDark]);
 
   return <>{children}</>;
 }
-
-/**
- * 초기 테마 로딩 스크립트
- *
- * Layout의 <head>에 추가하여 깜빡임 방지
- * SSR/SSG 시 localStorage에서 테마를 미리 로드
- */
-export const themeInitScript = `
-(function() {
-  try {
-    const stored = localStorage.getItem('theme-storage');
-    if (stored) {
-      const { state } = JSON.parse(stored);
-      if (state?.theme) {
-        document.documentElement.setAttribute('data-theme', state.theme);
-      }
-      if (state?.isDark) {
-        document.documentElement.classList.add('dark');
-      }
-    } else {
-      // 기본값 설정
-      document.documentElement.setAttribute('data-theme', 'default');
-    }
-  } catch (e) {
-    console.error('Failed to load theme:', e);
-  }
-})();
-`;

@@ -1,1 +1,44 @@
-{}
+{
+  "auth": {
+    "email": "이메일",
+    "password": "비밀번호",
+    "fullName": "이름",
+    "companyName": "회사명",
+    "login": "로그인",
+    "register": "회원가입",
+    "createAccount": "계정 만들기",
+    "alreadyHaveAccount": "이미 계정이 있으신가요?",
+    "dontHaveAccount": "계정이 없으신가요?",
+    "loginTitle": "로그인",
+    "loginDescription": "이메일과 비밀번호를 입력하세요",
+    "registerTitle": "회원가입",
+    "registerDescription": "팀과 함께 협업을 시작하세요",
+    "passwordHint": "최소 8자, 대문자 1개, 숫자 1개, 특수문자 1개",
+    "loggingIn": "로그인 중...",
+    "registering": "계정 생성 중...",
+    "showPassword": "비밀번호 보기",
+    "hidePassword": "비밀번호 숨기기"
+  },
+  "validation": {
+    "emailRequired": "이메일을 입력해주세요",
+    "emailInvalid": "올바른 이메일 형식이 아닙니다",
+    "passwordRequired": "비밀번호를 입력해주세요",
+    "passwordMinLength": "비밀번호는 최소 8자 이상이어야 합니다",
+    "passwordUppercase": "비밀번호는 대문자를 최소 1개 포함해야 합니다",
+    "passwordNumber": "비밀번호는 숫자를 최소 1개 포함해야 합니다",
+    "passwordSpecialChar": "비밀번호는 특수문자(!@#$%^&*)를 최소 1개 포함해야 합니다",
+    "nameMinLength": "이름은 최소 2자 이상이어야 합니다",
+    "nameMaxLength": "이름이 너무 깁니다",
+    "companyNameMinLength": "회사명은 최소 2자 이상이어야 합니다",
+    "companyNameMaxLength": "회사명이 너무 깁니다"
+  },
+  "error": {
+    "EMAIL_ALREADY_EXISTS": "이미 존재하는 이메일입니다",
+    "COMPANY_NAME_EXISTS": "비슷한 이름의 회사가 이미 존재합니다. 다른 이름을 선택해주세요.",
+    "USER_NOT_FOUND": "사용자를 찾을 수 없습니다",
+    "ACCOUNT_LOCKED": "계정이 잠겼습니다. {minutes}분 후에 다시 시도해주세요.",
+    "OAUTH_ONLY_ACCOUNT": "이 계정은 OAuth 로그인을 사용합니다. Google 또는 Azure로 로그인해주세요.",
+    "INVALID_PASSWORD": "잘못된 비밀번호입니다",
+    "ACCOUNT_INACTIVE": "계정이 비활성화되었습니다"
+  }
+}

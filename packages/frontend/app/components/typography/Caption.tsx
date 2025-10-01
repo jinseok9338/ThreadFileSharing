@@ -1,6 +1,6 @@
 import { cn } from "~/lib/utils";
 
-interface CaptionProps {
+interface CaptionProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
   className?: string;
   as?: "p" | "div" | "span";
@@ -22,9 +22,13 @@ export function Caption({
   children,
   className,
   as: Component = "p",
+  ...props
 }: CaptionProps) {
   return (
-    <Component className={cn("text-xs text-muted-foreground", className)}>
+    <Component
+      className={cn("text-xs text-muted-foreground", className)}
+      {...props}
+    >
       {children}
     </Component>
   );

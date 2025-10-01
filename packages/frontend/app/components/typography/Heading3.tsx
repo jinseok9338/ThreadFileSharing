@@ -1,6 +1,6 @@
 import { cn } from "~/lib/utils";
 
-interface Heading3Props {
+interface Heading3Props extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
   className?: string;
   as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "div";
@@ -21,10 +21,12 @@ export function Heading3({
   children,
   className,
   as: Component = "h3",
+  ...props
 }: Heading3Props) {
   return (
     <Component
       className={cn("text-xl font-semibold text-foreground", className)}
+      {...props}
     >
       {children}
     </Component>

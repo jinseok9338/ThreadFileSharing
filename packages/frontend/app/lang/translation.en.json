@@ -1,1 +1,44 @@
-{}
+{
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full Name",
+    "companyName": "Company Name",
+    "login": "Login",
+    "register": "Register",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "loginTitle": "Login to Your Account",
+    "loginDescription": "Enter your email and password",
+    "registerTitle": "Create Your Account",
+    "registerDescription": "Start collaborating with your team",
+    "passwordHint": "Min 8 chars, 1 uppercase, 1 number, 1 special char",
+    "loggingIn": "Logging in...",
+    "registering": "Creating account...",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
+  "validation": {
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email address",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "passwordUppercase": "Password must contain at least one uppercase letter",
+    "passwordNumber": "Password must contain at least one number",
+    "passwordSpecialChar": "Password must contain at least one special character (!@#$%^&*)",
+    "nameMinLength": "Name must be at least 2 characters",
+    "nameMaxLength": "Name is too long",
+    "companyNameMinLength": "Company name must be at least 2 characters",
+    "companyNameMaxLength": "Company name is too long"
+  },
+  "error": {
+    "EMAIL_ALREADY_EXISTS": "Email already exists",
+    "COMPANY_NAME_EXISTS": "Company with similar name already exists. Please choose a different name.",
+    "USER_NOT_FOUND": "User not found",
+    "ACCOUNT_LOCKED": "Account is locked. Try again in {minutes} minutes.",
+    "OAUTH_ONLY_ACCOUNT": "This account uses OAuth login. Please login with Google or Azure.",
+    "INVALID_PASSWORD": "Invalid password",
+    "ACCOUNT_INACTIVE": "Account is inactive"
+  }
+}

@@ -17,13 +17,30 @@
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-html,
-body {
+/* 테마 전환 시 깜빡임 방지 */
+html {
   @apply bg-white dark:bg-gray-950;
+  /* 기본 테마를 설정하여 깜빡임 방지 */
+  color-scheme: light;
+}
 
-  @media (prefers-color-scheme: dark) {
+html.dark {
+  color-scheme: dark;
+}
+
+/* prefers-color-scheme 미디어 쿼리로 기본 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) {
     color-scheme: dark;
   }
+}
+
+body {
+  @apply bg-background text-foreground;
+  /* 부드러운 전환 효과 */
+  transition:
+    background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
 }
 
 @theme inline {

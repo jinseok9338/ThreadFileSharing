@@ -2,9 +2,11 @@ import {
   isRouteErrorResponse,
   Links,
   Meta,
+  Navigate,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from "react-router";
 import {
   AlertCircle,
@@ -17,7 +19,11 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { QueryProvider } from "./providers/query-provider";
-import { ThemeProvider, themeInitScript } from "./components/theme-provider";
+import { ThemeProvider } from "./components/theme-provider";
+import useUserStore from "./stores/userStore";
+import { NOT_AUTH_PATH } from "./constants/consts";
+import "./lang/i18n";
+import { Toaster } from "./components/ui/sonner";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -40,8 +46,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        {/* 초기 테마 로딩 스크립트 - 깜빡임 방지 */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
         {children}
@@ -53,10 +57,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const { user } = useUserStore();
+  const location = useLocation();
+
+  if (!user && !NOT_AUTH_PATH.includes(location.pathname)) {
+    // 원래 경로를 state에 저장하여 로그인 후 리다이렉트
+    return (
+      <Navigate to="/auth/login" state={{ from: location.pathname }} replace />
+    );
+  }
+
+  if (user && NOT_AUTH_PATH.includes(location.pathname)) {
+    return <Navigate to="/" replace />;
+  }
   return (
     <QueryProvider>
       <ThemeProvider>
         <Outlet />
+        <Toaster />
       </ThemeProvider>
     </QueryProvider>
   );

@@ -1,7 +1,7 @@
 import { cn } from "~/lib/utils";
 import { Link as RouterLink } from "react-router";
 
-interface LinkProps {
+interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   children: React.ReactNode;
   href: string;
   className?: string;
@@ -27,6 +27,7 @@ export function Link({
   className,
   external,
   underline,
+  ...props
 }: LinkProps) {
   const baseStyles = cn(
     "text-primary hover:text-primary/80 transition-colors",
@@ -41,6 +42,7 @@ export function Link({
         target="_blank"
         rel="noopener noreferrer"
         className={baseStyles}
+        {...props}
       >
         {children}
       </a>
@@ -48,7 +50,7 @@ export function Link({
   }
 
   return (
-    <RouterLink to={href} className={baseStyles}>
+    <RouterLink to={href} className={baseStyles} {...props}>
       {children}
     </RouterLink>
   );

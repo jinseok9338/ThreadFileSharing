@@ -1,6 +1,6 @@
 import { cn } from "~/lib/utils";
 
-interface BodyTextSmallProps {
+interface BodyTextSmallProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
   className?: string;
   as?: "p" | "div" | "span";
@@ -21,9 +21,13 @@ export function BodyTextSmall({
   children,
   className,
   as: Component = "p",
+  ...props
 }: BodyTextSmallProps) {
   return (
-    <Component className={cn("text-sm font-normal text-foreground", className)}>
+    <Component
+      className={cn("text-sm font-normal text-foreground", className)}
+      {...props}
+    >
       {children}
     </Component>
   );

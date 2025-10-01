@@ -1,42 +1,63 @@
 import { create } from "zustand";
-import type { LoginResponse } from "~/pages/auth/login/services/api";
+import type { User, Company } from "~/pages/auth/login/types/types";
+
+interface UserData {
+  user: User;
+  company: Company;
+}
 
 interface UserStore {
-  user: LoginResponse | null;
+  user: User | null;
+  company: Company | null;
   logout: () => void;
-  login: (user: LoginResponse) => void;
+  login: (data: UserData) => void;
+  setUser: (user: User) => void;
 }
 
 const isBrowser = typeof window !== "undefined";
 const userKey = "userInfo";
+const companyKey = "companyInfo";
 
-const getInitialState = (): LoginResponse | null => {
-  if (!isBrowser) return null;
+interface StoredData {
+  user: User | null;
+  company: Company | null;
+}
+
+const getInitialState = (): StoredData => {
+  if (!isBrowser) return { user: null, company: null };
 
   try {
     const storedUser = localStorage.getItem(userKey);
-    return storedUser ? JSON.parse(storedUser) : null;
+    const storedCompany = localStorage.getItem(companyKey);
+    return {
+      user: storedUser ? JSON.parse(storedUser) : null,
+      company: storedCompany ? JSON.parse(storedCompany) : null,
+    };
   } catch (error) {
-    console.error("Error parsing user from localStorage:", error);
-    return null;
+    console.error("Error parsing user data from localStorage:", error);
+    return { user: null, company: null };
   }
 };
 
 const useUserStore = create<UserStore>((set) => ({
-  user: getInitialState(),
+  user: getInitialState().user,
+  company: getInitialState().company,
   logout: () => {
     if (!isBrowser) return;
-    set({ user: null });
+    set({ user: null, company: null });
     localStorage.removeItem(userKey);
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    localStorage.removeItem(companyKey);
   },
-  login: (user) => {
+  login: (data: UserData) => {
+    if (!isBrowser) return;
+    set({ user: data.user, company: data.company });
+    localStorage.setItem(userKey, JSON.stringify(data.user));
+    localStorage.setItem(companyKey, JSON.stringify(data.company));
+  },
+  setUser: (user: User) => {
     if (!isBrowser) return;
     set({ user });
     localStorage.setItem(userKey, JSON.stringify(user));
-    localStorage.setItem("accessToken", user.token?.accessToken || "");
-    localStorage.setItem("refreshToken", user.token?.refreshToken || "");
   },
 }));
 

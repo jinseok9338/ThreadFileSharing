@@ -1,6 +1,6 @@
 import { cn } from "~/lib/utils";
 
-interface LabelProps {
+interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
   children: React.ReactNode;
   className?: string;
   htmlFor?: string;
@@ -19,11 +19,18 @@ interface LabelProps {
  * <Label className="text-muted-foreground">선택 항목</Label>
  * ```
  */
-export function Label({ children, className, htmlFor, required }: LabelProps) {
+export function Label({
+  children,
+  className,
+  htmlFor,
+  required,
+  ...props
+}: LabelProps) {
   return (
     <label
       htmlFor={htmlFor}
       className={cn("text-sm font-medium text-foreground", className)}
+      {...props}
     >
       {children}
       {required && <span className="text-destructive ml-1">*</span>}

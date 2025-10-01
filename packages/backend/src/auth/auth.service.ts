@@ -3,6 +3,8 @@ import {
   BadRequestException,
   UnauthorizedException,
   ConflictException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -57,7 +59,10 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException({
+        code: 'EMAIL_ALREADY_EXISTS',
+        message: 'Email already exists',
+      });
     }
 
     // Generate company slug from name
@@ -69,9 +74,11 @@ export class AuthService {
     });
 
     if (existingCompany) {
-      throw new ConflictException(
-        'Company with similar name already exists. Please choose a different name.',
-      );
+      throw new ConflictException({
+        code: 'COMPANY_NAME_EXISTS',
+        message:
+          'Company with similar name already exists. Please choose a different name.',
+      });
     }
 
     // Create company
@@ -132,7 +139,10 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new BadRequestException({
+        code: 'USER_NOT_FOUND',
+        message: 'User not found',
+      });
     }
 
     // Check if account is locked
@@ -140,16 +150,23 @@ export class AuthService {
       const minutesLeft = Math.ceil(
         (new Date(user.locked_until).getTime() - Date.now()) / 60000,
       );
-      throw new UnauthorizedException(
-        `Account is locked. Try again in ${minutesLeft} minutes.`,
-      );
+      throw new HttpException(
+        {
+          code: 'ACCOUNT_LOCKED',
+          message: `Account is locked. Try again in ${minutesLeft} minutes.`,
+          data: { minutesLeft },
+        },
+        HttpStatus.LOCKED,
+      ); // 423 Locked
     }
 
     // Check if user has password (not OAuth-only user)
     if (!user.password_hash) {
-      throw new UnauthorizedException(
-        'This account uses OAuth login. Please login with Google or Azure.',
-      );
+      throw new UnauthorizedException({
+        code: 'OAUTH_ONLY_ACCOUNT',
+        message:
+          'This account uses OAuth login. Please login with Google or Azure.',
+      });
     }
 
     // Validate password
@@ -173,12 +190,18 @@ export class AuthService {
 
       await this.userRepository.update({ id: user.id }, updateData);
 
-      throw new UnauthorizedException('Invalid credentials');
+      throw new BadRequestException({
+        code: 'INVALID_PASSWORD',
+        message: 'Invalid password',
+      });
     }
 
     // Check if user is active
     if (!user.is_active) {
-      throw new UnauthorizedException('Account is inactive');
+      throw new UnauthorizedException({
+        code: 'ACCOUNT_INACTIVE',
+        message: 'Account is inactive',
+      });
     }
 
     // Reset failed attempts and update last login

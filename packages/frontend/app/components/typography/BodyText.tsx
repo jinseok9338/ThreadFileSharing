@@ -1,6 +1,6 @@
 import { cn } from "~/lib/utils";
 
-interface BodyTextProps {
+interface BodyTextProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
   className?: string;
   as?: "p" | "div" | "span";
@@ -22,10 +22,12 @@ export function BodyText({
   children,
   className,
   as: Component = "p",
+  ...props
 }: BodyTextProps) {
   return (
     <Component
       className={cn("text-base font-normal text-foreground", className)}
+      {...props}
     >
       {children}
     </Component>
