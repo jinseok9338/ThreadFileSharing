@@ -592,13 +592,11 @@ Expected: p95 < 500ms
 describe("Auth to Thread Access Flow", () => {
   it("should complete full user journey", async () => {
     // 1. Register owner
-    const registerRes = await request(app)
-      .post("/auth/register")
-      .send({
-        email: "owner@test.com",
-        password: "Pass123!",
-        companyName: "Test Co",
-      });
+    const registerRes = await request(app).post("/auth/register").send({
+      email: "owner@test.com",
+      password: "Pass123!",
+      companyName: "Test Co",
+    });
 
     expect(registerRes.status).toBe(201);
     const { accessToken, user, company } = registerRes.body;
