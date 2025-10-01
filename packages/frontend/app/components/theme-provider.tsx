@@ -27,6 +27,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
       // color-scheme 설정
       html.style.colorScheme = isDark ? "dark" : "light";
+
+      // 부드러운 전환을 위한 CSS transition 설정
+      html.style.transition =
+        "background-color 0.2s ease-in-out, color 0.2s ease-in-out";
     }
   }, [theme, isDark]);
 

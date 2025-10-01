@@ -27,21 +27,6 @@ import type { ThemeName } from "~/constants/themes";
 export function useTheme() {
   const { theme, isDark, setTheme, toggleDark, setDark } = useThemeStore();
 
-  // 컴포넌트 마운트 시 HTML 속성 동기화
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      // data-theme 속성 설정
-      document.documentElement.setAttribute("data-theme", theme);
-
-      // dark class 설정
-      if (isDark) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    }
-  }, [theme, isDark]);
-
   return {
     theme,
     isDark,

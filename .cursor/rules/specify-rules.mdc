@@ -4,6 +4,8 @@ Auto-generated from all feature plans. Last updated: 2025-09-28
 
 ## Active Technologies
 - Node.js 18+, TypeScript 5+ + NestJS 10+, Fastify, TypeORM, PostgreSQL 15+, Docker, Bruno (001-backend-db-postgres)
+- TypeScript 5.0+, React 19, NestJS 10 + React Router 7, Socket.io, Tailwind CSS 4, shadcn/ui (007-chat-room)
+- PostgreSQL for chat data, file storage for uploads (007-chat-room)
 
 ## Project Structure
 ```
@@ -19,6 +21,7 @@ npm test [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNO
 Node.js 18+, TypeScript 5+: Follow standard conventions
 
 ## Recent Changes
+- 007-chat-room: Added TypeScript 5.0+, React 19, NestJS 10 + React Router 7, Socket.io, Tailwind CSS 4, shadcn/ui
 - 001-backend-db-postgres: Added Node.js 18+, TypeScript 5+ + NestJS 10+, Fastify, TypeORM, PostgreSQL 15+, Docker, Bruno
 
 <!-- MANUAL ADDITIONS START -->

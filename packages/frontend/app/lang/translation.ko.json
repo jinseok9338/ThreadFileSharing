@@ -40,5 +40,45 @@
     "OAUTH_ONLY_ACCOUNT": "이 계정은 OAuth 로그인을 사용합니다. Google 또는 Azure로 로그인해주세요.",
     "INVALID_PASSWORD": "잘못된 비밀번호입니다",
     "ACCOUNT_INACTIVE": "계정이 비활성화되었습니다"
+  },
+  "nav": {
+    "chat": "채팅",
+    "settings": "설정",
+    "home": "홈으로 이동",
+    "userProfile": "사용자 프로필",
+    "appName": "ThreadFileSharing",
+    "appShortName": "TFS"
+  },
+  "chat": {
+    "rooms": "채팅룸",
+    "noRooms": "채팅룸이 없습니다",
+    "createFirstRoom": "첫 번째 채팅룸을 만들어보세요",
+    "createRoom": "채팅룸 만들기",
+    "noMessages": "메시지가 없습니다"
+  },
+  "settings": {
+    "title": "설정",
+    "description": "애플리케이션 설정을 관리하세요",
+    "theme": "테마",
+    "themeDescription": "애플리케이션의 외관을 변경하세요",
+    "darkMode": "다크 모드",
+    "darkModeDescription": "어두운 테마로 전환합니다",
+    "language": "언어",
+    "languageDescription": "애플리케이션 언어를 변경하세요",
+    "notifications": "알림",
+    "notificationsDescription": "알림 설정을 관리하세요",
+    "comingSoon": "곧 지원 예정",
+    "currentLanguage": "현재: 한국어",
+    "newMessageNotifications": "새 메시지 알림을 받습니다"
+  },
+  "main": {
+    "messages": "메시지",
+    "selectChatRoom": "채팅룸을 선택해주세요",
+    "threads": "Threads",
+    "noThreads": "스레드가 없습니다",
+    "selectRoomFirst": "먼저 채팅룸을 선택해주세요"
+  },
+  "time": {
+    "justNow": "방금"
   }
 }

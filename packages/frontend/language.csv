@@ -35,3 +35,33 @@ error,ACCOUNT_LOCKED,계정이 잠겼습니다. {minutes}분 후에 다시 시�
 error,OAUTH_ONLY_ACCOUNT,이 계정은 OAuth 로그인을 사용합니다. Google 또는 Azure로 로그인해주세요.,This account uses OAuth login. Please login with Google or Azure.
 error,INVALID_PASSWORD,잘못된 비밀번호입니다,Invalid password
 error,ACCOUNT_INACTIVE,계정이 비활성화되었습니다,Account is inactive
+nav,chat,채팅,Chat
+nav,settings,설정,Settings
+nav,home,홈으로 이동,Go to home
+nav,userProfile,사용자 프로필,User Profile
+nav,appName,ThreadFileSharing,ThreadFileSharing
+nav,appShortName,TFS,TFS
+chat,rooms,채팅룸,Chat Rooms
+chat,noRooms,채팅룸이 없습니다,No chat rooms
+chat,createFirstRoom,첫 번째 채팅룸을 만들어보세요,Create your first chat room
+chat,createRoom,채팅룸 만들기,Create Room
+chat,noMessages,메시지가 없습니다,No messages
+settings,title,설정,Settings
+settings,description,애플리케이션 설정을 관리하세요,Manage application settings
+settings,theme,테마,Theme
+settings,themeDescription,애플리케이션의 외관을 변경하세요,Change the appearance of the application
+settings,darkMode,다크 모드,Dark Mode
+settings,darkModeDescription,어두운 테마로 전환합니다,Switch to dark theme
+settings,language,언어,Language
+settings,languageDescription,애플리케이션 언어를 변경하세요,Change application language
+settings,notifications,알림,Notifications
+settings,notificationsDescription,알림 설정을 관리하세요,Manage notification settings
+settings,comingSoon,곧 지원 예정,Coming Soon
+settings,currentLanguage,현재: 한국어,Current: Korean
+settings,newMessageNotifications,새 메시지 알림을 받습니다,Receive new message notifications
+main,messages,메시지,Messages
+main,selectChatRoom,채팅룸을 선택해주세요,Please select a chat room
+main,threads,Threads,Threads
+main,noThreads,스레드가 없습니다,No threads
+main,selectRoomFirst,먼저 채팅룸을 선택해주세요,Please select a chat room first
+time,justNow,방금,just now

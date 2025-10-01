@@ -24,6 +24,7 @@ import useUserStore from "./stores/userStore";
 import { NOT_AUTH_PATH } from "./constants/consts";
 import "./lang/i18n";
 import { Toaster } from "./components/ui/sonner";
+import { SidebarProvider } from "./components/ui/sidebar";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -73,7 +74,9 @@ export default function App() {
   return (
     <QueryProvider>
       <ThemeProvider>
-        <Outlet />
+        <SidebarProvider>
+          <Outlet />
+        </SidebarProvider>
         <Toaster />
       </ThemeProvider>
     </QueryProvider>

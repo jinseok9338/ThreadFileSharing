@@ -40,5 +40,45 @@
     "OAUTH_ONLY_ACCOUNT": "This account uses OAuth login. Please login with Google or Azure.",
     "INVALID_PASSWORD": "Invalid password",
     "ACCOUNT_INACTIVE": "Account is inactive"
+  },
+  "nav": {
+    "chat": "Chat",
+    "settings": "Settings",
+    "home": "Go to home",
+    "userProfile": "User Profile",
+    "appName": "ThreadFileSharing",
+    "appShortName": "TFS"
+  },
+  "chat": {
+    "rooms": "Chat Rooms",
+    "noRooms": "No chat rooms",
+    "createFirstRoom": "Create your first chat room",
+    "createRoom": "Create Room",
+    "noMessages": "No messages"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage application settings",
+    "theme": "Theme",
+    "themeDescription": "Change the appearance of the application",
+    "darkMode": "Dark Mode",
+    "darkModeDescription": "Switch to dark theme",
+    "language": "Language",
+    "languageDescription": "Change application language",
+    "notifications": "Notifications",
+    "notificationsDescription": "Manage notification settings",
+    "comingSoon": "Coming Soon",
+    "currentLanguage": "Current: Korean",
+    "newMessageNotifications": "Receive new message notifications"
+  },
+  "main": {
+    "messages": "Messages",
+    "selectChatRoom": "Please select a chat room",
+    "threads": "Threads",
+    "noThreads": "No threads",
+    "selectRoomFirst": "Please select a chat room first"
+  },
+  "time": {
+    "justNow": "just now"
   }
 }

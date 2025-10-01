@@ -19,37 +19,14 @@ export const useThemeStore = create<ThemeStore>()(
 
       setTheme: (theme) => {
         set({ theme });
-        // HTML data-theme 속성 업데이트
-        if (typeof document !== "undefined") {
-          document.documentElement.setAttribute("data-theme", theme);
-        }
       },
 
       toggleDark: () => {
-        set((state) => {
-          const newIsDark = !state.isDark;
-          // HTML class 업데이트
-          if (typeof document !== "undefined") {
-            if (newIsDark) {
-              document.documentElement.classList.add("dark");
-            } else {
-              document.documentElement.classList.remove("dark");
-            }
-          }
-          return { isDark: newIsDark };
-        });
+        set((state) => ({ isDark: !state.isDark }));
       },
 
       setDark: (isDark) => {
         set({ isDark });
-        // HTML class 업데이트
-        if (typeof document !== "undefined") {
-          if (isDark) {
-            document.documentElement.classList.add("dark");
-          } else {
-            document.documentElement.classList.remove("dark");
-          }
-        }
       },
     }),
     {
