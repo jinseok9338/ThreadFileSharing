@@ -30,9 +30,9 @@ export function QueryProvider({ children }: QueryProviderProps) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {isDevtools && (
+      {/* {isDevtools && (
         <ReactQueryDevtools initialIsOpen={false} position="bottom" />
-      )}
+      )} */}
     </QueryClientProvider>
   );
 }

@@ -54,7 +54,19 @@
     "noRooms": "채팅룸이 없습니다",
     "createFirstRoom": "첫 번째 채팅룸을 만들어보세요",
     "createRoom": "채팅룸 만들기",
-    "noMessages": "메시지가 없습니다"
+    "noMessages": "메시지가 없습니다",
+    "participants": "참여자",
+    "loadingMessages": "메시지 로딩 중...",
+    "typing": "님이 입력 중...",
+    "typeMessage": "메시지를 입력하세요...",
+    "send": "전송",
+    "uploadFile": "파일 업로드",
+    "showParticipants": "참여자 보기",
+    "moreOptions": "더 많은 옵션",
+    "sendFirstMessage": "첫 번째 메시지를 보내보세요",
+    "and": "그리고",
+    "others": "명",
+    "toggleThreads": "스레드 열기/닫기"
   },
   "settings": {
     "title": "설정",
@@ -80,5 +92,86 @@
   },
   "time": {
     "justNow": "방금"
+  },
+  "thread": {
+    "new": "새로 만들기",
+    "noThreads": "스레드가 없습니다",
+    "createFirst": "첫 번째 스레드를 만들어보세요",
+    "createThread": "스레드 만들기",
+    "messages": "메시지",
+    "attachedFiles": "첨부 파일",
+    "typeMessage": "메시지를 입력하세요...",
+    "uploadFile": "파일 업로드",
+    "send": "전송",
+    "editThread": "스레드 편집",
+    "deleteThread": "스레드 삭제",
+    "files": "파일",
+    "chat": "채팅",
+    "noFiles": "파일이 없습니다",
+    "uploadFirst": "첫 번째 파일을 업로드해보세요",
+    "threads": "스레드",
+    "uploadLocation": "업로드 위치",
+    "uploadToFolder": "파일을 업로드하면 선택된 폴더에 추가됩니다",
+    "rootFolder": "루트 폴더",
+    "unknownFolder": "알 수 없는 폴더"
+  },
+  "fileUpload": {
+    "dragDrop": "파일을 여기에 드래그하거나 클릭하세요",
+    "supportedFormats": "지원 형식: PDF, 이미지, 문서, 기타",
+    "selectFiles": "파일 선택",
+    "uploading": "업로드 중...",
+    "complete": "업로드 완료",
+    "error": "업로드 실패",
+    "tooLarge": "파일 크기가 너무 큽니다",
+    "invalidType": "지원되지 않는 파일 형식입니다",
+    "tooMany": "최대 파일 개수를 초과했습니다"
+  },
+  "commands": {
+    "fileUpload": "파일 업로드",
+    "createThread": "스레드 만들기",
+    "createThreadDescription": "파일로 새로운 스레드를 생성합니다",
+    "shareFile": "파일 공유하기",
+    "shareFileDescription": "파일을 채팅에 직접 공유합니다",
+    "cancel": "취소"
+  },
+  "fileExplorer": {
+    "breadcrumb": "문서 > 스레드명 > 현재폴더",
+    "newFolder": "새 폴더",
+    "upload": "업로드",
+    "share": "공유",
+    "download": "다운로드",
+    "search": "파일 검색...",
+    "name": "이름",
+    "modifiedDate": "수정된 날짜",
+    "modifiedBy": "수정한 사람",
+    "size": "크기",
+    "filesCount": "개 파일",
+    "noFiles": "파일이 없습니다",
+    "uploadHere": "여기에 파일을 업로드하세요",
+    "createFolder": "폴더 생성",
+    "folderName": "폴더 이름을 입력하세요",
+    "deleteConfirm": "정말로 삭제하시겠습니까?",
+    "shareLinkCopied": "공유 링크가 복사되었습니다",
+    "permissionDenied": "권한이 없습니다",
+    "moreActions": "더보기",
+    "dropFilesHere": "파일을 여기에 놓으세요"
+  },
+  "filePreview": {
+    "preview": "보기",
+    "download": "다운로드",
+    "noPreview": "이 파일은 미리보기를 지원하지 않습니다",
+    "playVideo": "비디오를 재생할 수 없습니다"
+  },
+  "avatar": {
+    "user": "사용자",
+    "online": "온라인",
+    "away": "자리 비움",
+    "busy": "바쁨",
+    "offline": "오프라인"
+  },
+  "loading": {
+    "loading": "로딩 중...",
+    "skeleton": "콘텐츠 로딩 중",
+    "pleaseWait": "잠시만 기다려주세요"
   }
 }

@@ -71,7 +71,7 @@ export function ChatRoomList({
   const { t } = useTranslation();
 
   return (
-    <div className={cn("h-full flex flex-col bg-background", className)}>
+    <div className={cn("h-full flex flex-col bg-transparent", className)}>
       {/* 헤더 */}
       <div className="p-3 border-b">
         <div className="flex items-center justify-between">

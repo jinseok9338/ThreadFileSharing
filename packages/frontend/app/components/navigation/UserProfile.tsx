@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Avatar } from "~/components/ui/avatar";
 import { cn } from "~/lib/utils";
 import { useTranslation } from "react-i18next";
 
@@ -52,17 +52,13 @@ export function UserProfile({
       {/* 아바타 영역 */}
       <div className="relative">
         <Avatar
+          src={currentUser?.avatar}
+          alt={currentUser?.displayName}
+          fallback={currentUser?.displayName}
+          size="sm"
           className="w-8 h-8 cursor-pointer hover:scale-105 transition-transform"
           onClick={onClick}
-        >
-          <AvatarImage
-            src={currentUser?.avatar}
-            alt={currentUser?.displayName}
-          />
-          <AvatarFallback>
-            {currentUser?.displayName?.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        />
 
         {/* 상태 표시 */}
         {showStatus && (

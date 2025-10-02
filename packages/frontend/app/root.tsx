@@ -25,6 +25,7 @@ import { NOT_AUTH_PATH } from "./constants/consts";
 import "./lang/i18n";
 import { Toaster } from "./components/ui/sonner";
 import { SidebarProvider } from "./components/ui/sidebar";
+import { OverlayProvider } from "overlay-kit";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -74,10 +75,12 @@ export default function App() {
   return (
     <QueryProvider>
       <ThemeProvider>
-        <SidebarProvider>
-          <Outlet />
-        </SidebarProvider>
-        <Toaster />
+        <OverlayProvider>
+          <SidebarProvider>
+            <Outlet />
+          </SidebarProvider>
+          <Toaster />
+        </OverlayProvider>
       </ThemeProvider>
     </QueryProvider>
   );

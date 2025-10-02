@@ -1,202 +1,241 @@
-# MainPage 컴포넌트
+# MainPage Component
 
-## 개요
+**Purpose**: Main chat page component that provides three-column layout with chat room list, messages, and threads.
 
-메인 페이지 컴포넌트로, 채팅룸 내용과 스레드 패널을 표시합니다. `_main._index.tsx` 라우트에서 사용됩니다.
+## 컴포넌트 목적
 
-## 목적
-
-- 채팅룸 내용 표시 영역
-- 스레드 패널 표시 영역
-- ResizablePanelGroup을 통한 패널 크기 조절
-- 빈 상태 메시지 표시
-
-## 파일 위치
-
-`packages/frontend/app/pages/main/index.tsx`
-
-## Props
-
-현재는 Props를 받지 않습니다. 향후 채팅룸 데이터를 Props로 받을 예정입니다.
+ThreadFileSharing 애플리케이션의 메인 채팅 페이지입니다. 채팅룸 목록, 메시지 영역, 스레드 패널의 3단 구조를 제공합니다.
 
 ## 내부 구조
+
+### 레이아웃 구조
+
+```
+┌─────────────────┬─────────────────────────┬─────────────────────┐
+│   Chat Room     │      Messages           │      Threads        │
+│     List        │                         │                     │
+│   (20%)         │        (50%)            │      (30%)          │
+│ bg-muted/30     │    bg-background        │    bg-muted/20      │
+│                 │                         │                     │
+│ - Room List     │ - Message List          │ - Thread List       │
+│ - Search        │ - Message Input         │ - Thread Detail     │
+│ - Create Room   │ - File Upload           │ - Thread Files      │
+│                 │ - Typing Indicator      │                     │
+└─────────────────┴─────────────────────────┴─────────────────────┘
+```
 
 ### 컴포넌트 구조
 
 ```tsx
 <ResizablePanelGroup direction="horizontal" className="h-full">
-  {/* Right Chat Content Panel */}
-  <ResizablePanel defaultSize={400} minSize={300} maxSize={600}>
-    <div className="h-full bg-background">
-      <div className="p-4">
-        <Heading3 className="text-muted-foreground">메시지</Heading3>
-      </div>
-      <div className="flex-1 p-4">
-        <div className="text-center">
-          <BodyTextSmall className="text-muted-foreground">
-            채팅룸을 선택해주세요
-          </BodyTextSmall>
-        </div>
-      </div>
-    </div>
+  {/* Left Chat Room List Panel */}
+  <ResizablePanel
+    defaultSize={20}
+    minSize={17}
+    maxSize={35}
+    className="bg-muted/30"
+  >
+    <ChatRoomList />
   </ResizablePanel>
 
   <ResizableHandle />
 
-  {/* Thread Panel */}
-  <ResizablePanel defaultSize={300} minSize={60} maxSize={400}>
-    <div className="h-full border-l bg-background">
-      <div className="p-4">
-        <Heading3 className="text-muted-foreground">Threads</Heading3>
-      </div>
-      <div className="flex-1 p-4">
-        <div className="text-center">
-          <BodyTextSmall className="text-muted-foreground">
-            스레드가 없습니다
-          </BodyTextSmall>
-        </div>
-      </div>
-    </div>
+  {/* Middle Chat Content Panel */}
+  <ResizablePanel
+    defaultSize={50}
+    minSize={30}
+    maxSize={70}
+    className="bg-background"
+  >
+    <ChatRoomContent />
+  </ResizablePanel>
+
+  <ResizableHandle />
+
+  {/* Right Thread Panel */}
+  <ResizablePanel
+    defaultSize={30}
+    minSize={15}
+    maxSize={40}
+    className="bg-muted/20"
+  >
+    <ThreadPanel />
   </ResizablePanel>
 </ResizablePanelGroup>
 ```
 
 ## 사용되는 컴포넌트
 
-### Typography 컴포넌트
+### 직접 사용
 
-- `Heading3` - 패널 헤더 텍스트
-- `BodyTextSmall` - 빈 상태 메시지
+- `ResizablePanelGroup` - 3단 레이아웃 컨테이너
+- `ResizablePanel` - 개별 패널들
+- `ResizableHandle` - 패널 간 리사이즈 핸들
+- `ChatRoomList` - 채팅룸 목록 컴포넌트
+- `Heading3` - 제목 텍스트
+- `BodyTextSmall` - 본문 텍스트
 
-### shadcn/ui 컴포넌트
+### 의존성
 
-- `ResizablePanelGroup` - 패널 그룹 컨테이너
-- `ResizablePanel` - 개별 패널
-- `ResizableHandle` - 패널 크기 조절 핸들
+- `react` - useState 훅
+- `react-i18next` - 다국어 지원
+- `~/components/ui/resizable` - 리사이저블 패널
+- `~/components/typography` - 타이포그래피 컴포넌트
+- `~/components/chat/ChatRoomList` - 채팅룸 목록
+
+## 상태 관리
+
+### 로컬 상태
+
+```tsx
+const [selectedChatRoomId, setSelectedChatRoomId] = useState<string>();
+```
+
+### 이벤트 핸들러
+
+```tsx
+const handleChatRoomSelect = (chatRoomId: string) => {
+  setSelectedChatRoomId(chatRoomId);
+};
+
+const handleCreateNewRoom = () => {
+  // TODO: 새 채팅룸 생성 로직
+  console.log("새 채팅룸 생성");
+};
+```
+
+## 패널 설정
+
+### Chat Room List Panel (왼쪽)
+
+- **defaultSize**: 20% (기본 크기)
+- **minSize**: 17% (최소 크기)
+- **maxSize**: 35% (최대 크기)
+
+### Messages Panel (중간)
+
+- **defaultSize**: 50% (기본 크기)
+- **minSize**: 30% (최소 크기)
+- **maxSize**: 70% (최대 크기)
+
+### Threads Panel (오른쪽)
+
+- **defaultSize**: 30% (기본 크기)
+- **minSize**: 15% (최소 크기)
+- **maxSize**: 40% (최대 크기)
 
 ## 스타일링
 
 ### 컨테이너 스타일
 
 - `h-full` - 전체 높이 사용
-- `bg-background` - 배경색
 
 ### 패널 스타일
 
-- `p-4` - 16px 패딩
-- `border-l` - 왼쪽 테두리 (Thread 패널)
-- `text-center` - 텍스트 중앙 정렬
+- `bg-background` - 배경색
+- `border-l` - 왼쪽 테두리 (Threads 패널)
 
-### 헤더 스타일
+### 텍스트 스타일
 
-- `text-muted-foreground` - 보조 텍스트 색상
+- `text-muted-foreground` - 회색 텍스트
+- `text-left` - 왼쪽 정렬
 
-### 빈 상태 스타일
+## 다국어 지원
 
-- `text-muted-foreground` - 보조 텍스트 색상
-- `text-center` - 중앙 정렬
+### 사용되는 키
 
-## 상태 관리
+- `main.messages` - "메시지" / "Messages"
+- `main.selectChatRoom` - "채팅룸을 선택해주세요" / "Please select a chat room"
+- `main.threads` - "Threads" / "Threads"
+- `main.noThreads` - "스레드가 없습니다" / "No threads"
 
-현재는 상태를 관리하지 않습니다. 향후 다음 상태들을 추가할 예정입니다:
+## 향후 구현 예정
 
-- 선택된 채팅룸 데이터
-- 메시지 목록
-- 스레드 목록
-- 로딩 상태
+### Chat Content Panel
 
-## 인터랙션
+```tsx
+<ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
+  <ChatRoomContent selectedChatRoomId={selectedChatRoomId} />
+</ResizablePanel>
+```
 
-### 패널 크기 조절
+### Thread Panel
 
-- ResizableHandle을 통한 드래그로 패널 크기 조절
-- 최소/최대 크기 제한
+```tsx
+<ResizablePanel defaultSize={30} minSize={15} maxSize={40}>
+  <ThreadPanel selectedChatRoomId={selectedChatRoomId} />
+</ResizablePanel>
+```
 
-### 향후 인터랙션
+## 사용 예시
 
-- 채팅룸 선택 시 내용 표시
-- 메시지 입력 및 전송
-- 스레드 생성 및 관리
-- 파일 업로드
+```tsx
+// 라우트에서 사용
+<Route path="main" element={<MainPage />} />
 
-## 접근성
+// MainLayout 내부에서 렌더링
+<MainLayout>
+  <MainPage /> {/* Outlet으로 렌더링 */}
+</MainLayout>
+```
 
-### 키보드 네비게이션
+## 시각적 구분을 위한 백그라운드 차별화 (2024.01.15)
 
-- Tab으로 패널 간 이동
-- 패널 크기 조절을 위한 키보드 단축키 (향후)
+### 백그라운드 색상 전략
 
-### 스크린 리더 지원
+각 섹션의 시각적 구분을 위해 서로 다른 백그라운드 변수를 사용합니다:
 
-- 각 패널에 적절한 `role` 속성 (향후)
-- 헤더와 내용의 구조적 관계 명시
+#### **1. 채팅룸 목록 (Left Panel)**
 
-## 성능 최적화
+- **백그라운드**: `bg-muted/30`
+- **효과**: 연한 회색 배경으로 목록 영역을 명확히 구분
+- **용도**: 채팅룸 목록과 검색 기능
 
-### 렌더링 최적화
+#### **2. 채팅 컨텐츠 (Middle Panel)**
 
-- `memo` 사용으로 불필요한 리렌더링 방지 (향후)
-- 가상화를 통한 대량 메시지 처리 (향후)
+- **백그라운드**: `bg-background`
+- **효과**: 메인 컨텐츠 영역으로 가장 밝은 배경
+- **용도**: 메시지 표시 및 입력 영역
 
-### 메모리 관리
+#### **3. 스레드 패널 (Right Panel)**
 
-- 채팅룸 변경 시 이전 데이터 정리 (향후)
-- 이미지/파일 캐싱 최적화 (향후)
+- **백그라운드**: `bg-muted/20`
+- **효과**: 중간 정도의 회색 배경으로 스레드 영역 구분
+- **용도**: 스레드 목록, 파일 관리, 스레드 채팅
 
-## 테마 지원
+### 컴포넌트별 백그라운드 투명도
 
-- `bg-background` - 테마별 배경색
-- `text-muted-foreground` - 테마별 보조 텍스트 색상
-- 다크/라이트 모드 자동 전환
+각 컴포넌트는 상위 패널의 백그라운드를 보여주기 위해 투명 배경을 사용합니다:
 
-## 반응형 디자인
+#### **ChatRoomList**
 
-현재는 데스크톱 전용으로 설계되어 있습니다. 향후 태블릿 지원을 고려할 수 있습니다.
+```tsx
+<div className="h-full flex flex-col bg-transparent">
+```
 
-## 테스트 시나리오
+#### **ChatRoomContent**
 
-### 기본 렌더링
+```tsx
+<div className="h-full flex flex-col bg-transparent relative">
+```
 
-1. MainPage가 올바르게 렌더링되는지 확인
-2. 두 개의 패널이 표시되는지 확인
-3. 헤더와 빈 상태 메시지가 표시되는지 확인
+#### **ThreadPanel**
 
-### 패널 크기 조절
+```tsx
+<div className="h-full flex flex-col bg-transparent border-l">
+```
 
-1. ResizableHandle을 드래그하여 패널 크기가 조절되는지 확인
-2. 최소/최대 크기 제한이 작동하는지 확인
-3. 크기 조절 후 레이아웃이 깨지지 않는지 확인
+### 시각적 계층 구조
 
-### 접근성
+1. **가장 밝음**: 채팅 컨텐츠 (`bg-background`)
+2. **중간 밝기**: 스레드 패널 (`bg-muted/20`)
+3. **가장 어두움**: 채팅룸 목록 (`bg-muted/30`)
 
-1. 키보드만으로 패널 간 이동이 가능한지 확인
-2. 스크린 리더에서 패널 구조를 인식하는지 확인
+이 구조를 통해 사용자가 각 영역을 쉽게 구분할 수 있고, 정보 계층을 명확하게 인식할 수 있습니다.
 
-### 테마 전환
+## 관련 파일
 
-1. 다크/라이트 모드 전환 시 스타일이 올바르게 적용되는지 확인
-2. 색상 대비가 적절한지 확인
-
-## 향후 개선 사항
-
-### 기능 추가
-
-- 실제 채팅룸 데이터 연동
-- 메시지 표시 및 입력 기능
-- 스레드 생성 및 관리
-- 파일 업로드 및 공유
-- 실시간 메시지 업데이트
-
-### UI/UX 개선
-
-- 로딩 상태 표시
-- 에러 상태 처리
-- 애니메이션 및 전환 효과
-- 더 나은 빈 상태 디자인
-
-### 성능 최적화
-
-- 메시지 가상화
-- 이미지 지연 로딩
-- 메모리 사용량 최적화
-- 번들 크기 최적화
+- `app/routes/_main.tsx` - 라우트 정의
+- `app/components/layouts/MainLayout.tsx` - 메인 레이아웃
+- `app/components/chat/ChatRoomList.tsx` - 채팅룸 목록
+- `language.csv` - 다국어 키 정의

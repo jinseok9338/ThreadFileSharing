@@ -54,7 +54,19 @@
     "noRooms": "No chat rooms",
     "createFirstRoom": "Create your first chat room",
     "createRoom": "Create Room",
-    "noMessages": "No messages"
+    "noMessages": "No messages",
+    "participants": "participants",
+    "loadingMessages": "Loading messages...",
+    "typing": "is typing...",
+    "typeMessage": "Type a message...",
+    "send": "Send",
+    "uploadFile": "Upload file",
+    "showParticipants": "Show participants",
+    "moreOptions": "More options",
+    "sendFirstMessage": "Send your first message",
+    "and": "and",
+    "others": "others",
+    "toggleThreads": "Toggle threads"
   },
   "settings": {
     "title": "Settings",
@@ -80,5 +92,86 @@
   },
   "time": {
     "justNow": "just now"
+  },
+  "thread": {
+    "new": "New",
+    "noThreads": "No threads",
+    "createFirst": "Create your first thread",
+    "createThread": "Create Thread",
+    "messages": "messages",
+    "attachedFiles": "Attached Files",
+    "typeMessage": "Type a message...",
+    "uploadFile": "Upload file",
+    "send": "Send",
+    "editThread": "Edit Thread",
+    "deleteThread": "Delete Thread",
+    "files": "Files",
+    "chat": "Chat",
+    "noFiles": "No files",
+    "uploadFirst": "Upload your first file",
+    "threads": "Threads",
+    "uploadLocation": "Upload Location",
+    "uploadToFolder": "Files will be added to the selected folder",
+    "rootFolder": "Root Folder",
+    "unknownFolder": "Unknown Folder"
+  },
+  "fileUpload": {
+    "dragDrop": "Drag and drop files here or click to select",
+    "supportedFormats": "Supported formats: PDF, Images, Documents, Others",
+    "selectFiles": "Select Files",
+    "uploading": "Uploading...",
+    "complete": "Upload Complete",
+    "error": "Upload Failed",
+    "tooLarge": "File size is too large",
+    "invalidType": "Unsupported file type",
+    "tooMany": "Too many files selected"
+  },
+  "commands": {
+    "fileUpload": "File Upload",
+    "createThread": "Create Thread",
+    "createThreadDescription": "Create a new thread with files",
+    "shareFile": "Share File",
+    "shareFileDescription": "Share files directly in chat",
+    "cancel": "Cancel"
+  },
+  "fileExplorer": {
+    "breadcrumb": "Documents > Thread Name > Current Folder",
+    "newFolder": "New Folder",
+    "upload": "Upload",
+    "share": "Share",
+    "download": "Download",
+    "search": "Search files...",
+    "name": "Name",
+    "modifiedDate": "Modified Date",
+    "modifiedBy": "Modified By",
+    "size": "Size",
+    "filesCount": "files",
+    "noFiles": "No files",
+    "uploadHere": "Upload files here",
+    "createFolder": "Create Folder",
+    "folderName": "Enter folder name",
+    "deleteConfirm": "Are you sure you want to delete?",
+    "shareLinkCopied": "Share link copied",
+    "permissionDenied": "Permission denied",
+    "moreActions": "More Actions",
+    "dropFilesHere": "Drop files here"
+  },
+  "filePreview": {
+    "preview": "Preview",
+    "download": "Download",
+    "noPreview": "This file type does not support preview",
+    "playVideo": "Cannot play video"
+  },
+  "avatar": {
+    "user": "User",
+    "online": "Online",
+    "away": "Away",
+    "busy": "Busy",
+    "offline": "Offline"
+  },
+  "loading": {
+    "loading": "Loading...",
+    "skeleton": "Loading content",
+    "pleaseWait": "Please wait"
   }
 }

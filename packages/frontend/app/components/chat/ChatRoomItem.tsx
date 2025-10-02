@@ -1,5 +1,5 @@
 import { Button } from "~/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Avatar } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { BodyTextSmall, Caption } from "~/components/typography";
 import { Users } from "lucide-react";
@@ -38,12 +38,12 @@ export function ChatRoomItem({
     >
       <div className="flex items-start space-x-2 w-full text-left">
         {/* 아바타 */}
-        <Avatar className="w-8 h-8 flex-shrink-0">
-          <AvatarImage src={undefined} alt={chatRoom.name} />
-          <AvatarFallback>
-            {chatRoom.name.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <Avatar
+          alt={chatRoom.name}
+          fallback={chatRoom.name}
+          size="sm"
+          className="w-8 h-8 flex-shrink-0"
+        />
 
         {/* 채팅룸 정보 */}
         <div className="flex-1 min-w-0 text-left">

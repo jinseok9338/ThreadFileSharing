@@ -6,23 +6,22 @@
 
 ## Layout Overview
 
-Teams-like four-column layout for desktop chat application with resizable panels and navigation, split into Layout and Page components for better routing structure.
+Teams-like layout for desktop chat application with fixed left navigation and flexible page content. Layout only contains the left sidebar, while pages handle their own content structure.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Header (Optional - App Branding)                                                            │
-├──────────┬──────────────────────────────┬──────────────────────────────────┬────────────────┤
-│          │                              │                                  │                │
-│ Layout   │ Layout                       │ Page                             │ Page           │
-│ Left     │ Middle                       │ Right                            │ Thread         │
-│ Column   │ Column                       │ Column                           │ Column         │
-│          │                              │                                  │                │
-│ - Nav    │ - Chat Room List             │ - Chat Room Content              │ - Thread List  │
-│ - Settings│ - Search (Future)            │ - Messages                       │ - Thread Detail│
-│ - Theme  │ - Filters (Future)           │ - Input Area                     │ - Thread Files │
-│          │                              │ - File Upload                    │                │
-│          │                              │                                  │                │
-└──────────┴──────────────────────────────┴──────────────────────────────────┴────────────────┘
+├──────────┬─────────────────────────────────────────────────────────────────────────────────┤
+│          │                                                                                 │
+│ Layout   │ Page Content (varies by route)                                                  │
+│ Left     │                                                                                 │
+│ Column   │ - Main Page: Chat Room List + Messages + Threads                               │
+│          │ - Settings Page: Settings content                                               │
+│ - Nav    │ - Future Pages: Their own layouts                                               │
+│ - Settings│                                                                                 │
+│ - Theme  │                                                                                 │
+│          │                                                                                 │
+└──────────┴─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Left Column - Navigation Sidebar
