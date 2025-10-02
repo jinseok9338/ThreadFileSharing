@@ -57,3 +57,4 @@ export class ThreadMessage {
   @JoinColumn({ name: 'senderId' })
   sender: User;
 }
+

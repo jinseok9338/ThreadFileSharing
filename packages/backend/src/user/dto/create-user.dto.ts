@@ -58,3 +58,4 @@ export class CreateUserDto {
   @IsBoolean()
   emailVerified?: boolean;
 }
+

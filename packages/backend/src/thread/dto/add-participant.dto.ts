@@ -18,3 +18,4 @@ export class AddThreadParticipantDto {
   @IsEnum(ThreadRole)
   threadRole: ThreadRole;
 }
+

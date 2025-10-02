@@ -164,3 +164,4 @@ async createChatRoom(@Body() dto: CreateChatRoomDto) {
 - [ ] System handles edge cases (user removal, role changes, file limits)
 - [ ] Documentation supports implementation team understanding
 
+

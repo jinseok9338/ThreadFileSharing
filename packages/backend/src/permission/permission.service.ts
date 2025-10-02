@@ -167,3 +167,4 @@ export class PermissionService {
     return this.hasCompanyPermission(userId, 'COMPANY_SETTINGS');
   }
 }
+

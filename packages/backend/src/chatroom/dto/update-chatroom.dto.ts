@@ -26,3 +26,4 @@ export class UpdateChatRoomDto {
   @IsUrl()
   avatarUrl?: string;
 }
+

@@ -71,3 +71,4 @@ export class CompanyInvitation {
   @JoinColumn({ name: 'invitedBy' })
   inviter: User;
 }
+

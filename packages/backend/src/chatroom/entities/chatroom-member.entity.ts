@@ -34,3 +34,4 @@ export class ChatRoomMember {
   @JoinColumn({ name: 'userId' })
   user: User;
 }
+

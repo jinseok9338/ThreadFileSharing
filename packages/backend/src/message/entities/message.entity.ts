@@ -59,3 +59,4 @@ export class Message {
   @JoinColumn({ name: 'senderId' })
   sender: any;
 }
+

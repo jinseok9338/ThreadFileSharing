@@ -240,3 +240,4 @@ export class AccessTypeService {
     return currentType === newType;
   }
 }
+

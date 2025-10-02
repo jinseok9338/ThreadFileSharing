@@ -49,3 +49,4 @@ export class FileUploadProgressDto {
   @IsString()
   message?: string;
 }
+

@@ -33,3 +33,4 @@ export class CreateCompanyDto {
   @IsObject()
   settings?: Record<string, any>;
 }
+

@@ -39,3 +39,4 @@ export class AddLastReadAtToThreadParticipants1759407800000
     console.log('✅ Removed lastReadAt column from thread_participants table');
   }
 }
+

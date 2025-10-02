@@ -19,3 +19,4 @@ export class UpdateThreadDto {
   @IsString()
   description?: string;
 }
+

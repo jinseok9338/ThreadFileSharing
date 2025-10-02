@@ -91,3 +91,4 @@ export class AddMissingThreadParticipantColumns1759407900000
     console.log('✅ Removed added columns from thread_participants table');
   }
 }
+

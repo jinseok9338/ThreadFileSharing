@@ -58,3 +58,4 @@ export class ThreadParticipantDto {
   })
   joinedAt: string;
 }
+

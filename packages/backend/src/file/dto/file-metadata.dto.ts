@@ -46,3 +46,4 @@ export class FileMetadataDto {
   @IsObject()
   metadata?: Record<string, any>;
 }
+

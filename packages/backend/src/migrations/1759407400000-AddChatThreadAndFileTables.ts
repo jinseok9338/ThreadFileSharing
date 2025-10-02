@@ -702,3 +702,4 @@ export class AddChatThreadAndFileTables1759407400000
     await queryRunner.dropTable('chatrooms', true);
   }
 }
+
