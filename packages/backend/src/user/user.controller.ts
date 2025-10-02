@@ -19,13 +19,14 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { CompanyRole } from './entities/user.entity';
+import { CompanyRole } from '../constants/permissions';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { MessageData } from '../common/dto';
 import { ApiSuccessResponse } from '../common/decorators';
+import { User } from './entities/user.entity';
 
 @ApiTags('Users')
 @ApiExtraModels(UserResponseDto, MessageData)
@@ -42,7 +43,7 @@ export class UserController {
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiSuccessResponse(UserResponseDto, { description: 'User profile' })
-  async getMe(@CurrentUser() user: any) {
+  async getMe(@CurrentUser() user: User) {
     const fullUser = await this.userService.findById(user.id);
     return UserResponseDto.fromEntity(fullUser);
   }
@@ -55,7 +56,7 @@ export class UserController {
   @ApiOperation({ summary: 'Update user profile' })
   @ApiSuccessResponse(UserResponseDto, { description: 'Updated user' })
   async updateProfile(
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
     @Body() updateDto: UpdateProfileDto,
   ) {
     const updatedUser = await this.userService.updateProfile(
@@ -73,7 +74,7 @@ export class UserController {
   @ApiOperation({ summary: 'Change password' })
   @ApiSuccessResponse(MessageData, { description: 'Password changed' })
   async changePassword(
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
     await this.userService.changePassword(user.id, changePasswordDto);
@@ -91,7 +92,7 @@ export class UserController {
   @ApiOperation({ summary: 'Update user role' })
   @ApiSuccessResponse(UserResponseDto, { description: 'User role updated' })
   async updateUserRole(
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
     @Param('userId') userId: string,
     @Body() updateRoleDto: UpdateRoleDto,
   ) {
@@ -114,7 +115,7 @@ export class UserController {
   @ApiOperation({ summary: 'Deactivate user account' })
   @ApiSuccessResponse(MessageData, { description: 'User deactivated' })
   async deactivateUser(
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
     @Param('userId') userId: string,
   ) {
     await this.userService.deactivateAccount(userId);

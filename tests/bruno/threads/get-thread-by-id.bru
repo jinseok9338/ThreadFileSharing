@@ -1,0 +1,35 @@
+meta {
+  name: Get Thread by ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has thread data", function() {
+    expect(res.getBody().data).to.be.an("object");
+    expect(res.getBody().data.id).to.equal(threadId);
+  });
+  
+  test("Thread has required fields", function() {
+    const thread = res.getBody().data;
+    expect(thread).to.have.property("id");
+    expect(thread).to.have.property("title");
+    expect(thread).to.have.property("description");
+    expect(thread).to.have.property("chatroomId");
+    expect(thread).to.have.property("createdAt");
+  });
+}

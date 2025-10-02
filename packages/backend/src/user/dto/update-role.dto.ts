@@ -1,6 +1,6 @@
 import { IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { CompanyRole } from '../entities/user.entity';
+import { CompanyRole } from '../../constants/permissions';
 
 export class UpdateRoleDto {
   @ApiProperty({

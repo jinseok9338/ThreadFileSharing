@@ -1,0 +1,57 @@
+meta {
+  name: Get ChatRooms
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+query:params {
+  limit: 10
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has data structure", function() {
+    expect(res.getBody().data).to.be.an("object");
+    expect(res.getBody().data.items).to.be.an("array");
+    expect(res.getBody().data.pagination).to.be.an("object");
+  });
+  
+  test("Pagination structure is correct", function() {
+    const pagination = res.getBody().data.pagination;
+    expect(pagination).to.have.property("hasNext");
+    expect(pagination).to.have.property("limit");
+    expect(pagination.hasNext).to.be.a("boolean");
+    expect(pagination.limit).to.be.a("number");
+  });
+  
+  test("ChatRoom items have required fields", function() {
+    const chatRooms = res.getBody().data.items;
+    if (chatRooms.length > 0) {
+      const chatRoom = chatRooms[0];
+      expect(chatRoom).to.have.property("id");
+      expect(chatRoom).to.have.property("name");
+      expect(chatRoom).to.have.property("createdAt");
+    }
+  });
+}
+
+script:post-response {
+  // Save first chatroom ID if available
+  const chatRooms = res.getBody().data.items;
+  if (chatRooms.length > 0) {
+    bru.setEnvVar("chatroomId", chatRooms[0].id);
+  }
+}

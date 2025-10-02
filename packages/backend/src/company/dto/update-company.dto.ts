@@ -1,41 +1,36 @@
-import { IsString, IsEnum, IsOptional, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsObject } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { CompanyPlan } from '../entities/company.entity';
 
 export class UpdateCompanyDto {
   @ApiPropertyOptional({
     description: 'Company name',
-    example: 'Updated Company Name',
+    example: 'ThreadFileSharing Company',
   })
   @IsOptional()
   @IsString()
   name?: string;
 
   @ApiPropertyOptional({
-    description: 'Company subscription plan',
-    enum: CompanyPlan,
-    example: CompanyPlan.PRO,
+    description: 'Company slug (URL-friendly identifier)',
+    example: 'threadfile-sharing',
   })
   @IsOptional()
-  @IsEnum(CompanyPlan)
-  plan?: CompanyPlan;
+  @IsString()
+  slug?: string;
 
   @ApiPropertyOptional({
-    description: 'Maximum number of users allowed',
+    description: 'Storage limit in GB',
     example: 100,
-    minimum: 1,
   })
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  max_users?: number;
+  @IsNumber()
+  storageLimitGb?: number;
 
   @ApiPropertyOptional({
-    description: 'Maximum storage in bytes',
-    example: 10737418240,
-    minimum: 0,
+    description: 'Company-specific settings',
+    example: { theme: 'light', notifications: false },
   })
   @IsOptional()
-  @Min(0)
-  max_storage_bytes?: bigint;
+  @IsObject()
+  settings?: Record<string, any>;
 }

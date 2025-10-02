@@ -1,5 +1,6 @@
 import dataSource from '../../config/typeorm.config';
 import { seedAuthData } from './auth.seed';
+import { seedChatData } from './chat.seed';
 
 (async () => {
   try {
@@ -8,6 +9,7 @@ import { seedAuthData } from './auth.seed';
     console.log('Database connected!');
 
     await seedAuthData(dataSource);
+    await seedChatData(dataSource);
 
     await dataSource.destroy();
     console.log('Database connection closed.');

@@ -9,14 +9,13 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User, CompanyRole } from '../user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { Company, CompanyPlan } from '../company/entities/company.entity';
+import { CompanyRole } from '../constants/permissions';
 import { RefreshToken } from '../refresh-token/entities/refresh-token.entity';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { UserResponseDto } from '../user/dto/user-response.dto';
-import { CompanyResponseDto } from '../company/dto/company-response.dto';
 
 interface RegisterDto {
   email: string;
@@ -86,8 +85,8 @@ export class AuthService {
       name: companyName,
       slug,
       plan: CompanyPlan.FREE,
-      max_users: 100,
-      max_storage_bytes: BigInt(5368709120), // 5GB
+      maxUsers: 100,
+      maxStorageBytes: BigInt(5368709120), // 5GB
     });
     await this.companyRepository.save(company);
 
@@ -97,12 +96,12 @@ export class AuthService {
     // Create owner user
     const user = this.userRepository.create({
       email,
-      password_hash: passwordHash,
-      full_name: fullName,
-      company_id: company.id,
-      company_role: CompanyRole.OWNER,
-      email_verified: false,
-      is_active: true,
+      password: passwordHash,
+      fullName: fullName,
+      companyId: company.id,
+      companyRole: CompanyRole.OWNER,
+      emailVerified: false,
+      isActive: true,
     });
     await this.userRepository.save(user);
 
@@ -110,7 +109,7 @@ export class AuthService {
     const tokens = await this.generateTokens(
       user.id,
       company.id,
-      user.company_role,
+      user.companyRole,
     );
 
     return AuthResponseDto.create(
@@ -146,9 +145,9 @@ export class AuthService {
     }
 
     // Check if account is locked
-    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+    if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
       const minutesLeft = Math.ceil(
-        (new Date(user.locked_until).getTime() - Date.now()) / 60000,
+        (new Date(user.lockedUntil).getTime() - Date.now()) / 60000,
       );
       throw new HttpException(
         {
@@ -161,7 +160,7 @@ export class AuthService {
     }
 
     // Check if user has password (not OAuth-only user)
-    if (!user.password_hash) {
+    if (!user.password) {
       throw new UnauthorizedException({
         code: 'OAUTH_ONLY_ACCOUNT',
         message:
@@ -170,22 +169,19 @@ export class AuthService {
     }
 
     // Validate password
-    const isPasswordValid = await this.comparePassword(
-      password,
-      user.password_hash,
-    );
+    const isPasswordValid = await this.comparePassword(password, user.password);
 
     if (!isPasswordValid) {
       // Increment failed login attempts
-      const failedAttempts = user.failed_login_attempts + 1;
+      const failedAttempts = user.failedLoginAttempts + 1;
       const updateData: any = {
-        failed_login_attempts: failedAttempts,
+        failedLoginAttempts: failedAttempts,
       };
 
       // Lock account after 5 failed attempts
       if (failedAttempts >= 5) {
         const lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-        updateData.locked_until = lockUntil;
+        updateData.lockedUntil = lockUntil;
       }
 
       await this.userRepository.update({ id: user.id }, updateData);
@@ -197,7 +193,7 @@ export class AuthService {
     }
 
     // Check if user is active
-    if (!user.is_active) {
+    if (!user.isActive) {
       throw new UnauthorizedException({
         code: 'ACCOUNT_INACTIVE',
         message: 'Account is inactive',
@@ -208,17 +204,17 @@ export class AuthService {
     await this.userRepository.update(
       { id: user.id },
       {
-        failed_login_attempts: 0,
-        locked_until: () => 'NULL',
-        last_login_at: new Date(),
+        failedLoginAttempts: 0,
+        lockedUntil: () => 'NULL',
+        lastLoginAt: new Date(),
       },
     );
 
     // Generate tokens
     const tokens = await this.generateTokens(
       user.id,
-      user.company_id,
-      user.company_role,
+      user.companyId,
+      user.companyRole,
     );
 
     return AuthResponseDto.create(
@@ -236,7 +232,7 @@ export class AuthService {
    */
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepository.findOne({
-      where: { email, is_active: true },
+      where: { email, isActive: true },
     });
 
     if (!user) {
@@ -244,14 +240,11 @@ export class AuthService {
     }
 
     // Check if account is locked
-    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+    if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
       return null;
     }
 
-    const isPasswordValid = await this.comparePassword(
-      password,
-      user.password_hash,
-    );
+    const isPasswordValid = await this.comparePassword(password, user.password);
 
     if (!isPasswordValid) {
       return null;
@@ -278,7 +271,7 @@ export class AuthService {
     // Find all non-revoked tokens for this user
     const userTokens = await this.refreshTokenRepository.find({
       where: {
-        user_id: decoded.sub,
+        userId: decoded.sub,
         revoked: false,
       },
     });
@@ -286,10 +279,7 @@ export class AuthService {
     // Compare with stored hashes
     let matchedToken = null;
     for (const token of userTokens) {
-      const isMatch = await bcrypt.compare(
-        refreshTokenString,
-        token.token_hash,
-      );
+      const isMatch = await bcrypt.compare(refreshTokenString, token.tokenHash);
       if (isMatch) {
         matchedToken = token;
         break;
@@ -301,15 +291,15 @@ export class AuthService {
     }
 
     // Check if token is expired
-    if (new Date(matchedToken.expires_at) < new Date()) {
+    if (new Date(matchedToken.expiresAt) < new Date()) {
       throw new UnauthorizedException('Refresh token expired');
     }
 
     const user = await this.userRepository.findOne({
-      where: { id: matchedToken.user_id },
+      where: { id: matchedToken.userId },
     });
 
-    if (!user || !user.is_active) {
+    if (!user || !user.isActive) {
       throw new UnauthorizedException('User not found or inactive');
     }
 
@@ -318,15 +308,15 @@ export class AuthService {
       { id: matchedToken.id },
       {
         revoked: true,
-        revoked_at: new Date(),
+        revokedAt: new Date(),
       },
     );
 
     // Generate new tokens
     const tokens = await this.generateTokens(
       user.id,
-      user.company_id,
-      user.company_role,
+      user.companyId,
+      user.companyRole,
     );
 
     return tokens;
@@ -348,23 +338,20 @@ export class AuthService {
     // Find all non-revoked tokens for this user
     const userRefreshTokens = await this.refreshTokenRepository.find({
       where: {
-        user_id: decoded.sub,
+        userId: decoded.sub,
         revoked: false,
       },
     });
 
     // Compare with stored hashes and revoke if matched
     for (const token of userRefreshTokens) {
-      const isMatch = await bcrypt.compare(
-        refreshTokenString,
-        token.token_hash,
-      );
+      const isMatch = await bcrypt.compare(refreshTokenString, token.tokenHash);
       if (isMatch) {
         await this.refreshTokenRepository.update(
           { id: token.id },
           {
             revoked: true,
-            revoked_at: new Date(),
+            revokedAt: new Date(),
           },
         );
         break;
@@ -409,9 +396,9 @@ export class AuthService {
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
 
     const refreshToken = this.refreshTokenRepository.create({
-      user_id: userId,
-      token_hash: tokenHash,
-      expires_at: expiresAt,
+      userId: userId,
+      tokenHash: tokenHash,
+      expiresAt: expiresAt,
       revoked: false,
     });
     await this.refreshTokenRepository.save(refreshToken);
@@ -454,22 +441,5 @@ export class AuthService {
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
-  }
-
-  /**
-   * Remove sensitive data from user object
-   */
-  private sanitizeUser(user: User) {
-    const { password_hash, failed_login_attempts, locked_until, ...sanitized } =
-      user;
-    return sanitized;
-  }
-
-  /**
-   * Remove sensitive data from company object
-   */
-  private sanitizeCompany(company: Company) {
-    const { deleted_at, ...sanitized } = company;
-    return sanitized;
   }
 }

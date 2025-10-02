@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -19,7 +20,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { CompanyRole } from '../user/entities/user.entity';
+import { CompanyRole } from '../constants/permissions';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { CompanyResponseDto } from './dto/company-response.dto';
 import { UserResponseDto } from '../user/dto/user-response.dto';
@@ -27,7 +28,11 @@ import { MessageData } from '../common/dto';
 import {
   ApiSuccessResponse,
   ApiSuccessArrayResponse,
+  ApiSuccessCursorResponse,
 } from '../common/decorators';
+import { CursorPaginationQueryDto } from '../common/dto';
+import { CursorBasedData } from '../common/dto/api-response.dto';
+import { User } from 'src/user/entities/user.entity';
 
 @ApiTags('Companies')
 @ApiExtraModels(CompanyResponseDto, UserResponseDto, MessageData)
@@ -55,10 +60,12 @@ export class CompanyController {
    */
   @Get('me/members')
   @ApiOperation({ summary: 'Get company members' })
-  @ApiSuccessArrayResponse(UserResponseDto, { description: 'List of members' })
-  async getCompanyMembers(@CurrentUser() user: any) {
-    const members = await this.companyService.getMembers(user.companyId);
-    return members.map((member) => UserResponseDto.fromEntity(member));
+  @ApiSuccessCursorResponse(UserResponseDto, { description: 'List of members' })
+  async getCompanyMembers(
+    @CurrentUser() user: User,
+    @Query() query: CursorPaginationQueryDto,
+  ): Promise<CursorBasedData<UserResponseDto>> {
+    return this.companyService.getMembers(user.companyId, query);
   }
 
   /**
@@ -72,7 +79,7 @@ export class CompanyController {
   @ApiOperation({ summary: 'Remove company member' })
   @ApiSuccessResponse(MessageData, { description: 'Member removed' })
   async removeMember(
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
     @Param('userId') userId: string,
   ) {
     await this.companyService.removeMember(userId, user.companyId);
@@ -90,7 +97,7 @@ export class CompanyController {
   @ApiOperation({ summary: 'Update company settings' })
   @ApiSuccessResponse(CompanyResponseDto, { description: 'Updated company' })
   async updateCompany(
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
     @Body() updateDto: UpdateCompanyDto,
   ) {
     const company = await this.companyService.updateSettings(

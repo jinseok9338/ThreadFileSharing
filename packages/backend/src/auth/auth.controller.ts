@@ -16,6 +16,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { UserResponseDto } from '../user/dto/user-response.dto';
 import { ApiSuccessResponse } from '../common/decorators';
+import { User } from 'src/user/entities/user.entity';
 
 @ApiTags('Authentication')
 @ApiExtraModels(AuthResponseDto, UserResponseDto)
@@ -118,7 +119,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current authenticated user' })
   @ApiSuccessResponse(UserResponseDto, { description: 'Current user info' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getMe(@CurrentUser() user: any) {
+  async getMe(@CurrentUser() user: User) {
     return UserResponseDto.fromEntity(user);
   }
 }

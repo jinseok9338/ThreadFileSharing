@@ -5,36 +5,37 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { ApiErrorResponse } from '../dto/api-response.dto';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
-    const request = ctx.getRequest();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let code = 'INTERNAL_SERVER_ERROR';
     let message = 'Internal server error';
-    let details: any = undefined;
+    let details: string[] | undefined = undefined;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      if (typeof exceptionResponse === 'object') {
-        const responseObj = exceptionResponse as any;
-        message = responseObj.message || exception.message;
-        code = this.getErrorCode(status, responseObj.error);
+      if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
+        const responseObj = exceptionResponse as Record<string, unknown>;
+        message = (responseObj.message as string) || exception.message;
+        code = this.getErrorCode(status, responseObj.error as string);
 
         // Handle validation errors
         if (Array.isArray(responseObj.message)) {
-          details = responseObj.message;
+          details = responseObj.message as string[];
           message = 'Validation failed';
         }
       } else {
-        message = exceptionResponse as string;
+        message = exceptionResponse;
         code = this.getErrorCode(status);
       }
     } else if (exception instanceof Error) {

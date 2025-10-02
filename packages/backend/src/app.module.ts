@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
@@ -10,6 +10,8 @@ import { AuthModule } from './auth/auth.module';
 import { CompanyModule } from './company/company.module';
 import { UserModule } from './user/user.module';
 import { InvitationModule } from './invitation/invitation.module';
+import { ChatRoomModule } from './chatroom/chatroom.module';
+import { ThreadModule } from './thread/thread.module';
 import * as path from 'path';
 
 @Module({
@@ -26,9 +28,7 @@ import * as path from 'path';
       isGlobal: true, // 전역에서 사용 가능하도록 설정
     }),
     ThrottlerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => [
+      useFactory: () => [
         {
           ttl: 60000, // 60 seconds
           limit: 100, // 100 requests per 60 seconds
@@ -41,6 +41,8 @@ import * as path from 'path';
     CompanyModule,
     UserModule,
     InvitationModule,
+    ChatRoomModule,
+    ThreadModule,
   ],
   controllers: [AppController],
   providers: [

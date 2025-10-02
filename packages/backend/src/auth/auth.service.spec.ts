@@ -3,10 +3,15 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
-import { User, CompanyRole } from '../user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
+import { CompanyRole } from '../constants/permissions';
 import { Company, CompanyPlan } from '../company/entities/company.entity';
 import { RefreshToken } from '../refresh-token/entities/refresh-token.entity';
 import * as bcrypt from 'bcrypt';
+
+// Mock bcrypt
+jest.mock('bcrypt');
+const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -33,6 +38,7 @@ describe('AuthService', () => {
     create: jest.fn(),
     save: jest.fn(),
     findOne: jest.fn(),
+    find: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
   };
@@ -40,6 +46,7 @@ describe('AuthService', () => {
   const mockJwtService = {
     sign: jest.fn(),
     verify: jest.fn(),
+    decode: jest.fn(),
   };
 
   const mockConfigService = {
@@ -55,6 +62,19 @@ describe('AuthService', () => {
   };
 
   beforeEach(async () => {
+    // Reset all mocks
+    jest.clearAllMocks();
+
+    // Setup bcrypt mocks
+    mockedBcrypt.hash.mockResolvedValue('hashed-password' as never);
+    mockedBcrypt.compare.mockImplementation(
+      (password: string, hash: string) => {
+        return Promise.resolve(
+          password === 'Password123!' && hash === 'hashed-password',
+        );
+      },
+    );
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
@@ -110,14 +130,18 @@ describe('AuthService', () => {
         name: 'New Company',
         slug: 'new-company',
         plan: CompanyPlan.FREE,
+        maxUsers: 100,
+        maxStorageBytes: 5368709120,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       const mockUser = {
         id: 'user-uuid',
         email: 'owner@newcompany.com',
-        full_name: 'Owner User',
-        company_id: 'company-uuid',
-        company_role: CompanyRole.OWNER,
+        fullName: 'Owner User',
+        companyId: 'company-uuid',
+        companyRole: CompanyRole.OWNER,
       };
 
       mockUserRepository.findOne.mockResolvedValue(null);
@@ -163,18 +187,23 @@ describe('AuthService', () => {
       const mockUser = {
         id: 'user-uuid',
         email: 'jinseok9338@gmail.com',
-        password_hash: await bcrypt.hash('Password123!', 10),
-        company_id: 'company-uuid',
-        company_role: CompanyRole.OWNER,
-        is_active: true,
-        locked_until: null,
-        failed_login_attempts: 0,
+        password: await bcrypt.hash('Password123!', 10),
+        companyId: 'company-uuid',
+        companyRole: CompanyRole.OWNER,
+        isActive: true,
+        lockedUntil: null,
+        failedLoginAttempts: 0,
       };
 
       const mockCompany = {
         id: 'company-uuid',
         name: 'Anchors',
         slug: 'anchors',
+        plan: CompanyPlan.FREE,
+        maxUsers: 100,
+        maxStorageBytes: 5368709120,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
@@ -208,10 +237,10 @@ describe('AuthService', () => {
       const mockUser = {
         id: 'user-uuid',
         email: 'jinseok9338@gmail.com',
-        password_hash: await bcrypt.hash('Password123!', 10),
+        password: await bcrypt.hash('Password123!', 10),
         is_active: true,
-        locked_until: null,
-        failed_login_attempts: 0,
+        lockedUntil: null,
+        failedLoginAttempts: 0,
       };
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
@@ -228,7 +257,7 @@ describe('AuthService', () => {
       const mockUser = {
         id: 'user-uuid',
         email: 'jinseok9338@gmail.com',
-        password_hash: await bcrypt.hash('Password123!', 10),
+        password: await bcrypt.hash('Password123!', 10),
         is_active: true,
         locked_until: new Date(Date.now() + 1000000), // Locked for future
         failed_login_attempts: 5,
@@ -248,7 +277,7 @@ describe('AuthService', () => {
       const mockUser = {
         id: 'user-uuid',
         email: 'jinseok9338@gmail.com',
-        password_hash: await bcrypt.hash('Password123!', 10),
+        password: await bcrypt.hash('Password123!', 10),
         is_active: true,
         locked_until: null,
       };
@@ -267,7 +296,7 @@ describe('AuthService', () => {
       const mockUser = {
         id: 'user-uuid',
         email: 'jinseok9338@gmail.com',
-        password_hash: await bcrypt.hash('Password123!', 10),
+        password: await bcrypt.hash('Password123!', 10),
         is_active: true,
         locked_until: null,
       };
@@ -296,11 +325,13 @@ describe('AuthService', () => {
       const mockUser = {
         id: 'user-uuid',
         email: 'jinseok9338@gmail.com',
-        company_id: 'company-uuid',
-        company_role: CompanyRole.OWNER,
+        companyId: 'company-uuid',
+        companyRole: CompanyRole.OWNER,
       };
 
+      mockJwtService.decode.mockReturnValue({ sub: 'user-uuid' });
       mockRefreshTokenRepository.findOne.mockResolvedValue(mockRefreshToken);
+      mockRefreshTokenRepository.find.mockResolvedValue([mockRefreshToken]);
       mockUserRepository.findOne.mockResolvedValue(mockUser);
       mockRefreshTokenRepository.update.mockResolvedValue({});
       mockJwtService.sign
@@ -313,7 +344,7 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('refreshToken');
       expect(mockRefreshTokenRepository.update).toHaveBeenCalledWith(
         { id: mockRefreshToken.id },
-        { revoked: true, revoked_at: expect.any(Date) },
+        { revoked: true, revokedAt: expect.any(Date) },
       );
     });
 
@@ -363,14 +394,16 @@ describe('AuthService', () => {
         revoked: false,
       };
 
+      mockJwtService.decode.mockReturnValue({ sub: 'user-uuid' });
       mockRefreshTokenRepository.findOne.mockResolvedValue(mockRefreshToken);
+      mockRefreshTokenRepository.find.mockResolvedValue([mockRefreshToken]);
       mockRefreshTokenRepository.update.mockResolvedValue({});
 
       await service.logout(refreshTokenString);
 
       expect(mockRefreshTokenRepository.update).toHaveBeenCalledWith(
         { id: mockRefreshToken.id },
-        { revoked: true, revoked_at: expect.any(Date) },
+        { revoked: true, revokedAt: expect.any(Date) },
       );
     });
   });
@@ -397,8 +430,11 @@ describe('AuthService', () => {
     });
 
     it('should return false for non-matching passwords', async () => {
-      const password = 'Password123!';
-      const hash = await bcrypt.hash('DifferentPassword', 10);
+      const password = 'WrongPassword';
+      const hash = 'different-hash';
+
+      // Mock bcrypt.compare to return false for this test
+      mockedBcrypt.compare.mockResolvedValueOnce(false as never);
 
       const result = await service.comparePassword(password, hash);
 

@@ -6,7 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
-import { User, CompanyRole } from './entities/user.entity';
+import { User } from './entities/user.entity';
+import { CompanyRole } from '../constants/permissions';
 import { UserResponseDto } from './dto/user-response.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -39,7 +40,7 @@ export class UserService {
    */
   async findById(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
-      where: { id, deleted_at: IsNull() },
+      where: { id, deletedAt: IsNull() },
       relations: ['company'],
     });
 
@@ -55,7 +56,7 @@ export class UserService {
    */
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { email, deleted_at: IsNull() },
+      where: { email, deletedAt: IsNull() },
       relations: ['company'],
     });
   }
@@ -76,10 +77,10 @@ export class UserService {
       user.username = updateDto.username;
     }
     if (updateDto.full_name !== undefined) {
-      user.full_name = updateDto.full_name;
+      user.fullName = updateDto.full_name;
     }
     if (updateDto.avatar_url !== undefined) {
-      user.avatar_url = updateDto.avatar_url;
+      user.avatarUrl = updateDto.avatar_url;
     }
 
     await this.userRepository.save(user);
@@ -100,7 +101,7 @@ export class UserService {
     // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(
       changePasswordDto.currentPassword,
-      user.password_hash,
+      user.password,
     );
 
     if (!isCurrentPasswordValid) {
@@ -115,7 +116,7 @@ export class UserService {
 
     await this.userRepository.update(
       { id: userId },
-      { password_hash: newPasswordHash },
+      { password: newPasswordHash },
     );
   }
 
@@ -133,12 +134,12 @@ export class UserService {
     const requestingUser = await this.findById(requestingUserId);
 
     // Ensure both users are in same company
-    if (targetUser.company_id !== requestingUser.company_id) {
+    if (targetUser.companyId !== requestingUser.companyId) {
       throw new ForbiddenException('Cannot modify users from other companies');
     }
 
     // Cannot change owner role
-    if (targetUser.company_role === CompanyRole.OWNER) {
+    if (targetUser.companyRole === CompanyRole.OWNER) {
       throw new ForbiddenException('Cannot change company owner role');
     }
 
@@ -151,7 +152,7 @@ export class UserService {
 
     await this.userRepository.update(
       { id: targetUserId },
-      { company_role: updateRoleDto.role },
+      { companyRole: updateRoleDto.role },
     );
 
     return this.findById(targetUserId);
@@ -165,13 +166,13 @@ export class UserService {
   async deactivateAccount(userId: string): Promise<void> {
     const user = await this.findById(userId);
 
-    if (user.company_role === CompanyRole.OWNER) {
+    if (user.companyRole === CompanyRole.OWNER) {
       throw new ForbiddenException(
         'Cannot deactivate company owner. Transfer ownership first.',
       );
     }
 
-    await this.userRepository.update({ id: userId }, { is_active: false });
+    await this.userRepository.update({ id: userId }, { isActive: false });
   }
 
   /**
@@ -179,8 +180,8 @@ export class UserService {
    */
   async getMembersByCompany(companyId: string): Promise<User[]> {
     return this.userRepository.find({
-      where: { company_id: companyId, deleted_at: IsNull() },
-      order: { created_at: 'ASC' },
+      where: { companyId: companyId, deletedAt: IsNull() },
+      order: { createdAt: 'ASC' },
     });
   }
 
@@ -188,14 +189,7 @@ export class UserService {
    * Remove sensitive data from user object
    */
   sanitizeUser(user: User) {
-    const {
-      password_hash,
-      failed_login_attempts,
-      locked_until,
-      google_id,
-      azure_id,
-      ...sanitized
-    } = user;
+    const { password, failedLoginAttempts, lockedUntil, ...sanitized } = user;
     return sanitized;
   }
 }

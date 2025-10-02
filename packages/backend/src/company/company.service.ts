@@ -1,26 +1,29 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, MoreThan } from 'typeorm';
+import { CursorPaginationQueryDto } from '../common/dto';
+import { CursorBasedData } from '../common/dto/api-response.dto';
+import { UserResponseDto } from '../user/dto/user-response.dto';
 import { Company, CompanyPlan } from './entities/company.entity';
-import { User, CompanyRole } from '../user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
+import { CompanyRole } from '../constants/permissions';
 
 interface CreateCompanyDto {
   name: string;
   plan?: CompanyPlan;
-  max_users?: number;
-  max_storage_bytes?: bigint;
+  maxUsers?: number;
+  maxStorageBytes?: number;
 }
 
 interface UpdateCompanyDto {
   name?: string;
   plan?: CompanyPlan;
-  max_users?: number;
-  max_storage_bytes?: bigint;
+  maxUsers?: number;
+  maxStorageBytes?: number;
 }
 
 @Injectable()
@@ -44,8 +47,10 @@ export class CompanyService {
       name: createDto.name,
       slug,
       plan: createDto.plan || CompanyPlan.FREE,
-      max_users: createDto.max_users || 100,
-      max_storage_bytes: createDto.max_storage_bytes || BigInt(5368709120),
+      maxUsers: createDto.maxUsers || 100,
+      maxStorageBytes: createDto.maxStorageBytes
+        ? BigInt(createDto.maxStorageBytes)
+        : BigInt(5368709120), // 5GB
     });
 
     return this.companyRepository.save(company);
@@ -56,7 +61,7 @@ export class CompanyService {
    */
   async findById(id: string): Promise<Company> {
     const company = await this.companyRepository.findOne({
-      where: { id, deleted_at: IsNull() },
+      where: { id, deletedAt: IsNull() },
     });
 
     if (!company) {
@@ -71,7 +76,7 @@ export class CompanyService {
    */
   async findBySlug(slug: string): Promise<Company> {
     const company = await this.companyRepository.findOne({
-      where: { slug, deleted_at: IsNull() },
+      where: { slug, deletedAt: IsNull() },
     });
 
     if (!company) {
@@ -86,11 +91,40 @@ export class CompanyService {
    * - Returns active users only
    * - Ordered by creation date
    */
-  async getMembers(companyId: string): Promise<User[]> {
-    return this.userRepository.find({
-      where: { company_id: companyId, deleted_at: IsNull() },
-      order: { created_at: 'ASC' },
+  async getMembers(
+    companyId: string,
+    query: CursorPaginationQueryDto,
+  ): Promise<CursorBasedData<UserResponseDto>> {
+    const { limit = 20, lastIndex } = query;
+
+    // Build where condition for cursor-based pagination
+    const whereCondition: any = { companyId, deletedAt: IsNull() };
+    if (lastIndex) {
+      // Parse lastIndex as ISO date string and use it for cursor
+      const lastDate = new Date(lastIndex);
+      whereCondition.createdAt = MoreThan(lastDate);
+    }
+
+    // Fetch one more item than requested to determine hasNext
+    const users = await this.userRepository.find({
+      where: whereCondition,
+      order: { createdAt: 'ASC' },
+      take: limit + 1,
     });
+
+    const hasNext = users.length > limit;
+    const items = hasNext ? users.slice(0, limit) : users;
+
+    // Convert to DTOs
+    const userDtos = items.map((user) => UserResponseDto.fromEntity(user));
+
+    // Get nextIndex from the last item's createdAt if there's a next page
+    const nextIndex =
+      hasNext && items.length > 0
+        ? items[items.length - 1].createdAt.toISOString()
+        : undefined;
+
+    return new CursorBasedData(userDtos, hasNext, limit, nextIndex);
   }
 
   /**
@@ -100,14 +134,14 @@ export class CompanyService {
    */
   async removeMember(userId: string, companyId: string): Promise<void> {
     const user = await this.userRepository.findOne({
-      where: { id: userId, company_id: companyId },
+      where: { id: userId, companyId: companyId },
     });
 
     if (!user) {
       throw new NotFoundException('User not found in this company');
     }
 
-    if (user.company_role === CompanyRole.OWNER) {
+    if (user.companyRole === CompanyRole.OWNER) {
       throw new ForbiddenException('Cannot remove company owner');
     }
 
@@ -123,7 +157,11 @@ export class CompanyService {
     companyId: string,
     updateDto: UpdateCompanyDto,
   ): Promise<Company> {
-    await this.companyRepository.update(companyId, updateDto);
+    const updateData: any = { ...updateDto };
+    if (updateDto.maxStorageBytes !== undefined) {
+      updateData.maxStorageBytes = BigInt(updateDto.maxStorageBytes);
+    }
+    await this.companyRepository.update(companyId, updateData);
 
     return this.findById(companyId);
   }
@@ -136,14 +174,14 @@ export class CompanyService {
   async getUsageStats(companyId: string) {
     const company = await this.findById(companyId);
     const userCount = await this.userRepository.count({
-      where: { company_id: companyId, deleted_at: IsNull() },
+      where: { companyId: companyId, deletedAt: IsNull() },
     });
 
     return {
       userCount,
-      maxUsers: company.max_users,
+      maxUsers: company.maxUsers,
       storageUsed: BigInt(0), // TODO: Calculate from files in future
-      maxStorage: company.max_storage_bytes,
+      maxStorage: company.maxStorageBytes,
     };
   }
 

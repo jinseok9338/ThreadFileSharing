@@ -2,7 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CompanyService } from './company.service';
 import { Company, CompanyPlan } from './entities/company.entity';
-import { User, CompanyRole } from '../user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
+import { CompanyRole } from 'src/constants/permissions';
 
 describe('CompanyService', () => {
   let service: CompanyService;
@@ -103,7 +104,10 @@ describe('CompanyService', () => {
 
       mockUserRepository.find.mockResolvedValue(mockMembers);
 
-      const result = await service.getMembers(companyId);
+      const result = await service.getMembers(companyId, {
+        limit: 20,
+        lastIndex: undefined,
+      });
 
       expect(result).toEqual(mockMembers);
       expect(mockUserRepository.find).toHaveBeenCalledWith({

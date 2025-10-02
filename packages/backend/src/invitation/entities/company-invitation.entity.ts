@@ -24,17 +24,17 @@ export enum InvitationStatus {
 
 @Entity('company_invitations')
 @Index(['token'], { unique: true })
-@Index(['company_id', 'email', 'status'])
-@Index(['expires_at'])
+@Index(['companyId', 'email', 'status'])
+@Index(['expiresAt'])
 export class CompanyInvitation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'uuid' })
-  company_id: string;
+  companyId: string;
 
   @Column({ type: 'uuid' })
-  invited_by_user_id: string;
+  invitedByUserId: string;
 
   @Column({ type: 'varchar', length: 255 })
   email: string;
@@ -50,7 +50,7 @@ export class CompanyInvitation {
   token: string;
 
   @Column({ type: 'timestamp' })
-  expires_at: Date;
+  expiresAt: Date;
 
   @Column({
     type: 'enum',
@@ -60,21 +60,21 @@ export class CompanyInvitation {
   status: InvitationStatus;
 
   @Column({ type: 'timestamp', nullable: true })
-  accepted_at: Date;
+  acceptedAt: Date;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   // Relations
   @ManyToOne(() => Company, (company) => company.invitations, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'company_id' })
+  @JoinColumn({ name: 'companyId' })
   company: Company;
 
-  @ManyToOne(() => User, (user) => user.created_invitations, {
+  @ManyToOne(() => User, (user) => user.createdInvitations, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'invited_by_user_id' })
-  invited_by: User;
+  @JoinColumn({ name: 'invitedByUserId' })
+  invitedBy: User;
 }

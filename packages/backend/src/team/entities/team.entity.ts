@@ -13,14 +13,14 @@ import { Company } from '../../company/entities/company.entity';
 import { TeamMember } from './team-member.entity';
 
 @Entity('teams')
-@Index(['company_id'])
-@Index(['company_id', 'name'])
+@Index(['companyId'])
+@Index(['companyId', 'name'])
 export class Team {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'uuid' })
-  company_id: string;
+  companyId: string;
 
   @Column({ type: 'varchar', length: 255 })
   name: string;
@@ -29,16 +29,16 @@ export class Team {
   description: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Company, (company) => company.teams, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'company_id' })
+  @JoinColumn({ name: 'companyId' })
   company: Company;
 
   @OneToMany(() => TeamMember, (member) => member.team)

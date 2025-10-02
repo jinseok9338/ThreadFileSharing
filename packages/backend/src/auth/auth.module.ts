@@ -10,7 +10,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { User } from '../user/entities/user.entity';
 import { Company } from '../company/entities/company.entity';
 import { RefreshToken } from '../refresh-token/entities/refresh-token.entity';
-import { ThreadParticipant } from '../thread-participant/entities/thread-participant.entity';
+import { ThreadParticipant } from '../thread/entities/thread-participant.entity';
 
 @Module({
   imports: [

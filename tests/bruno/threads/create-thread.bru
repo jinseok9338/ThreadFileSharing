@@ -1,0 +1,53 @@
+meta {
+  name: Create Thread
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "title": "Test Thread",
+    "description": "This is a test thread created via Bruno API",
+    "chatroomId": "00000000-0000-0000-0000-000000000002"
+  }
+}
+
+vars:post-response {
+  threadId: {{res.body.data.id}}
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has thread data", function() {
+    expect(res.getBody().data).to.be.an("object");
+    expect(res.getBody().data.title).to.equal("Test Thread");
+    expect(res.getBody().data.description).to.equal("This is a test thread created via Bruno API");
+  });
+  
+  test("Thread has required fields", function() {
+    const thread = res.getBody().data;
+    expect(thread).to.have.property("id");
+    expect(thread).to.have.property("title");
+    expect(thread).to.have.property("description");
+    expect(thread).to.have.property("chatroomId");
+    expect(thread).to.have.property("createdAt");
+  });
+}
+
+script:post-response {
+  // Save thread ID for subsequent tests
+  bru.setEnvVar("threadId", res.body.data.id);
+}

@@ -6,98 +6,116 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
-  OneToMany,
   JoinColumn,
+  OneToMany,
   Index,
 } from 'typeorm';
+import { CompanyRole } from '../../constants/permissions';
 import { Company } from '../../company/entities/company.entity';
-
-export enum CompanyRole {
-  OWNER = 'owner',
-  ADMIN = 'admin',
-  MEMBER = 'member',
-}
+import { ChatRoomMember } from '../../chatroom/entities/chatroom-member.entity';
+import { ThreadParticipant } from '../../thread/entities/thread-participant.entity';
+import { Message } from '../../message/entities/message.entity';
+import { ThreadMessage } from '../../thread-message/entities/thread-message.entity';
+import { File } from '../../file/entities/file.entity';
+import { RefreshToken } from '../../refresh-token/entities/refresh-token.entity';
+import { CompanyInvitation } from '../../invitation/entities/company-invitation.entity';
+import { TeamMember } from '../../team/entities/team-member.entity';
 
 @Entity('users')
 @Index(['email'], { unique: true })
-@Index(['company_id', 'company_role'])
-@Index(['email_verified'])
-@Index(['deleted_at'])
+@Index(['companyId'])
+@Index(['deletedAt'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'uuid' })
-  company_id: string;
+  companyId: string;
 
   @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 100, nullable: true })
   username: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  full_name: string;
+  fullName: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  avatar_url: string;
+  avatarUrl: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  password_hash: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true, unique: true })
-  google_id: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true, unique: true })
-  azure_id: string;
+  @Column({ type: 'varchar', length: 255 })
+  password: string;
 
   @Column({
     type: 'enum',
     enum: CompanyRole,
     default: CompanyRole.MEMBER,
   })
-  company_role: CompanyRole;
+  companyRole: CompanyRole;
 
   @Column({ type: 'boolean', default: false })
-  email_verified: boolean;
+  emailVerified: boolean;
 
   @Column({ type: 'boolean', default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @Column({ type: 'integer', default: 0 })
-  failed_login_attempts: number;
+  failedLoginAttempts: number;
 
   @Column({ type: 'timestamp', nullable: true })
-  locked_until: Date;
+  lockedUntil: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  last_login_at: Date;
+  lastLoginAt: Date;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 
   @DeleteDateColumn()
-  deleted_at: Date;
+  deletedAt: Date;
 
   // Relations
-  @ManyToOne(() => Company, (company) => company.users, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'company_id' })
+  @ManyToOne(() => Company, (company) => company.users)
+  @JoinColumn({ name: 'companyId' })
   company: Company;
 
-  @OneToMany('RefreshToken', 'user')
-  refresh_tokens: any[];
+  @OneToMany(() => ChatRoomMember, (chatRoomMember) => chatRoomMember.user)
+  chatRoomMemberships: ChatRoomMember[];
 
-  @OneToMany('CompanyInvitation', 'invited_by')
-  created_invitations: any[];
+  @OneToMany(
+    () => ThreadParticipant,
+    (threadParticipant) => threadParticipant.user,
+  )
+  threadParticipants: ThreadParticipant[];
 
-  @OneToMany('ThreadParticipant', 'user')
-  thread_participations: any[];
+  @OneToMany(
+    () => ThreadParticipant,
+    (threadParticipant) => threadParticipant.sharedBy,
+  )
+  sharedThreads: ThreadParticipant[];
 
-  @OneToMany('TeamMember', 'user')
-  team_memberships: any[];
+  @OneToMany(() => Message, (message) => message.sender)
+  messages: Message[];
+
+  @OneToMany(() => ThreadMessage, (threadMessage) => threadMessage.sender)
+  threadMessages: ThreadMessage[];
+
+  @OneToMany(() => File, (file) => file.uploadedBy)
+  files: File[];
+
+  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
+  refreshTokens: RefreshToken[];
+
+  @OneToMany(
+    () => CompanyInvitation,
+    (companyInvitation) => companyInvitation.invitedBy,
+  )
+  createdInvitations: CompanyInvitation[];
+
+  @OneToMany(() => TeamMember, (teamMember) => teamMember.user)
+  teamMemberships: TeamMember[];
 }

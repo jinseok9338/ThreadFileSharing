@@ -11,31 +11,31 @@ import { Team } from './team.entity';
 import { User } from '../../user/entities/user.entity';
 
 @Entity('team_members')
-@Index(['team_id', 'user_id'], { unique: true })
-@Index(['user_id'])
+@Index(['teamId', 'userId'], { unique: true })
+@Index(['userId'])
 export class TeamMember {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'uuid' })
-  team_id: string;
+  teamId: string;
 
   @Column({ type: 'uuid' })
-  user_id: string;
+  userId: string;
 
   @CreateDateColumn()
-  joined_at: Date;
+  joinedAt: Date;
 
   // Relations
   @ManyToOne(() => Team, (team) => team.members, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'team_id' })
+  @JoinColumn({ name: 'teamId' })
   team: Team;
 
-  @ManyToOne(() => User, (user) => user.team_memberships, {
+  @ManyToOne(() => User, (user) => user.teamMemberships, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'userId' })
   user: User;
 }

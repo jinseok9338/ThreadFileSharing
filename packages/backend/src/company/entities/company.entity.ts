@@ -1,3 +1,7 @@
+import { ChatRoom } from 'src/chatroom/entities/chatroom.entity';
+import { CompanyInvitation } from 'src/invitation/entities/company-invitation.entity';
+import { Team } from 'src/team/entities/team.entity';
+import { User } from 'src/user/entities/user.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -17,8 +21,7 @@ export enum CompanyPlan {
 
 @Entity('companies')
 @Index(['slug'], { unique: true })
-@Index(['plan'])
-@Index(['deleted_at'])
+@Index(['deletedAt'])
 export class Company {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -37,27 +40,33 @@ export class Company {
   plan: CompanyPlan;
 
   @Column({ type: 'integer', default: 100 })
-  max_users: number;
+  maxUsers: number;
 
   @Column({ type: 'bigint', default: 5368709120 }) // 5GB
-  max_storage_bytes: bigint;
+  maxStorageBytes: bigint;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 
   @DeleteDateColumn()
-  deleted_at: Date;
+  deletedAt: Date;
 
   // Relations
-  @OneToMany('User', 'company')
-  users: any[];
+  @OneToMany(() => User, (user) => user.company)
+  users: User[];
 
-  @OneToMany('Team', 'company')
-  teams: any[];
+  @OneToMany(() => ChatRoom, (chatRoom) => chatRoom.company)
+  chatRooms: ChatRoom[];
 
-  @OneToMany('CompanyInvitation', 'company')
-  invitations: any[];
+  @OneToMany(
+    () => CompanyInvitation,
+    (companyInvitation) => companyInvitation.company,
+  )
+  invitations: CompanyInvitation[];
+
+  @OneToMany(() => Team, (team) => team.company)
+  teams: Team[];
 }

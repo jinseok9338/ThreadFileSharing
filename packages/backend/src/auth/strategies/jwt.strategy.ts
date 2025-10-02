@@ -39,8 +39,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.userRepository.findOne({
       where: {
         id: payload.sub,
-        is_active: true,
-        deleted_at: IsNull(),
+        isActive: true,
+        deletedAt: IsNull(),
       },
       relations: ['company'],
     });
@@ -50,9 +50,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     // Check if account is locked
-    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+    if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
       throw new UnauthorizedException(
-        `Account is locked until ${user.locked_until}`,
+        `Account is locked until ${user.lockedUntil}`,
       );
     }
 
@@ -60,10 +60,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: user.id,
       email: user.email,
-      companyId: user.company_id,
-      companyRole: user.company_role,
+      companyId: user.companyId,
+      companyRole: user.companyRole,
       username: user.username,
-      fullName: user.full_name,
+      fullName: user.fullName,
     };
   }
 }

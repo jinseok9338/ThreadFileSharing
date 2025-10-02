@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { CompanyRole } from '../../user/entities/user.entity';
+import { CompanyRole } from '../../constants/permissions';
 import { ROLES_KEY } from '../guards/role.guard';
 
 /**

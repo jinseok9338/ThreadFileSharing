@@ -3,22 +3,12 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 /**
  * Standard API Response wrapper
  * All API responses follow this structure
+ * Note: This class is used for runtime response wrapping only.
+ * Swagger documentation is handled by ApiSuccessResponse decorator.
  */
 export class ApiResponse<T = any> {
-  @ApiProperty({
-    description: 'Response status',
-    enum: ['success', 'error'],
-    example: 'success',
-  })
   status: 'success' | 'error';
-
-  @ApiProperty({
-    description: 'Response timestamp',
-    example: '2025-10-01T00:00:00.000Z',
-  })
   timestamp: string;
-
-  @ApiProperty({ description: 'Response data' })
   data: T;
 
   constructor(data: T, status: 'success' | 'error' = 'success') {
@@ -102,6 +92,31 @@ export class PaginatedData<T = any> {
       limit,
       total,
       totalPages: Math.ceil(total / limit),
+    };
+  }
+}
+
+/**
+ * Cursor-based Paginated Response Data
+ * Used for list endpoints with cursor-based pagination
+ */
+export class CursorBasedData<T = any> {
+  @ApiProperty({ description: 'Array of items' })
+  items: T[];
+
+  @ApiProperty({ description: 'Cursor-based pagination metadata' })
+  pagination: {
+    hasNext: boolean;
+    nextIndex?: string;
+    limit: number;
+  };
+
+  constructor(items: T[], hasNext: boolean, limit: number, nextIndex?: string) {
+    this.items = items;
+    this.pagination = {
+      hasNext,
+      nextIndex,
+      limit,
     };
   }
 }

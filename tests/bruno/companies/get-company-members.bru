@@ -1,0 +1,50 @@
+meta {
+  name: Get Company Members
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/companies/me/members
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+query:params {
+  limit: 10
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has data structure", function() {
+    expect(res.getBody().data).to.be.an("object");
+    expect(res.getBody().data.items).to.be.an("array");
+    expect(res.getBody().data.pagination).to.be.an("object");
+  });
+  
+  test("Pagination structure is correct", function() {
+    const pagination = res.getBody().data.pagination;
+    expect(pagination).to.have.property("hasNext");
+    expect(pagination).to.have.property("limit");
+    expect(pagination.hasNext).to.be.a("boolean");
+    expect(pagination.limit).to.be.a("number");
+  });
+  
+  test("Member items have required fields", function() {
+    const members = res.getBody().data.items;
+    if (members.length > 0) {
+      const member = members[0];
+      expect(member).to.have.property("id");
+      expect(member).to.have.property("email");
+      expect(member).to.have.property("companyRole");
+      expect(member).to.have.property("createdAt");
+    }
+  });
+}

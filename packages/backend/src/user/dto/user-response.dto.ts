@@ -1,21 +1,36 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CompanyRole } from '../entities/user.entity';
-import { Exclude, Expose } from 'class-transformer';
+import { CompanyRole } from '../../constants/permissions';
+import { User } from '../entities/user.entity';
 
 export class UserResponseDto {
-  @ApiProperty({ description: 'User ID', example: 'uuid' })
+  @ApiProperty({
+    description: 'User ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   id: string;
 
-  @ApiProperty({ description: 'Company ID', example: 'uuid' })
+  @ApiProperty({
+    description: 'Company ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   companyId: string;
 
-  @ApiProperty({ description: 'Email address', example: 'user@example.com' })
+  @ApiProperty({
+    description: 'User email address',
+    example: 'user@example.com',
+  })
   email: string;
 
-  @ApiPropertyOptional({ description: 'Username', example: 'johndoe' })
+  @ApiPropertyOptional({
+    description: 'Username',
+    example: 'john_doe',
+  })
   username?: string;
 
-  @ApiPropertyOptional({ description: 'Full name', example: 'John Doe' })
+  @ApiPropertyOptional({
+    description: 'Full name',
+    example: 'John Doe',
+  })
   fullName?: string;
 
   @ApiPropertyOptional({
@@ -31,63 +46,64 @@ export class UserResponseDto {
   })
   companyRole: CompanyRole;
 
-  @ApiProperty({ description: 'Email verified status', example: true })
+  @ApiProperty({
+    description: 'Email verification status',
+    example: true,
+  })
   emailVerified: boolean;
 
-  @ApiProperty({ description: 'Account active status', example: true })
+  @ApiProperty({
+    description: 'Account active status',
+    example: true,
+  })
   isActive: boolean;
+
+  @ApiProperty({
+    description: 'Failed login attempts count',
+    example: 0,
+  })
+  failedLoginAttempts: number;
+
+  @ApiPropertyOptional({
+    description: 'Account locked until timestamp',
+    example: '2024-12-19T12:00:00Z',
+  })
+  lockedUntil?: Date;
 
   @ApiPropertyOptional({
     description: 'Last login timestamp',
-    example: '2025-10-01T00:00:00.000Z',
+    example: '2024-12-19T10:00:00Z',
   })
-  lastLoginAt?: string;
+  lastLoginAt?: Date;
 
   @ApiProperty({
-    description: 'Account creation timestamp',
-    example: '2025-10-01T00:00:00.000Z',
+    description: 'Creation timestamp',
+    example: '2024-12-19T10:00:00Z',
   })
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty({
     description: 'Last update timestamp',
-    example: '2025-10-01T00:00:00.000Z',
+    example: '2024-12-19T10:00:00Z',
   })
-  updatedAt: string;
+  updatedAt: Date;
 
-  // Exclude sensitive fields
-  @Exclude()
-  password_hash?: string;
-
-  @Exclude()
-  google_id?: string;
-
-  @Exclude()
-  azure_id?: string;
-
-  @Exclude()
-  failed_login_attempts?: number;
-
-  @Exclude()
-  locked_until?: Date;
-
-  @Exclude()
-  deleted_at?: Date;
-
-  static fromEntity(user: any): UserResponseDto {
+  static fromEntity(entity: User): UserResponseDto {
     return {
-      id: user.id,
-      companyId: user.company_id,
-      email: user.email,
-      username: user.username,
-      fullName: user.full_name,
-      avatarUrl: user.avatar_url,
-      companyRole: user.company_role,
-      emailVerified: user.email_verified,
-      isActive: user.is_active,
-      lastLoginAt: user.last_login_at?.toISOString(),
-      createdAt: user.created_at?.toISOString(),
-      updatedAt: user.updated_at?.toISOString(),
+      id: entity.id,
+      companyId: entity.companyId,
+      email: entity.email,
+      username: entity.username,
+      fullName: entity.fullName,
+      avatarUrl: entity.avatarUrl,
+      companyRole: entity.companyRole,
+      emailVerified: entity.emailVerified,
+      isActive: entity.isActive,
+      failedLoginAttempts: entity.failedLoginAttempts,
+      lockedUntil: entity.lockedUntil,
+      lastLoginAt: entity.lastLoginAt,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
     };
   }
 }

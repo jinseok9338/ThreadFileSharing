@@ -26,30 +26,30 @@ export async function seedAuthData(dataSource: DataSource) {
         name: 'Acme Corporation',
         slug: 'acme-corp',
         plan: 'pro',
-        max_users: 50,
-        max_storage_bytes: 10737418240, // 10GB
+        maxUsers: 50,
+        maxStorageBytes: 10737418240, // 10GB
       },
       {
         id: '00000000-0000-0000-0000-000000000002',
         name: 'TechStart Inc',
         slug: 'techstart',
         plan: 'free',
-        max_users: 10,
-        max_storage_bytes: 5368709120, // 5GB
+        maxUsers: 10,
+        maxStorageBytes: 5368709120, // 5GB
       },
       {
         id: '00000000-0000-0000-0000-000000000003',
         name: 'Anchors',
         slug: 'anchors',
         plan: 'enterprise',
-        max_users: 100,
-        max_storage_bytes: 53687091200, // 50GB
+        maxUsers: 100,
+        maxStorageBytes: 53687091200, // 50GB
       },
     ];
 
     for (const company of companies) {
       await queryRunner.query(
-        `INSERT INTO companies (id, name, slug, plan, max_users, max_storage_bytes, created_at, updated_at)
+        `INSERT INTO companies (id, name, slug, plan, "maxUsers", "maxStorageBytes", "createdAt", "updatedAt")
          VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
          ON CONFLICT (id) DO NOTHING`,
         [
@@ -57,8 +57,8 @@ export async function seedAuthData(dataSource: DataSource) {
           company.name,
           company.slug,
           company.plan,
-          company.max_users,
-          company.max_storage_bytes,
+          company.maxUsers,
+          company.maxStorageBytes,
         ],
       );
     }
@@ -71,33 +71,33 @@ export async function seedAuthData(dataSource: DataSource) {
         id: '00000000-0000-0000-0000-000000000101',
         email: 'alice.owner@acme-corp.com',
         username: 'alice',
-        full_name: 'Alice Johnson',
-        company_id: companies[0].id,
-        company_role: 'owner',
+        fullName: 'Alice Johnson',
+        companyId: companies[0].id,
+        companyRole: 'owner',
       },
       {
         id: '00000000-0000-0000-0000-000000000102',
         email: 'bob.admin@acme-corp.com',
         username: 'bob',
-        full_name: 'Bob Smith',
-        company_id: companies[0].id,
-        company_role: 'admin',
+        fullName: 'Bob Smith',
+        companyId: companies[0].id,
+        companyRole: 'admin',
       },
       {
         id: '00000000-0000-0000-0000-000000000103',
         email: 'charlie.member@acme-corp.com',
         username: 'charlie',
-        full_name: 'Charlie Brown',
-        company_id: companies[0].id,
-        company_role: 'member',
+        fullName: 'Charlie Brown',
+        companyId: companies[0].id,
+        companyRole: 'member',
       },
       {
         id: '00000000-0000-0000-0000-000000000104',
         email: 'diana.member@acme-corp.com',
         username: 'diana',
-        full_name: 'Diana Prince',
-        company_id: companies[0].id,
-        company_role: 'member',
+        fullName: 'Diana Prince',
+        companyId: companies[0].id,
+        companyRole: 'member',
       },
     ];
 
@@ -108,33 +108,33 @@ export async function seedAuthData(dataSource: DataSource) {
         id: '00000000-0000-0000-0000-000000000201',
         email: 'eve.owner@techstart.com',
         username: 'eve',
-        full_name: 'Eve Anderson',
-        company_id: companies[1].id,
-        company_role: 'owner',
+        fullName: 'Eve Anderson',
+        companyId: companies[1].id,
+        companyRole: 'owner',
       },
       {
         id: '00000000-0000-0000-0000-000000000202',
         email: 'frank.admin@techstart.com',
         username: 'frank',
-        full_name: 'Frank Miller',
-        company_id: companies[1].id,
-        company_role: 'admin',
+        fullName: 'Frank Miller',
+        companyId: companies[1].id,
+        companyRole: 'admin',
       },
       {
         id: '00000000-0000-0000-0000-000000000203',
         email: 'grace.member@techstart.com',
         username: 'grace',
-        full_name: 'Grace Lee',
-        company_id: companies[1].id,
-        company_role: 'member',
+        fullName: 'Grace Lee',
+        companyId: companies[1].id,
+        companyRole: 'member',
       },
       {
         id: '00000000-0000-0000-0000-000000000204',
         email: 'henry.member@techstart.com',
         username: 'henry',
-        full_name: 'Henry Wilson',
-        company_id: companies[1].id,
-        company_role: 'member',
+        fullName: 'Henry Wilson',
+        companyId: companies[1].id,
+        companyRole: 'member',
       },
     ];
 
@@ -145,34 +145,34 @@ export async function seedAuthData(dataSource: DataSource) {
         id: '00000000-0000-0000-0000-000000000301',
         email: 'jinseok9338@gmail.com',
         username: 'jinseok',
-        full_name: 'Jinseok Seo',
-        company_id: companies[2].id,
-        company_role: 'owner',
+        fullName: 'Jinseok Seo',
+        companyId: companies[2].id,
+        companyRole: 'owner',
       },
       {
         id: '00000000-0000-0000-0000-000000000302',
         email: 'jsseo@anchors-biz.com',
         username: 'jsseo',
-        full_name: 'JS Seo',
-        company_id: companies[2].id,
-        company_role: 'admin',
+        fullName: 'JS Seo',
+        companyId: companies[2].id,
+        companyRole: 'admin',
       },
     ];
 
     const allUsers = [...acmeUsers, ...techstartUsers, ...anchorsUsers];
     for (const user of allUsers) {
       await queryRunner.query(
-        `INSERT INTO users (id, company_id, email, username, full_name, password_hash, company_role, email_verified, is_active, created_at, updated_at)
+        `INSERT INTO users (id, "companyId", email, username, "fullName", password, "companyRole", "emailVerified", "isActive", "createdAt", "updatedAt")
          VALUES ($1, $2, $3, $4, $5, $6, $7, true, true, NOW(), NOW())
          ON CONFLICT (id) DO NOTHING`,
         [
           user.id,
-          user.company_id,
+          user.companyId,
           user.email,
           user.username,
-          user.full_name,
+          user.fullName,
           hashedPassword,
-          user.company_role,
+          user.companyRole,
         ],
       );
     }
@@ -183,8 +183,8 @@ export async function seedAuthData(dataSource: DataSource) {
     const invitations = [
       {
         id: '00000000-0000-0000-0000-000000000301',
-        company_id: companies[0].id,
-        invited_by_user_id: acmeUsers[0].id, // Alice (owner)
+        companyId: companies[0].id,
+        invitedByUserId: acmeUsers[0].id, // Alice (owner)
         email: 'isaac.invited@acme-corp.com',
         role: 'member',
         token: 'acme-invitation-token-001',
@@ -192,8 +192,8 @@ export async function seedAuthData(dataSource: DataSource) {
       },
       {
         id: '00000000-0000-0000-0000-000000000302',
-        company_id: companies[0].id,
-        invited_by_user_id: acmeUsers[1].id, // Bob (admin)
+        companyId: companies[0].id,
+        invitedByUserId: acmeUsers[1].id, // Bob (admin)
         email: 'julia.invited@acme-corp.com',
         role: 'admin',
         token: 'acme-invitation-token-002',
@@ -201,8 +201,8 @@ export async function seedAuthData(dataSource: DataSource) {
       },
       {
         id: '00000000-0000-0000-0000-000000000401',
-        company_id: companies[1].id,
-        invited_by_user_id: techstartUsers[0].id, // Eve (owner)
+        companyId: companies[1].id,
+        invitedByUserId: techstartUsers[0].id, // Eve (owner)
         email: 'kate.invited@techstart.com',
         role: 'member',
         token: 'techstart-invitation-token-001',
@@ -210,8 +210,8 @@ export async function seedAuthData(dataSource: DataSource) {
       },
       {
         id: '00000000-0000-0000-0000-000000000402',
-        company_id: companies[1].id,
-        invited_by_user_id: techstartUsers[1].id, // Frank (admin)
+        companyId: companies[1].id,
+        invitedByUserId: techstartUsers[1].id, // Frank (admin)
         email: 'leo.invited@techstart.com',
         role: 'admin',
         token: 'techstart-invitation-token-002',
@@ -221,13 +221,13 @@ export async function seedAuthData(dataSource: DataSource) {
 
     for (const invitation of invitations) {
       await queryRunner.query(
-        `INSERT INTO company_invitations (id, company_id, invited_by_user_id, email, role, token, expires_at, status, created_at)
+        `INSERT INTO company_invitations (id, "companyId", "invitedByUserId", email, role, token, "expiresAt", status, "createdAt")
          VALUES ($1, $2, $3, $4, $5, $6, NOW() + INTERVAL '7 days', $7, NOW())
          ON CONFLICT (id) DO NOTHING`,
         [
           invitation.id,
-          invitation.company_id,
-          invitation.invited_by_user_id,
+          invitation.companyId,
+          invitation.invitedByUserId,
           invitation.email,
           invitation.role,
           invitation.token,

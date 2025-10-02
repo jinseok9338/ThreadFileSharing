@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -20,7 +21,7 @@ import { RoleGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
-import { CompanyRole } from '../user/entities/user.entity';
+import { CompanyRole } from '../constants/permissions';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { AcceptInvitationDto } from './dto/accept-invitation.dto';
 import { InvitationResponseDto } from './dto/invitation-response.dto';
@@ -29,7 +30,11 @@ import { MessageData } from '../common/dto';
 import {
   ApiSuccessResponse,
   ApiSuccessArrayResponse,
+  ApiSuccessCursorResponse,
 } from '../common/decorators';
+import { CursorPaginationQueryDto } from '../common/dto';
+import { CursorBasedData } from '../common/dto/api-response.dto';
+import { User } from 'src/user/entities/user.entity';
 
 @ApiTags('Invitations')
 @ApiExtraModels(InvitationResponseDto, UserResponseDto, MessageData)
@@ -52,7 +57,7 @@ export class InvitationController {
     description: 'Invitation created',
   })
   async createInvitation(
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
     @Body() createDto: CreateInvitationDto,
   ) {
     const invitation = await this.invitationService.createInvitation(
@@ -72,14 +77,17 @@ export class InvitationController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get company invitations' })
-  @ApiSuccessArrayResponse(InvitationResponseDto, {
+  @ApiSuccessCursorResponse(InvitationResponseDto, {
     description: 'List of invitations',
   })
-  async getCompanyInvitations(@CurrentUser() user: any) {
-    const invitations = await this.invitationService.getInvitationsByCompany(
+  async getCompanyInvitations(
+    @CurrentUser() user: User,
+    @Query() query: CursorPaginationQueryDto,
+  ): Promise<CursorBasedData<InvitationResponseDto>> {
+    return this.invitationService.getInvitationsByCompany(
       user.companyId,
+      query,
     );
-    return invitations.map((inv) => InvitationResponseDto.fromEntity(inv));
   }
 
   /**

@@ -5,13 +5,17 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository, LessThan, MoreThan } from 'typeorm';
+import { CursorPaginationQueryDto } from '../common/dto';
+import { CursorBasedData } from '../common/dto/api-response.dto';
+import { InvitationResponseDto } from './dto/invitation-response.dto';
 import {
   CompanyInvitation,
   InvitationRole,
   InvitationStatus,
 } from './entities/company-invitation.entity';
-import { User, CompanyRole } from '../user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
+import { CompanyRole } from '../constants/permissions';
 import { Company } from '../company/entities/company.entity';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
@@ -60,7 +64,7 @@ export class InvitationService {
     // Check if there's already a pending invitation
     const existingInvitation = await this.invitationRepository.findOne({
       where: {
-        company_id: companyId,
+        companyId: companyId,
         email: createDto.email,
         status: InvitationStatus.PENDING,
       },
@@ -89,12 +93,12 @@ export class InvitationService {
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     const invitation = this.invitationRepository.create({
-      company_id: companyId,
-      invited_by_user_id: invitedByUserId,
+      companyId: companyId,
+      invitedByUserId: invitedByUserId,
       email: createDto.email,
       role: createDto.role,
       token,
-      expires_at: expiresAt,
+      expiresAt: expiresAt,
       status: InvitationStatus.PENDING,
     });
 
@@ -118,7 +122,7 @@ export class InvitationService {
     }
 
     // Check if expired
-    if (new Date(invitation.expires_at) < new Date()) {
+    if (new Date(invitation.expiresAt) < new Date()) {
       await this.invitationRepository.update(
         { id: invitation.id },
         { status: InvitationStatus.EXPIRED },
@@ -172,12 +176,12 @@ export class InvitationService {
     // Create user
     const user = this.userRepository.create({
       email: invitation.email,
-      password_hash: passwordHash,
-      full_name: acceptDto.fullName,
-      company_id: invitation.company_id,
-      company_role: companyRole,
-      email_verified: true, // Auto-verify via invitation
-      is_active: true,
+      password: passwordHash,
+      fullName: acceptDto.fullName,
+      companyId: invitation.companyId,
+      companyRole: companyRole,
+      emailVerified: true, // Auto-verify via invitation
+      isActive: true,
     });
 
     await this.userRepository.save(user);
@@ -187,7 +191,7 @@ export class InvitationService {
       { id: invitation.id },
       {
         status: InvitationStatus.ACCEPTED,
-        accepted_at: new Date(),
+        acceptedAt: new Date(),
       },
     );
 
@@ -218,15 +222,44 @@ export class InvitationService {
   }
 
   /**
-   * Get all invitations for a company
+   * Get all invitations for a company with cursor-based pagination
    */
   async getInvitationsByCompany(
     companyId: string,
-  ): Promise<CompanyInvitation[]> {
-    return this.invitationRepository.find({
-      where: { company_id: companyId },
-      order: { created_at: 'DESC' },
+    query: CursorPaginationQueryDto,
+  ): Promise<CursorBasedData<InvitationResponseDto>> {
+    const { limit = 20, lastIndex } = query;
+
+    // Build where condition for cursor-based pagination
+    const whereCondition: any = { companyId };
+    if (lastIndex) {
+      // Parse lastIndex as ISO date string and use it for cursor
+      const lastDate = new Date(lastIndex);
+      whereCondition.createdAt = MoreThan(lastDate);
+    }
+
+    // Fetch one more item than requested to determine hasNext
+    const invitations = await this.invitationRepository.find({
+      where: whereCondition,
+      order: { createdAt: 'DESC' },
+      take: limit + 1,
     });
+
+    const hasNext = invitations.length > limit;
+    const items = hasNext ? invitations.slice(0, limit) : invitations;
+
+    // Convert to DTOs
+    const invitationDtos = items.map((invitation) =>
+      InvitationResponseDto.fromEntity(invitation),
+    );
+
+    // Get nextIndex from the last item's createdAt if there's a next page
+    const nextIndex =
+      hasNext && items.length > 0
+        ? items[items.length - 1].createdAt.toISOString()
+        : undefined;
+
+    return new CursorBasedData(invitationDtos, hasNext, limit, nextIndex);
   }
 
   /**
@@ -237,7 +270,7 @@ export class InvitationService {
     const expiredInvitations = await this.invitationRepository.find({
       where: {
         status: InvitationStatus.PENDING,
-        expires_at: LessThan(new Date()),
+        expiresAt: LessThan(new Date()),
       },
     });
 

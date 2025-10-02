@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  CompanyInvitation,
   InvitationRole,
   InvitationStatus,
 } from '../entities/company-invitation.entity';
@@ -53,18 +54,18 @@ export class InvitationResponseDto {
   })
   createdAt: string;
 
-  static fromEntity(invitation: any): InvitationResponseDto {
+  static fromEntity(invitation: CompanyInvitation): InvitationResponseDto {
     return {
       id: invitation.id,
-      companyId: invitation.company_id,
-      invitedByUserId: invitation.invited_by_user_id,
+      companyId: invitation.companyId,
+      invitedByUserId: invitation.invitedByUserId,
       email: invitation.email,
       role: invitation.role,
       token: invitation.token,
-      expiresAt: invitation.expires_at?.toISOString(),
+      expiresAt: invitation.expiresAt?.toISOString(),
       status: invitation.status,
-      acceptedAt: invitation.accepted_at?.toISOString(),
-      createdAt: invitation.created_at?.toISOString(),
+      acceptedAt: invitation.acceptedAt?.toISOString(),
+      createdAt: invitation.createdAt?.toISOString(),
     };
   }
 }

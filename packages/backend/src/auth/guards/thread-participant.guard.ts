@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ThreadParticipant } from '../../thread-participant/entities/thread-participant.entity';
+import { ThreadParticipant } from '../../thread/entities/thread-participant.entity';
 
 /**
  * Thread Participant Guard
@@ -45,8 +45,8 @@ export class ThreadParticipantGuard implements CanActivate {
     // Check if user is a participant
     const participant = await this.threadParticipantRepository.findOne({
       where: {
-        thread_id: threadId,
-        user_id: user.id,
+        threadId: threadId,
+        userId: user.id,
       },
     });
 

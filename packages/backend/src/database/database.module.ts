@@ -6,9 +6,15 @@ import { User } from '../user/entities/user.entity';
 import { Company } from '../company/entities/company.entity';
 import { RefreshToken } from '../refresh-token/entities/refresh-token.entity';
 import { CompanyInvitation } from '../invitation/entities/company-invitation.entity';
-import { ThreadParticipant } from '../thread-participant/entities/thread-participant.entity';
+import { ThreadParticipant } from '../thread/entities/thread-participant.entity';
 import { Team } from '../team/entities/team.entity';
 import { TeamMember } from '../team/entities/team-member.entity';
+import { ChatRoom } from '../chatroom/entities/chatroom.entity';
+import { ChatRoomMember } from '../chatroom/entities/chatroom-member.entity';
+import { Thread } from '../thread/entities/thread.entity';
+import { File } from '../file/entities/file.entity';
+import { Message } from '../message/entities/message.entity';
+import { ThreadMessage } from '../thread-message/entities/thread-message.entity';
 
 @Module({
   imports: [
@@ -32,6 +38,13 @@ import { TeamMember } from '../team/entities/team-member.entity';
           ThreadParticipant,
           Team,
           TeamMember,
+          ChatRoom,
+          ChatRoomMember,
+          Thread,
+          ThreadParticipant,
+          File,
+          Message,
+          ThreadMessage,
         ],
         synchronize: false,
         logging: configService.get<string>('NODE_ENV') === 'local',

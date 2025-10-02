@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { CompanyRole } from '../../user/entities/user.entity';
+import { CompanyRole } from '../../constants/permissions';
 
 export const ROLES_KEY = 'roles';
 

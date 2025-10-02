@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserResponseDto } from '../../user/dto/user-response.dto';
 import { CompanyResponseDto } from '../../company/dto/company-response.dto';
+import { User } from 'src/user/entities/user.entity';
+import { Company } from 'src/company/entities/company.entity';
 
 export class AuthResponseDto {
   @ApiProperty({
@@ -28,8 +30,8 @@ export class AuthResponseDto {
   refreshToken: string;
 
   static create(
-    user: any,
-    company: any,
+    user: User,
+    company: Company,
     accessToken: string,
     refreshToken: string,
   ): AuthResponseDto {
