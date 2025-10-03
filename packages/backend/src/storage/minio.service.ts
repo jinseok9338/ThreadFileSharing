@@ -23,15 +23,22 @@ export class MinIOService {
       .get<string>('MINIO_ENDPOINT', 'localhost')
       .replace('http://', '')
       .replace('https://', '');
-    
+
     this.port = parseInt(
       this.configService.get<string>('MINIO_PORT', '9000'),
       10,
     );
-    
-    this.useSSL = this.configService.get<string>('MINIO_USE_SSL', 'false') === 'true';
-    this.accessKey = this.configService.get<string>('MINIO_ACCESS_KEY', 'minioadmin');
-    this.secretKey = this.configService.get<string>('MINIO_SECRET_KEY', 'minioadmin');
+
+    this.useSSL =
+      this.configService.get<string>('MINIO_USE_SSL', 'false') === 'true';
+    this.accessKey = this.configService.get<string>(
+      'MINIO_ACCESS_KEY',
+      'minioadmin',
+    );
+    this.secretKey = this.configService.get<string>(
+      'MINIO_SECRET_KEY',
+      'minioadmin',
+    );
     this.bucketName = this.configService.get<string>(
       'MINIO_BUCKET_NAME',
       'threadfilesharing-local',
@@ -45,7 +52,9 @@ export class MinIOService {
       secretKey: this.secretKey,
     });
 
-    this.logger.log(`MinIO client initialized for ${this.endpoint}:${this.port}`);
+    this.logger.log(
+      `MinIO client initialized for ${this.endpoint}:${this.port}`,
+    );
   }
 
   /**
@@ -54,16 +63,14 @@ export class MinIOService {
   async initializeBucket(): Promise<void> {
     try {
       const bucketExists = await this.minioClient.bucketExists(this.bucketName);
-      
+
       if (!bucketExists) {
         await this.minioClient.makeBucket(this.bucketName, 'us-east-1');
         this.logger.log(
           `MinIO bucket '${this.bucketName}' created successfully`,
         );
       } else {
-        this.logger.log(
-          `MinIO bucket '${this.bucketName}' already exists`,
-        );
+        this.logger.log(`MinIO bucket '${this.bucketName}' already exists`);
       }
     } catch (error) {
       this.logger.error(`Failed to initialize MinIO bucket: ${error.message}`);
@@ -82,7 +89,7 @@ export class MinIOService {
   ): Promise<string> {
     try {
       await this.initializeBucket();
-      
+
       const result = await this.minioClient.putObject(
         this.bucketName,
         objectKey,
@@ -93,11 +100,11 @@ export class MinIOService {
           ...metadata,
         },
       );
-      
+
       this.logger.debug(
         `File uploaded to MinIO: ${objectKey} (${fileBuffer.length} bytes)`,
       );
-      
+
       return result.etag;
     } catch (error) {
       this.logger.error(`Failed to upload file to MinIO: ${error.message}`);
@@ -110,7 +117,10 @@ export class MinIOService {
    */
   async getFile(objectKey: string): Promise<Readable> {
     try {
-      const stream = await this.minioClient.getObject(this.bucketName, objectKey);
+      const stream = await this.minioClient.getObject(
+        this.bucketName,
+        objectKey,
+      );
       this.logger.debug(`File retrieved from MinIO: ${objectKey}`);
       return stream;
     } catch (error) {
@@ -145,11 +155,11 @@ export class MinIOService {
         objectKey,
         expiresIn,
       );
-      
+
       this.logger.debug(
         `Presigned download URL generated for MinIO: ${objectKey}`,
       );
-      
+
       return url;
     } catch (error) {
       this.logger.error(
@@ -172,11 +182,11 @@ export class MinIOService {
         objectKey,
         expiresIn,
       );
-      
+
       this.logger.debug(
         `Presigned upload URL generated for MinIO: ${objectKey}`,
       );
-      
+
       return url;
     } catch (error) {
       this.logger.error(
@@ -197,7 +207,9 @@ export class MinIOService {
       if (error.code === 'NotFound') {
         return false;
       }
-      this.logger.error(`Failed to check file existence in MinIO: ${error.message}`);
+      this.logger.error(
+        `Failed to check file existence in MinIO: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -207,11 +219,16 @@ export class MinIOService {
    */
   async getFileMetadata(objectKey: string): Promise<Minio.BucketItemStat> {
     try {
-      const stat = await this.minioClient.statObject(this.bucketName, objectKey);
+      const stat = await this.minioClient.statObject(
+        this.bucketName,
+        objectKey,
+      );
       this.logger.debug(`File metadata retrieved from MinIO: ${objectKey}`);
       return stat;
     } catch (error) {
-      this.logger.error(`Failed to get file metadata from MinIO: ${error.message}`);
+      this.logger.error(
+        `Failed to get file metadata from MinIO: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -222,8 +239,12 @@ export class MinIOService {
   async listFiles(prefix?: string): Promise<Minio.BucketItem[]> {
     try {
       const files: Minio.BucketItem[] = [];
-      const stream = this.minioClient.listObjects(this.bucketName, prefix, true);
-      
+      const stream = this.minioClient.listObjects(
+        this.bucketName,
+        prefix,
+        true,
+      );
+
       return new Promise((resolve, reject) => {
         stream.on('data', (obj) => {
           // Convert ObjectInfo to BucketItem format
@@ -237,7 +258,9 @@ export class MinIOService {
           }
         });
         stream.on('error', (error) => {
-          this.logger.error(`Failed to list files from MinIO: ${error.message}`);
+          this.logger.error(
+            `Failed to list files from MinIO: ${error.message}`,
+          );
           reject(error);
         });
         stream.on('end', () => {
@@ -279,7 +302,7 @@ export class MinIOService {
   }> {
     try {
       const bucketExists = await this.minioClient.bucketExists(this.bucketName);
-      
+
       return {
         status: 'healthy',
         endpoint: `${this.endpoint}:${this.port}`,
@@ -287,7 +310,7 @@ export class MinIOService {
       };
     } catch (error) {
       this.logger.error(`MinIO health check failed: ${error.message}`);
-      
+
       return {
         status: 'unhealthy',
         endpoint: `${this.endpoint}:${this.port}`,

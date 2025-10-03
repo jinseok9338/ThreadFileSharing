@@ -67,6 +67,8 @@ export class FileUploadService {
    */
   private getStorageService() {
     const isLocal = this.configService.get<string>('NODE_ENV') === 'local';
+    this.logger.debug(`Environment check: NODE_ENV=${this.configService.get<string>('NODE_ENV')}, isLocal=${isLocal}`);
+    this.logger.debug(`Returning service: ${isLocal ? 'MinIOService' : 'S3ClientService'}`);
     return isLocal ? this.minioService : this.s3ClientService;
   }
 
@@ -94,6 +96,19 @@ export class FileUploadService {
         userId,
         originalName,
       );
+    }
+  }
+
+  /**
+   * Get storage bucket name based on environment
+   */
+  private getStorageBucketName(): string {
+    const isLocal = this.configService.get<string>('NODE_ENV') === 'local';
+    
+    if (isLocal) {
+      return this.configService.get<string>('MINIO_BUCKET_NAME', 'threadfilesharing-local');
+    } else {
+      return this.configService.get<string>('AWS_S3_BUCKET_NAME', 'threadfilesharing-prod');
     }
   }
 
@@ -178,7 +193,7 @@ export class FileUploadService {
         sizeBytes: file._buf?.length || 0,
         hash,
         storageKey,
-        storageBucket: this.s3ClientService['bucketName'],
+        storageBucket: this.getStorageBucketName(),
         metadata: uploadRequest.metadata,
       });
 
@@ -400,7 +415,7 @@ export class FileUploadService {
           sizeBytes: fileBuffer.length,
           hash,
           storageKey,
-          storageBucket: this.s3ClientService['bucketName'],
+          storageBucket: this.getStorageBucketName(),
           metadata: uploadRequest.metadata,
         });
 

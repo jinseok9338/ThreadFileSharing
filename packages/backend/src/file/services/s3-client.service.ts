@@ -17,11 +17,20 @@ import { Readable } from 'stream';
 @Injectable()
 export class S3ClientService {
   private readonly logger = new Logger(S3ClientService.name);
-  private readonly s3Client: S3Client;
-  private readonly bucketName: string;
-  private readonly region: string;
+  private readonly s3Client?: S3Client;
+  private readonly bucketName?: string;
+  private readonly region?: string;
 
   constructor(private readonly configService: ConfigService) {
+    const isLocal = this.configService.get<string>('NODE_ENV') === 'local';
+
+    if (isLocal) {
+      this.logger.log(
+        'Local environment detected - S3ClientService will be initialized lazily when needed',
+      );
+      return;
+    }
+
     this.region = this.configService.get<string>('AWS_S3_REGION', 'us-east-1');
     this.bucketName = this.configService.get<string>(
       'AWS_S3_BUCKET_NAME',
@@ -59,6 +68,12 @@ export class S3ClientService {
     contentType: string,
     metadata?: Record<string, string>,
   ): Promise<string> {
+    if (!this.s3Client || !this.bucketName) {
+      throw new Error(
+        'S3ClientService is not initialized for production environment',
+      );
+    }
+
     try {
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
@@ -84,6 +99,12 @@ export class S3ClientService {
    * Download file from AWS S3
    */
   async downloadFile(key: string): Promise<Readable> {
+    if (!this.s3Client || !this.bucketName) {
+      throw new Error(
+        'S3ClientService is not initialized for production environment',
+      );
+    }
+
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
@@ -106,6 +127,12 @@ export class S3ClientService {
    * Delete file from AWS S3
    */
   async deleteFile(key: string): Promise<void> {
+    if (!this.s3Client || !this.bucketName) {
+      throw new Error(
+        'S3ClientService is not initialized for production environment',
+      );
+    }
+
     try {
       const command = new DeleteObjectCommand({
         Bucket: this.bucketName,
@@ -130,6 +157,12 @@ export class S3ClientService {
     key: string,
     expiresIn: number = 3600,
   ): Promise<string> {
+    if (!this.s3Client || !this.bucketName) {
+      throw new Error(
+        'S3ClientService is not initialized for production environment',
+      );
+    }
+
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
@@ -157,6 +190,12 @@ export class S3ClientService {
     contentType: string,
     expiresIn: number = 3600,
   ): Promise<string> {
+    if (!this.s3Client || !this.bucketName) {
+      throw new Error(
+        'S3ClientService is not initialized for production environment',
+      );
+    }
+
     try {
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
@@ -187,6 +226,12 @@ export class S3ClientService {
     contentType?: string;
     metadata?: Record<string, string>;
   }> {
+    if (!this.s3Client || !this.bucketName) {
+      throw new Error(
+        'S3ClientService is not initialized for production environment',
+      );
+    }
+
     try {
       const command = new HeadObjectCommand({
         Bucket: this.bucketName,
@@ -216,6 +261,12 @@ export class S3ClientService {
    * Check if file exists in AWS S3
    */
   async fileExists(key: string): Promise<boolean> {
+    if (!this.s3Client || !this.bucketName) {
+      throw new Error(
+        'S3ClientService is not initialized for production environment',
+      );
+    }
+
     try {
       await this.getFileMetadata(key);
       return true;
@@ -252,8 +303,8 @@ export class S3ClientService {
    * Get AWS S3 connection info for debugging
    */
   getConnectionInfo(): {
-    region: string;
-    bucketName: string;
+    region?: string;
+    bucketName?: string;
     endpoint?: string;
   } {
     return {
@@ -267,10 +318,17 @@ export class S3ClientService {
    */
   async healthCheck(): Promise<{
     status: 'healthy' | 'unhealthy';
-    region: string;
-    bucketName: string;
+    region?: string;
+    bucketName?: string;
     error?: string;
   }> {
+    if (!this.s3Client || !this.bucketName || !this.region) {
+      return {
+        status: 'unhealthy',
+        error: 'S3ClientService is not initialized for production environment',
+      };
+    }
+
     try {
       // Try to list objects to verify connection
       const command = new HeadObjectCommand({
