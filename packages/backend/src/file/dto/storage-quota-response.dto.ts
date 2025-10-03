@@ -1,5 +1,6 @@
 import { StorageQuota } from '../entities/storage-quota.entity';
 import { Company } from '../../company/entities/company.entity';
+import Big from 'big.js';
 
 export class StorageQuotaResponseDto {
   id: string;
@@ -51,11 +52,12 @@ export class StorageQuotaResponseDto {
 
   private formatBytes(bytes: bigint | number): string {
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    let size = Number(bytes);
+    let size = new Big(bytes.toString());
     let unitIndex = 0;
 
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
+    const KB = new Big(1024);
+    while (size.gte(KB) && unitIndex < units.length - 1) {
+      size = size.div(KB);
       unitIndex++;
     }
 

@@ -5,6 +5,7 @@ import { Company } from '../company/entities/company.entity';
 import { File } from '../file/entities/file.entity';
 import { StorageQuota } from '../file/entities/storage-quota.entity';
 import { STORAGE_LIMITS } from '../constants/permissions';
+import Big from 'big.js';
 
 /**
  * Storage Quota Service
@@ -27,6 +28,8 @@ export class StorageQuotaService {
    * Get company storage quota information
    */
   async getStorageQuota(companyId: string) {
+    this.logger.log(`getStorageQuota called for company: ${companyId}`);
+
     const company = await this.companyRepository.findOne({
       where: { id: companyId },
     });
@@ -48,10 +51,12 @@ export class StorageQuotaService {
       .andWhere('file.deletedAt IS NULL')
       .getRawOne();
 
-    const storageUsedBytes = Number(result?.totalSize || 0);
-    const storageAvailableBytes = storageLimitBytes - storageUsedBytes;
-    const storageUsedPercent =
-      storageLimitBytes > 0 ? (storageUsedBytes / storageLimitBytes) * 100 : 0;
+    const storageUsedBytes = new Big(result?.totalSize || 0);
+    const storageLimitBig = new Big(storageLimitBytes);
+    const storageAvailableBytes = storageLimitBig.minus(storageUsedBytes);
+    const storageUsedPercent = storageLimitBig.gt(0) 
+      ? storageUsedBytes.div(storageLimitBig).times(100) 
+      : new Big(0);
 
     // Get file count
     const fileCount = await this.fileRepository.count({
@@ -63,7 +68,7 @@ export class StorageQuotaService {
 
     // Update cached storage quota with real-time calculated values
     await this.updateStorageQuotaCache(companyId, {
-      storageUsedBytes,
+      storageUsedBytes: storageUsedBytes.toNumber(),
       fileCount,
       storageLimitBytes,
     });
@@ -71,9 +76,9 @@ export class StorageQuotaService {
     return {
       companyId,
       storageLimitBytes: Number(storageLimitBytes),
-      storageUsedBytes: Number(storageUsedBytes),
-      storageAvailableBytes: Number(storageAvailableBytes),
-      storageUsedPercent: Math.round(storageUsedPercent * 100) / 100,
+      storageUsedBytes: storageUsedBytes.toNumber(),
+      storageAvailableBytes: storageAvailableBytes.toNumber(),
+      storageUsedPercent: Math.round(storageUsedPercent.toNumber() * 100) / 100,
       fileCount,
     };
   }
@@ -83,10 +88,12 @@ export class StorageQuotaService {
    */
   async canUploadFile(
     companyId: string,
-    fileSizeBytes: number,
+    fileSizeBytes: number | bigint,
   ): Promise<boolean> {
     const quota = await this.getStorageQuota(companyId);
-    return quota.storageAvailableBytes >= fileSizeBytes;
+    const availableBytes = new Big(quota.storageAvailableBytes);
+    const fileSize = new Big(fileSizeBytes.toString());
+    return availableBytes.gte(fileSize);
   }
 
   /**
@@ -94,15 +101,19 @@ export class StorageQuotaService {
    */
   async validateFileUpload(
     companyId: string,
-    fileSizeBytes: number,
+    fileSizeBytes: number | bigint,
   ): Promise<void> {
     const canUpload = await this.canUploadFile(companyId, fileSizeBytes);
 
     if (!canUpload) {
       const quota = await this.getStorageQuota(companyId);
+      const currentUsage = new Big(quota.storageUsedBytes);
+      const limit = new Big(quota.storageLimitBytes);
+      const additionalSize = new Big(fileSizeBytes.toString());
+      
       throw new BadRequestException({
         code: 'STORAGE_QUOTA_EXCEEDED',
-        message: 'File upload would exceed company storage quota',
+        message: `Storage quota exceeded. Current usage: ${this.formatBytes(currentUsage)}, Limit: ${this.formatBytes(limit)}, Additional size: ${this.formatBytes(additionalSize)}`,
         data: {
           fileSize: fileSizeBytes,
           availableSpace: quota.storageAvailableBytes,
@@ -285,5 +296,22 @@ export class StorageQuotaService {
 
     // Check total size against quota
     await this.validateFileUpload(companyId, totalSize);
+  }
+
+  /**
+   * Format bytes to human readable string
+   */
+  private formatBytes(bytes: Big): string {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let size = new Big(bytes);
+    let unitIndex = 0;
+
+    const KB = new Big(1024);
+    while (size.gte(KB) && unitIndex < units.length - 1) {
+      size = size.div(KB);
+      unitIndex++;
+    }
+
+    return `${size.toFixed(2)} ${units[unitIndex]}`;
   }
 }
