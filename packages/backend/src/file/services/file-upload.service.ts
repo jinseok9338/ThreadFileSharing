@@ -67,8 +67,12 @@ export class FileUploadService {
    */
   private getStorageService() {
     const isLocal = this.configService.get<string>('NODE_ENV') === 'local';
-    this.logger.debug(`Environment check: NODE_ENV=${this.configService.get<string>('NODE_ENV')}, isLocal=${isLocal}`);
-    this.logger.debug(`Returning service: ${isLocal ? 'MinIOService' : 'S3ClientService'}`);
+    this.logger.debug(
+      `Environment check: NODE_ENV=${this.configService.get<string>('NODE_ENV')}, isLocal=${isLocal}`,
+    );
+    this.logger.debug(
+      `Returning service: ${isLocal ? 'MinIOService' : 'S3ClientService'}`,
+    );
     return isLocal ? this.minioService : this.s3ClientService;
   }
 
@@ -91,11 +95,11 @@ export class FileUploadService {
       return `companies/${companyId}/users/${userId}/${timestamp}_${sanitizedFilename}.${extension}`;
     } else {
       // AWS S3 storage key generation
-      return this.s3ClientService.generateStorageKey(
-        companyId,
-        userId,
-        originalName,
-      );
+      const extension = originalName.split('.').pop();
+      const filename = originalName.replace(/\.[^/.]+$/, '');
+      const sanitizedFilename = filename.replace(/[^a-zA-Z0-9-_]/g, '_');
+      const timestamp = Date.now();
+      return `companies/${companyId}/users/${userId}/${timestamp}_${sanitizedFilename}.${extension}`;
     }
   }
 
@@ -104,11 +108,17 @@ export class FileUploadService {
    */
   private getStorageBucketName(): string {
     const isLocal = this.configService.get<string>('NODE_ENV') === 'local';
-    
+
     if (isLocal) {
-      return this.configService.get<string>('MINIO_BUCKET_NAME', 'threadfilesharing-local');
+      return this.configService.get<string>(
+        'MINIO_BUCKET_NAME',
+        'threadfilesharing-local',
+      );
     } else {
-      return this.configService.get<string>('AWS_S3_BUCKET_NAME', 'threadfilesharing-prod');
+      return this.configService.get<string>(
+        'AWS_S3_BUCKET_NAME',
+        'threadfilesharing-prod',
+      );
     }
   }
 
@@ -209,8 +219,8 @@ export class FileUploadService {
       );
 
       // Generate download URL
-      const downloadUrl =
-        await this.s3ClientService.getSignedDownloadUrl(storageKey);
+      const storageServiceForDownload = this.getStorageService();
+      const downloadUrl = await storageServiceForDownload.getSignedDownloadUrl(storageKey);
 
       // Update file with download URL
       savedFile.downloadUrl = downloadUrl;
@@ -452,7 +462,8 @@ export class FileUploadService {
 
       // Generate download URL
       if (!savedFile.downloadUrl) {
-        const downloadUrl = await this.s3ClientService.getSignedDownloadUrl(
+        const storageServiceForDownload = this.getStorageService();
+        const downloadUrl = await storageServiceForDownload.getSignedDownloadUrl(
           savedFile.storageKey,
         );
         savedFile.downloadUrl = downloadUrl;

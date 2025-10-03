@@ -145,7 +145,7 @@ export class MinIOService {
   /**
    * Generate presigned URL for file download
    */
-  async getPresignedDownloadUrl(
+  async getSignedDownloadUrl(
     objectKey: string,
     expiresIn: number = 3600,
   ): Promise<string> {
