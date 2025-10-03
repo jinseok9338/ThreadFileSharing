@@ -13,7 +13,7 @@ export default new DataSource({
   password: process.env.DATABASE_PASSWORD || 'postgres',
   database: process.env.DATABASE_NAME || 'threadsharing',
   entities: [join(__dirname, '..', '**', '*.entity{.ts,.js}')],
-  migrations: [join(__dirname, '..', 'migrations', '*{.ts,.js}')],
+  migrations: [join(__dirname, '..', 'database', 'migrations', '*{.ts,.js}')],
   synchronize: false,
   logging: process.env.NODE_ENV === 'local',
   ssl:

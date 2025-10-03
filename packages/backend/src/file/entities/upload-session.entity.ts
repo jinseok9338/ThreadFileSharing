@@ -72,6 +72,9 @@ export class UploadSession {
   @Column({ type: 'timestamp', nullable: true })
   completedAt?: Date;
 
+  @Column({ type: 'jsonb', nullable: true })
+  metadata?: Record<string, any>;
+
   // Relationships
   @ManyToOne(() => User, (user) => user.uploadSessions)
   @JoinColumn({ name: 'userId' })

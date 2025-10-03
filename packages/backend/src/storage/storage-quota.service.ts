@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Company } from '../company/entities/company.entity';
@@ -11,6 +11,8 @@ import { STORAGE_LIMITS } from '../constants/permissions';
  */
 @Injectable()
 export class StorageQuotaService {
+  private readonly logger = new Logger(StorageQuotaService.name);
+
   constructor(
     @InjectRepository(Company)
     private companyRepository: Repository<Company>,
@@ -107,12 +109,12 @@ export class StorageQuotaService {
     companyId: string,
     fileSizeBytes: number,
   ): Promise<void> {
-    // TODO: Implement storage usage tracking
-    // await this.companyRepository.increment(
-    //   { id: companyId },
-    //   'storageUsedBytes',
-    //   fileSizeBytes,
-    // );
+    // NOTE: Storage usage is now calculated dynamically from File entities
+    // in CompanyService.getStats(). This method is kept for future use
+    // when real-time storage tracking is needed.
+    this.logger.debug(
+      `Storage usage added: ${fileSizeBytes} bytes for company ${companyId}`,
+    );
   }
 
   /**
@@ -122,12 +124,12 @@ export class StorageQuotaService {
     companyId: string,
     fileSizeBytes: number,
   ): Promise<void> {
-    // TODO: Implement storage usage tracking
-    // await this.companyRepository.decrement(
-    //   { id: companyId },
-    //   'storageUsedBytes',
-    //   fileSizeBytes,
-    // );
+    // NOTE: Storage usage is now calculated dynamically from File entities
+    // in CompanyService.getStats(). This method is kept for future use
+    // when real-time storage tracking is needed.
+    this.logger.debug(
+      `Storage usage removed: ${fileSizeBytes} bytes for company ${companyId}`,
+    );
   }
 
   /**

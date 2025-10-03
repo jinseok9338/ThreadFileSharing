@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
@@ -26,6 +26,9 @@ import { FileDownloadController } from './controllers/file-download.controller';
 // Configuration
 import { multerConfig } from './config/multer.config';
 
+// WebSocket Module (forwardRef to avoid circular dependency)
+import { WebSocketModule } from '../websocket/websocket.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -41,6 +44,7 @@ import { multerConfig } from './config/multer.config';
       useFactory: multerConfig,
       inject: [ConfigModule],
     }),
+    forwardRef(() => WebSocketModule),
   ],
   controllers: [
     FileUploadController,

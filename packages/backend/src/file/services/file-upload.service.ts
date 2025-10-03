@@ -3,6 +3,8 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
@@ -26,6 +28,7 @@ import { User } from '../../user/entities/user.entity';
 import { Company } from '../../company/entities/company.entity';
 import { S3ClientService } from './s3-client.service';
 import { StorageQuotaService } from './storage-quota.service';
+import { WebSocketGateway } from '../../websocket/gateway/websocket.gateway';
 import {
   FileUploadRequestDto,
   FileUploadResponseDto,
@@ -53,6 +56,8 @@ export class FileUploadService {
     private readonly s3ClientService: S3ClientService,
     private readonly storageQuotaService: StorageQuotaService,
     private readonly configService: ConfigService,
+    @Inject(forwardRef(() => WebSocketGateway))
+    private readonly webSocketGateway: WebSocketGateway,
   ) {}
 
   async uploadSingleFile(
@@ -163,6 +168,13 @@ export class FileUploadService {
 
       this.logger.log(`Single file upload completed: ${savedFile.id}`);
 
+      // Broadcast upload completion via WebSocket
+      await this.broadcastSingleFileUploadCompleted(
+        savedFile,
+        uploadRequest,
+        userId,
+      );
+
       return FileUploadResponseDto.singleFile(
         FileResponseDto.fromEntity(savedFile),
         'File uploaded successfully',
@@ -200,7 +212,7 @@ export class FileUploadService {
         totalSize,
       );
 
-      // Create upload session
+      // Create upload session with context metadata
       const uploadSession = this.uploadSessionRepository.create({
         userId,
         companyId: user.company.id,
@@ -210,6 +222,15 @@ export class FileUploadService {
         totalFiles: files.length,
         totalSize,
         status: SessionStatus.ACTIVE,
+        metadata: {
+          chatroomId: uploadRequest.chatroomId,
+          threadId: uploadRequest.threadId,
+          action: uploadRequest.createThread ? 'CREATE_THREAD' : 'SHARE_FILE',
+          createThread: uploadRequest.createThread,
+          threadTitle: uploadRequest.threadTitle,
+          threadDescription: uploadRequest.threadDescription,
+          accessType: uploadRequest.accessType,
+        },
       });
 
       const savedSession =
@@ -387,6 +408,14 @@ export class FileUploadService {
 
       this.logger.log(`File uploaded to session: ${savedFile.id}`);
 
+      // Broadcast file upload completion via WebSocket
+      await this.broadcastMultiFileUploadCompleted(
+        savedFile,
+        uploadRequest,
+        userId,
+        uploadSession.id,
+      );
+
       return FileUploadResponseDto.singleFile(
         FileResponseDto.fromEntity(savedFile),
         'File uploaded to session successfully',
@@ -422,5 +451,168 @@ export class FileUploadService {
       'FILE_UPLOAD_CHUNK_SIZE',
       5 * 1024 * 1024,
     ); // 5MB default
+  }
+
+  // ===== WebSocket Broadcasting Methods =====
+
+  private async broadcastSingleFileUploadCompleted(
+    file: File,
+    uploadRequest: FileUploadRequestDto,
+    userId: string,
+  ): Promise<void> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+      if (!user) {
+        this.logger.warn(`User not found for WebSocket broadcast: ${userId}`);
+        return;
+      }
+
+      // Get user's company role (default to member for now)
+      // TODO: Implement proper company role lookup when CompanyMember entity is available
+      const companyRole = 'member';
+
+      const completionData = {
+        sessionId: null, // Single file upload doesn't have session
+        fileId: file.id,
+        originalName: file.originalName,
+        size: file.sizeBytes,
+        mimeType: file.mimeType,
+        downloadUrl: file.downloadUrl,
+        uploadedBy: {
+          id: user.id,
+          username: user.username,
+          fullName: user.fullName,
+          avatarUrl: user.avatarUrl,
+          status: 'online' as const,
+          lastSeenAt: new Date(),
+          companyRole: companyRole as 'owner' | 'admin' | 'member',
+        },
+        context: {
+          chatroomId: uploadRequest.chatroomId,
+          threadId: uploadRequest.threadId,
+          action: uploadRequest.createThread ? 'CREATE_THREAD' : 'SHARE_FILE',
+        },
+        autoActions: await this.generateAutoActions(
+          file,
+          uploadRequest,
+          userId,
+        ),
+        completedAt: new Date(),
+      };
+
+      // Broadcast to relevant rooms based on context
+      if (uploadRequest.chatroomId) {
+        this.webSocketGateway.broadcastFileUploadCompleted(completionData);
+      } else if (uploadRequest.threadId) {
+        this.webSocketGateway.broadcastFileUploadCompleted(completionData);
+      }
+
+      this.logger.debug(
+        `Broadcasted single file upload completion for file ${file.id}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to broadcast single file upload completion: ${error.message}`,
+      );
+    }
+  }
+
+  private async broadcastMultiFileUploadCompleted(
+    file: File,
+    uploadRequest: FileUploadRequestDto,
+    userId: string,
+    sessionId: string,
+  ): Promise<void> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+      if (!user) {
+        this.logger.warn(`User not found for WebSocket broadcast: ${userId}`);
+        return;
+      }
+
+      // Get user's company role (default to member for now)
+      // TODO: Implement proper company role lookup when CompanyMember entity is available
+      const companyRole = 'member';
+
+      const completionData = {
+        sessionId,
+        fileId: file.id,
+        originalName: file.originalName,
+        size: file.sizeBytes,
+        mimeType: file.mimeType,
+        downloadUrl: file.downloadUrl,
+        uploadedBy: {
+          id: user.id,
+          username: user.username,
+          fullName: user.fullName,
+          avatarUrl: user.avatarUrl,
+          status: 'online' as const,
+          lastSeenAt: new Date(),
+          companyRole: companyRole as 'owner' | 'admin' | 'member',
+        },
+        context: {
+          chatroomId: uploadRequest.chatroomId,
+          threadId: uploadRequest.threadId,
+          action: uploadRequest.createThread ? 'CREATE_THREAD' : 'SHARE_FILE',
+        },
+        autoActions: await this.generateAutoActions(
+          file,
+          uploadRequest,
+          userId,
+        ),
+        completedAt: new Date(),
+      };
+
+      // Broadcast to upload session room and context rooms
+      this.webSocketGateway.broadcastFileUploadCompleted(completionData);
+
+      this.logger.debug(
+        `Broadcasted multi-file upload completion for file ${file.id} in session ${sessionId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to broadcast multi-file upload completion: ${error.message}`,
+      );
+    }
+  }
+
+  private async generateAutoActions(
+    file: File,
+    uploadRequest: FileUploadRequestDto,
+    userId: string,
+  ): Promise<any> {
+    const autoActions: any = {};
+
+    try {
+      // Auto-generate chatroom message if sharing to chatroom (not creating thread)
+      if (uploadRequest.chatroomId && !uploadRequest.createThread) {
+        // TODO: Create actual chatroom message via MessageService
+        autoActions.chatroomMessage = {
+          messageId: 'temp-message-id', // TODO: Use actual message ID
+          content: `파일이 업로드되었습니다: ${file.originalName}`,
+          messageType: 'FILE_SHARE',
+        };
+      }
+
+      // Auto-create thread if requested
+      if (uploadRequest.createThread) {
+        // TODO: Create actual thread via ThreadService
+        autoActions.threadCreated = {
+          threadId: 'temp-thread-id', // TODO: Use actual thread ID
+          title: uploadRequest.threadTitle || file.originalName,
+          description:
+            uploadRequest.threadDescription ||
+            `${file.originalName}에 대한 논의`,
+        };
+      }
+    } catch (error) {
+      this.logger.error(`Failed to generate auto actions: ${error.message}`);
+    }
+
+    return Object.keys(autoActions).length > 0 ? autoActions : undefined;
   }
 }

@@ -1,4 +1,10 @@
-import { IsOptional, IsString, IsUUID, IsEnum } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsEnum,
+  IsBoolean,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import { AccessType } from '../entities/file-association.entity';
 
@@ -22,6 +28,18 @@ export class FileUploadRequestDto {
   @IsOptional()
   @IsString()
   sessionName?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  createThread?: boolean = false;
+
+  @IsOptional()
+  @IsString()
+  threadTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  threadDescription?: string;
 
   @IsOptional()
   @Transform(({ value }) => {

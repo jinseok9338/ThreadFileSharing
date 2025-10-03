@@ -13,6 +13,7 @@ import { InvitationModule } from './invitation/invitation.module';
 import { ChatRoomModule } from './chatroom/chatroom.module';
 import { ThreadModule } from './thread/thread.module';
 import { FileModule } from './file/file.module';
+import { WebSocketModule } from './websocket/websocket.module';
 import * as path from 'path';
 
 @Module({
@@ -45,6 +46,7 @@ import * as path from 'path';
     ChatRoomModule,
     ThreadModule,
     FileModule,
+    WebSocketModule,
   ],
   controllers: [AppController],
   providers: [

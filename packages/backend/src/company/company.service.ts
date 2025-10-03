@@ -10,6 +10,7 @@ import { CursorBasedData } from '../common/dto/api-response.dto';
 import { UserResponseDto } from '../user/dto/user-response.dto';
 import { Company, CompanyPlan } from './entities/company.entity';
 import { User } from '../user/entities/user.entity';
+import { File } from '../file/entities/file.entity';
 import { CompanyRole } from '../constants/permissions';
 
 interface CreateCompanyDto {
@@ -33,6 +34,8 @@ export class CompanyService {
     private companyRepository: Repository<Company>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(File)
+    private fileRepository: Repository<File>,
   ) {}
 
   /**
@@ -177,10 +180,22 @@ export class CompanyService {
       where: { companyId: companyId, deletedAt: IsNull() },
     });
 
+    // Calculate actual storage usage from files
+    const storageUsageResult = await this.fileRepository
+      .createQueryBuilder('file')
+      .select('SUM(file.sizeBytes)', 'totalSize')
+      .where('file.companyId = :companyId', { companyId: companyId })
+      .andWhere('file.deletedAt IS NULL')
+      .getRawOne();
+
+    const storageUsed = storageUsageResult?.totalSize
+      ? BigInt(storageUsageResult.totalSize)
+      : BigInt(0);
+
     return {
       userCount,
       maxUsers: company.maxUsers,
-      storageUsed: BigInt(0), // TODO: Calculate from files in future
+      storageUsed,
       maxStorage: company.maxStorageBytes,
     };
   }

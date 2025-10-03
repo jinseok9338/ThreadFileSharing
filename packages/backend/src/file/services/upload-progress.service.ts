@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import {
@@ -10,6 +16,7 @@ import {
   SessionStatus,
 } from '../entities/upload-session.entity';
 import { UploadProgressDto } from '../dto/upload-progress.dto';
+import { WebSocketGateway } from '../../websocket/gateway/websocket.gateway';
 
 @Injectable()
 export class UploadProgressService {
@@ -20,6 +27,8 @@ export class UploadProgressService {
     private readonly uploadProgressRepository: Repository<UploadProgress>,
     @InjectRepository(UploadSession)
     private readonly uploadSessionRepository: Repository<UploadSession>,
+    @Inject(forwardRef(() => WebSocketGateway))
+    private readonly webSocketGateway: WebSocketGateway,
   ) {}
 
   async updateProgress(
@@ -82,6 +91,9 @@ export class UploadProgressService {
       // Update session progress
       await this.updateSessionProgress(uploadProgress.uploadSessionId);
 
+      // Broadcast progress update via WebSocket
+      await this.broadcastProgressUpdate(savedProgress);
+
       return UploadProgressDto.fromEntity(savedProgress);
     } catch (error) {
       this.logger.error(`Failed to update upload progress: ${error.message}`);
@@ -114,6 +126,9 @@ export class UploadProgressService {
 
       // Update session progress
       await this.updateSessionProgress(uploadProgress.uploadSessionId);
+
+      // Broadcast failure update via WebSocket
+      await this.broadcastFailureUpdate(savedProgress, errorMessage);
 
       return UploadProgressDto.fromEntity(savedProgress);
     } catch (error) {
@@ -149,6 +164,9 @@ export class UploadProgressService {
 
       // Update session progress
       await this.updateSessionProgress(uploadProgress.uploadSessionId);
+
+      // Broadcast cancellation update via WebSocket
+      await this.broadcastCancellationUpdate(savedProgress);
 
       return UploadProgressDto.fromEntity(savedProgress);
     } catch (error) {
@@ -288,6 +306,180 @@ export class UploadProgressService {
       );
     } catch (error) {
       this.logger.error(`Failed to cleanup stale progress: ${error.message}`);
+    }
+  }
+
+  // ===== WebSocket Broadcasting Methods =====
+
+  private async broadcastProgressUpdate(
+    uploadProgress: UploadProgress,
+  ): Promise<void> {
+    try {
+      // Get upload session with context
+      const uploadSession = await this.uploadSessionRepository.findOne({
+        where: { id: uploadProgress.uploadSessionId },
+        relations: ['uploadProgresses', 'file'],
+      });
+
+      // Extract context from upload session metadata or file associations
+      let context: any = {
+        chatroomId: undefined,
+        threadId: undefined,
+        action: 'SHARE_FILE' as const,
+      };
+
+      if (uploadSession?.metadata) {
+        context = {
+          chatroomId: uploadSession.metadata.chatroomId,
+          threadId: uploadSession.metadata.threadId,
+          action: uploadSession.metadata.action || 'SHARE_FILE',
+        };
+      } else if (uploadProgress.file) {
+        // Fallback: get context from file associations
+        context = {
+          chatroomId: uploadProgress.file.chatroomId,
+          threadId: uploadProgress.file.threadId,
+          action: 'SHARE_FILE' as const,
+        };
+      }
+
+      const progressData = {
+        sessionId: uploadProgress.uploadSessionId,
+        fileId: uploadProgress.fileId,
+        originalName: uploadProgress.file?.originalName || 'Unknown',
+        status: uploadProgress.status,
+        progressPercentage: uploadProgress.progressPercentage,
+        bytesUploaded: uploadProgress.bytesUploaded,
+        totalBytes: uploadProgress.totalBytes,
+        uploadSpeed: uploadProgress.uploadSpeed || 0,
+        estimatedTimeRemaining: uploadProgress.estimatedTimeRemaining || 0,
+        context,
+        timestamp: new Date(),
+      };
+
+      this.webSocketGateway.broadcastFileUploadProgress(
+        uploadProgress.uploadSessionId,
+        progressData,
+      );
+
+      this.logger.debug(
+        `Broadcasted progress update for file ${uploadProgress.fileId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to broadcast progress update: ${error.message}`,
+      );
+    }
+  }
+
+  private async broadcastFailureUpdate(
+    uploadProgress: UploadProgress,
+    errorMessage: string,
+  ): Promise<void> {
+    try {
+      // Get upload session with context
+      const uploadSession = await this.uploadSessionRepository.findOne({
+        where: { id: uploadProgress.uploadSessionId },
+      });
+
+      // Extract context from upload session metadata or file associations
+      let context: any = {
+        chatroomId: undefined,
+        threadId: undefined,
+        action: 'SHARE_FILE' as const,
+      };
+
+      if (uploadSession?.metadata) {
+        context = {
+          chatroomId: uploadSession.metadata.chatroomId,
+          threadId: uploadSession.metadata.threadId,
+          action: uploadSession.metadata.action || 'SHARE_FILE',
+        };
+      } else if (uploadProgress.file) {
+        context = {
+          chatroomId: uploadProgress.file.chatroomId,
+          threadId: uploadProgress.file.threadId,
+          action: 'SHARE_FILE' as const,
+        };
+      }
+
+      const failureData = {
+        sessionId: uploadProgress.uploadSessionId,
+        fileId: uploadProgress.fileId,
+        originalName: uploadProgress.file?.originalName || 'Unknown',
+        errorCode: 'UPLOAD_FAILED',
+        errorMessage,
+        retryable: true,
+        context,
+        failedAt: new Date(),
+      };
+
+      this.webSocketGateway.broadcastFileUploadFailed(
+        uploadProgress.uploadSessionId,
+        failureData,
+      );
+
+      this.logger.debug(
+        `Broadcasted failure update for file ${uploadProgress.fileId}`,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to broadcast failure update: ${error.message}`);
+    }
+  }
+
+  private async broadcastCancellationUpdate(
+    uploadProgress: UploadProgress,
+  ): Promise<void> {
+    try {
+      // Get upload session with context
+      const uploadSession = await this.uploadSessionRepository.findOne({
+        where: { id: uploadProgress.uploadSessionId },
+      });
+
+      // Extract context from upload session metadata or file associations
+      let context: any = {
+        chatroomId: undefined,
+        threadId: undefined,
+        action: 'SHARE_FILE' as const,
+      };
+
+      if (uploadSession?.metadata) {
+        context = {
+          chatroomId: uploadSession.metadata.chatroomId,
+          threadId: uploadSession.metadata.threadId,
+          action: uploadSession.metadata.action || 'SHARE_FILE',
+        };
+      } else if (uploadProgress.file) {
+        context = {
+          chatroomId: uploadProgress.file.chatroomId,
+          threadId: uploadProgress.file.threadId,
+          action: 'SHARE_FILE' as const,
+        };
+      }
+
+      const cancellationData = {
+        sessionId: uploadProgress.uploadSessionId,
+        fileId: uploadProgress.fileId,
+        originalName: uploadProgress.file?.originalName || 'Unknown',
+        errorCode: 'UPLOAD_CANCELLED',
+        errorMessage: 'Upload cancelled by user',
+        retryable: false,
+        context,
+        failedAt: new Date(),
+      };
+
+      this.webSocketGateway.broadcastFileUploadFailed(
+        uploadProgress.uploadSessionId,
+        cancellationData,
+      );
+
+      this.logger.debug(
+        `Broadcasted cancellation update for file ${uploadProgress.fileId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to broadcast cancellation update: ${error.message}`,
+      );
     }
   }
 }
