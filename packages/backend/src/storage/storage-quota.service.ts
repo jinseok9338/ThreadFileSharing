@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Company } from '../company/entities/company.entity';
 import { File } from '../file/entities/file.entity';
+import { StorageQuota } from '../file/entities/storage-quota.entity';
 import { STORAGE_LIMITS } from '../constants/permissions';
 
 /**
@@ -18,6 +19,8 @@ export class StorageQuotaService {
     private companyRepository: Repository<Company>,
     @InjectRepository(File)
     private fileRepository: Repository<File>,
+    @InjectRepository(StorageQuota)
+    private storageQuotaRepository: Repository<StorageQuota>,
   ) {}
 
   /**
@@ -56,6 +59,13 @@ export class StorageQuotaService {
         companyId: companyId,
         deletedAt: IsNull(),
       },
+    });
+
+    // Update cached storage quota with real-time calculated values
+    await this.updateStorageQuotaCache(companyId, {
+      storageUsedBytes,
+      fileCount,
+      storageLimitBytes,
     });
 
     return {
@@ -181,6 +191,47 @@ export class StorageQuotaService {
   }
 
   /**
+   * Update storage quota cache with real-time calculated values
+   */
+  private async updateStorageQuotaCache(
+    companyId: string,
+    data: {
+      storageUsedBytes: number;
+      fileCount: number;
+      storageLimitBytes: number;
+    },
+  ): Promise<void> {
+    try {
+      const existingQuota = await this.storageQuotaRepository.findOne({
+        where: { companyId },
+      });
+
+      if (existingQuota) {
+        // Update existing cache
+        await this.storageQuotaRepository.update(existingQuota.id, {
+          storageUsedBytes: data.storageUsedBytes,
+          fileCount: data.fileCount,
+          storageLimitBytes: data.storageLimitBytes,
+          lastCalculatedAt: new Date(),
+        });
+      } else {
+        // Create new cache entry
+        const newQuota = this.storageQuotaRepository.create({
+          companyId,
+          storageUsedBytes: data.storageUsedBytes,
+          fileCount: data.fileCount,
+          storageLimitBytes: data.storageLimitBytes,
+          lastCalculatedAt: new Date(),
+        });
+        await this.storageQuotaRepository.save(newQuota);
+      }
+    } catch (error) {
+      console.error('Failed to update storage quota cache:', error);
+      // Don't throw error to avoid breaking the main flow
+    }
+  }
+
+  /**
    * Recalculate storage usage from actual files
    */
   async recalculateStorageUsage(companyId: string): Promise<void> {
@@ -193,9 +244,7 @@ export class StorageQuotaService {
 
     const totalSize = result?.totalSize ? BigInt(result.totalSize) : BigInt(0);
 
-    // Note: We'll need to add storageUsedBytes field to Company entity if needed
-    // For now, this method is disabled as storageUsedBytes doesn't exist in current schema
-    console.warn(
+    console.log(
       `recalculateStorageUsage: Calculated storage usage for company ${companyId}: ${totalSize} bytes`,
     );
   }
