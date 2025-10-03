@@ -54,8 +54,8 @@ export class StorageQuotaService {
     const storageUsedBytes = new Big(result?.totalSize || 0);
     const storageLimitBig = new Big(storageLimitBytes);
     const storageAvailableBytes = storageLimitBig.minus(storageUsedBytes);
-    const storageUsedPercent = storageLimitBig.gt(0) 
-      ? storageUsedBytes.div(storageLimitBig).times(100) 
+    const storageUsedPercent = storageLimitBig.gt(0)
+      ? storageUsedBytes.div(storageLimitBig).times(100)
       : new Big(0);
 
     // Get file count
@@ -110,7 +110,7 @@ export class StorageQuotaService {
       const currentUsage = new Big(quota.storageUsedBytes);
       const limit = new Big(quota.storageLimitBytes);
       const additionalSize = new Big(fileSizeBytes.toString());
-      
+
       throw new BadRequestException({
         code: 'STORAGE_QUOTA_EXCEEDED',
         message: `Storage quota exceeded. Current usage: ${this.formatBytes(currentUsage)}, Limit: ${this.formatBytes(limit)}, Additional size: ${this.formatBytes(additionalSize)}`,

@@ -22,7 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { FileManagementService } from '../services/file-management.service';
-import { StorageQuotaService } from '../services/storage-quota.service';
+import { StorageQuotaService } from '../../storage/storage-quota.service';
 import {
   FileQueryDto,
   FileResponseDto,
