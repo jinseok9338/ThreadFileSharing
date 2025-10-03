@@ -27,6 +27,7 @@ import { StorageQuota } from '../entities/storage-quota.entity';
 import { User } from '../../user/entities/user.entity';
 import { Company } from '../../company/entities/company.entity';
 import { S3ClientService } from './s3-client.service';
+import { MinIOService } from '../../storage/minio.service';
 import { StorageQuotaService } from '../../storage/storage-quota.service';
 import { WebSocketGateway } from '../../websocket/gateway/websocket.gateway';
 import {
@@ -54,11 +55,47 @@ export class FileUploadService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     private readonly s3ClientService: S3ClientService,
+    private readonly minioService: MinIOService,
     private readonly storageQuotaService: StorageQuotaService,
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => WebSocketGateway))
     private readonly webSocketGateway: WebSocketGateway,
   ) {}
+
+  /**
+   * Get the appropriate storage service based on environment
+   */
+  private getStorageService() {
+    const isLocal = this.configService.get<string>('NODE_ENV') === 'local';
+    return isLocal ? this.minioService : this.s3ClientService;
+  }
+
+  /**
+   * Generate storage key for file
+   */
+  private generateStorageKey(
+    companyId: string,
+    userId: string,
+    originalName: string,
+  ): string {
+    const isLocal = this.configService.get<string>('NODE_ENV') === 'local';
+
+    if (isLocal) {
+      // MinIO storage key generation
+      const extension = originalName.split('.').pop();
+      const filename = originalName.replace(/\.[^/.]+$/, '');
+      const sanitizedFilename = filename.replace(/[^a-zA-Z0-9-_]/g, '_');
+      const timestamp = Date.now();
+      return `companies/${companyId}/users/${userId}/${timestamp}_${sanitizedFilename}.${extension}`;
+    } else {
+      // AWS S3 storage key generation
+      return this.s3ClientService.generateStorageKey(
+        companyId,
+        userId,
+        originalName,
+      );
+    }
+  }
 
   async uploadSingleFile(
     file: any, // Fastify multipart file object
@@ -115,23 +152,19 @@ export class FileUploadService {
       }
 
       // Generate storage key
-      const storageKey = this.s3ClientService.generateStorageKey(
+      const storageKey = this.generateStorageKey(
         user.company.id,
         userId,
         file.filename,
       );
 
-      // Upload to S3/MinIO
-      await this.s3ClientService.uploadFile(
-        storageKey,
-        fileBuffer,
-        file.mimetype,
-        {
-          originalName: file.filename,
-          uploadedBy: userId,
-          companyId: user.company.id,
-        },
-      );
+      // Upload to storage (MinIO or AWS S3)
+      const storageService = this.getStorageService();
+      await storageService.uploadFile(storageKey, fileBuffer, file.mimetype, {
+        originalName: file.filename,
+        uploadedBy: userId,
+        companyId: user.company.id,
+      });
 
       // Create file record
       const fileEntity = this.fileRepository.create({
@@ -340,24 +373,20 @@ export class FileUploadService {
         savedFile = existingFile;
       } else {
         // Generate storage key
-        const storageKey = this.s3ClientService.generateStorageKey(
+        const storageKey = this.generateStorageKey(
           uploadSession.companyId,
           userId,
           file.filename,
         );
 
-        // Upload to S3/MinIO
-        await this.s3ClientService.uploadFile(
-          storageKey,
-          fileBuffer,
-          file.mimetype,
-          {
-            originalName: file.filename,
-            uploadedBy: userId,
-            companyId: uploadSession.companyId,
-            uploadSessionId,
-          },
-        );
+        // Upload to storage (MinIO or AWS S3)
+        const storageService = this.getStorageService();
+        await storageService.uploadFile(storageKey, fileBuffer, file.mimetype, {
+          originalName: file.filename,
+          uploadedBy: userId,
+          companyId: uploadSession.companyId,
+          uploadSessionId: uploadSessionId.toString(),
+        });
 
         // Create file record
         const fileEntity = this.fileRepository.create({

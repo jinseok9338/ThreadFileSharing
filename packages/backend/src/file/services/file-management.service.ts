@@ -17,6 +17,7 @@ import { DownloadToken } from '../entities/download-token.entity';
 import { User } from '../../user/entities/user.entity';
 import { Company } from '../../company/entities/company.entity';
 import { S3ClientService } from './s3-client.service';
+import { MinIOService } from '../../storage/minio.service';
 import { StorageQuotaService } from '../../storage/storage-quota.service';
 import {
   FileQueryDto,
@@ -42,9 +43,18 @@ export class FileManagementService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     private readonly s3ClientService: S3ClientService,
+    private readonly minioService: MinIOService,
     private readonly storageQuotaService: StorageQuotaService,
     private readonly configService: ConfigService,
   ) {}
+
+  /**
+   * Get the appropriate storage service based on environment
+   */
+  private getStorageService() {
+    const isLocal = this.configService.get<string>('NODE_ENV') === 'local';
+    return isLocal ? this.minioService : this.s3ClientService;
+  }
 
   async getFiles(
     query: FileQueryDto,
