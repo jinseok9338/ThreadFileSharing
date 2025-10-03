@@ -61,12 +61,12 @@ export class FileUploadService {
   ) {}
 
   async uploadSingleFile(
-    file: Express.Multer.File,
+    file: any, // Fastify multipart file object
     uploadRequest: FileUploadRequestDto,
     userId: string,
   ): Promise<FileUploadResponseDto> {
     this.logger.log(
-      `Starting single file upload: ${file.originalname} by user ${userId}`,
+      `Starting single file upload: ${file.filename} by user ${userId}`,
     );
 
     try {
@@ -80,14 +80,17 @@ export class FileUploadService {
         throw new NotFoundException('User or company not found');
       }
 
+      // Generate file buffer first - Fastify multipart file object
+      const fileBuffer = await file.toBuffer();
+
       // Check storage quota
       await this.storageQuotaService.checkStorageQuota(
         user.company.id,
-        file.size,
+        BigInt(fileBuffer.length),
       );
 
       // Generate file hash
-      const hash = this.generateFileHash(file.buffer);
+      const hash = this.generateFileHash(fileBuffer);
 
       // Check for duplicate files
       const existingFile = await this.fileRepository.findOne({
@@ -115,16 +118,16 @@ export class FileUploadService {
       const storageKey = this.s3ClientService.generateStorageKey(
         user.company.id,
         userId,
-        file.originalname,
+        file.filename,
       );
 
       // Upload to S3/MinIO
       await this.s3ClientService.uploadFile(
         storageKey,
-        file.buffer,
+        fileBuffer,
         file.mimetype,
         {
-          originalName: file.originalname,
+          originalName: file.filename,
           uploadedBy: userId,
           companyId: user.company.id,
         },
@@ -136,10 +139,10 @@ export class FileUploadService {
         threadId: uploadRequest.threadId,
         chatroomId: uploadRequest.chatroomId,
         uploadedBy: userId,
-        originalName: file.originalname,
+        originalName: file.filename,
         displayName: uploadRequest.displayName,
         mimeType: file.mimetype,
-        sizeBytes: file.size,
+        sizeBytes: file._buf?.length || 0,
         hash,
         storageKey,
         storageBucket: this.s3ClientService['bucketName'],
@@ -154,7 +157,7 @@ export class FileUploadService {
       // Update storage quota
       await this.storageQuotaService.updateStorageUsage(
         user.company.id,
-        file.size,
+        fileBuffer.length,
         1,
       );
 
@@ -205,8 +208,12 @@ export class FileUploadService {
         throw new NotFoundException('User or company not found');
       }
 
-      // Check total storage quota
-      const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+      // Check total storage quota - calculate total size from files
+      let totalSize = 0;
+      for (const file of files) {
+        const fileBuffer = file.buffer;
+        totalSize += fileBuffer.length;
+      }
       await this.storageQuotaService.checkStorageQuota(
         user.company.id,
         totalSize,
@@ -239,13 +246,14 @@ export class FileUploadService {
       // Create upload progress records
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        const fileBuffer = file.buffer;
         const uploadProgress = this.uploadProgressRepository.create({
           uploadSessionId: savedSession.id,
           userId,
-          totalBytes: file.size,
+          totalBytes: fileBuffer.length,
           status: UploadStatus.PENDING,
           currentChunk: 0,
-          totalChunks: Math.ceil(file.size / this.getChunkSize()),
+          totalChunks: Math.ceil(fileBuffer.length / this.getChunkSize()),
         });
 
         await this.uploadProgressRepository.save(uploadProgress);
@@ -270,7 +278,7 @@ export class FileUploadService {
     userId: string,
   ): Promise<FileUploadResponseDto> {
     this.logger.log(
-      `Uploading file to session ${uploadSessionId}: ${file.originalname}`,
+      `Uploading file to session ${uploadSessionId}: ${file.filename}`,
     );
 
     try {
@@ -311,8 +319,11 @@ export class FileUploadService {
         throw new NotFoundException('User not found');
       }
 
+      // Generate file buffer first - Fastify multipart file object
+      const fileBuffer = file.buffer;
+
       // Generate file hash
-      const hash = this.generateFileHash(file.buffer);
+      const hash = this.generateFileHash(fileBuffer);
 
       // Check for duplicate files
       const existingFile = await this.fileRepository.findOne({
@@ -333,16 +344,16 @@ export class FileUploadService {
         const storageKey = this.s3ClientService.generateStorageKey(
           uploadSession.companyId,
           userId,
-          file.originalname,
+          file.filename,
         );
 
         // Upload to S3/MinIO
         await this.s3ClientService.uploadFile(
           storageKey,
-          file.buffer,
+          fileBuffer,
           file.mimetype,
           {
-            originalName: file.originalname,
+            originalName: file.filename,
             uploadedBy: userId,
             companyId: uploadSession.companyId,
             uploadSessionId,
@@ -355,10 +366,10 @@ export class FileUploadService {
           threadId: uploadRequest.threadId,
           chatroomId: uploadRequest.chatroomId,
           uploadedBy: userId,
-          originalName: file.originalname,
+          originalName: file.filename,
           displayName: uploadRequest.displayName,
           mimeType: file.mimetype,
-          sizeBytes: file.size,
+          sizeBytes: fileBuffer.length,
           hash,
           storageKey,
           storageBucket: this.s3ClientService['bucketName'],
@@ -370,7 +381,7 @@ export class FileUploadService {
         // Update storage quota
         await this.storageQuotaService.updateStorageUsage(
           uploadSession.companyId,
-          file.size,
+          fileBuffer.length,
           1,
         );
       }
@@ -378,7 +389,7 @@ export class FileUploadService {
       // Update upload progress
       uploadProgress.fileId = savedFile.id;
       uploadProgress.status = UploadStatus.COMPLETED;
-      uploadProgress.bytesUploaded = file.size;
+      uploadProgress.bytesUploaded = fileBuffer.length;
       uploadProgress.progressPercentage = 100;
       uploadProgress.completedAt = new Date();
       await this.uploadProgressRepository.save(uploadProgress);
@@ -388,7 +399,7 @@ export class FileUploadService {
 
       // Update upload session
       uploadSession.completedFiles += 1;
-      uploadSession.uploadedSize += file.size;
+      uploadSession.uploadedSize += fileBuffer.length;
 
       if (uploadSession.completedFiles >= uploadSession.totalFiles) {
         uploadSession.status = SessionStatus.COMPLETED;

@@ -49,9 +49,9 @@ export class StorageQuotaResponseDto {
     return this.formatBytes(this.storageRemainingBytes);
   }
 
-  private formatBytes(bytes: number): string {
+  private formatBytes(bytes: bigint | number): string {
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    let size = bytes;
+    let size = Number(bytes);
     let unitIndex = 0;
 
     while (size >= 1024 && unitIndex < units.length - 1) {

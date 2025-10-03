@@ -89,7 +89,7 @@ export class StorageQuotaService {
 
   async checkStorageQuota(
     companyId: string,
-    additionalSize: number,
+    additionalSize: bigint | number,
   ): Promise<void> {
     this.logger.log(
       `Checking storage quota for company ${companyId} with additional size ${additionalSize}`,
@@ -98,19 +98,21 @@ export class StorageQuotaService {
     try {
       const storageQuota = await this.getStorageQuota(companyId);
 
-      const projectedUsage = storageQuota.storageUsedBytes + additionalSize;
+      const additionalSizeBigInt = BigInt(additionalSize);
+      const projectedUsage =
+        BigInt(storageQuota.storageUsedBytes) + additionalSizeBigInt;
 
-      if (projectedUsage > storageQuota.storageLimitBytes) {
+      if (projectedUsage > BigInt(storageQuota.storageLimitBytes)) {
         throw new BadRequestException(
           `Storage quota exceeded. Current usage: ${storageQuota.storageUsedFormatted}, ` +
             `Limit: ${storageQuota.storageLimitFormatted}, ` +
-            `Additional size: ${this.formatBytes(additionalSize)}`,
+            `Additional size: ${this.formatBytes(additionalSizeBigInt)}`,
         );
       }
 
       // Check if approaching limit (80%)
       const usagePercent =
-        (projectedUsage / storageQuota.storageLimitBytes) * 100;
+        (Number(projectedUsage) / Number(storageQuota.storageLimitBytes)) * 100;
       if (usagePercent >= 80) {
         this.logger.warn(
           `Company ${companyId} is approaching storage limit: ${usagePercent.toFixed(2)}%`,
@@ -346,9 +348,9 @@ export class StorageQuotaService {
     }
   }
 
-  private formatBytes(bytes: number): string {
+  private formatBytes(bytes: bigint | number): string {
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    let size = bytes;
+    let size = Number(bytes);
     let unitIndex = 0;
 
     while (size >= 1024 && unitIndex < units.length - 1) {

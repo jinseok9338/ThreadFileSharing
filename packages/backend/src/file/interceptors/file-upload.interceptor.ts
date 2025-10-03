@@ -18,12 +18,14 @@ export class FileUploadInterceptor implements NestInterceptor {
 
     // Log file upload attempts
     if (request.file || request.files) {
-      const files = request.files || [request.file];
-      const fileInfo = files.map((file: any) => ({
-        originalName: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size,
-      }));
+      const files = request.files || (request.file ? [request.file] : []);
+      const fileInfo = files
+        .filter((file: any) => file)
+        .map((file: any) => ({
+          originalName: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+        }));
 
       this.logger.log(
         `File upload attempt: ${method} ${url} - Files: ${JSON.stringify(fileInfo)}`,

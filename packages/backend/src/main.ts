@@ -56,6 +56,16 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
+  // Register multipart support for file uploads
+  await app.register(require('@fastify/multipart'), {
+    limits: {
+      fileSize: parseInt(
+        process.env.FILE_UPLOAD_MAX_SIZE_BYTES || '5368709120',
+        10,
+      ),
+    },
+  });
+
   // 글로벌 필터 설정 (에러 처리)
   app.useGlobalFilters(new HttpExceptionFilter());
 

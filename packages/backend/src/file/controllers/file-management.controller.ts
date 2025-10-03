@@ -38,7 +38,7 @@ import {
 // } from '../../common/decorators/api-response.decorator';
 
 @ApiTags('File Management')
-@Controller('api/v1/files')
+@Controller('files')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class FileManagementController {

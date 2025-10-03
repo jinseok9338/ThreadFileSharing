@@ -25,7 +25,7 @@ import { FileManagementService } from '../services/file-management.service';
 import { S3ClientService } from '../services/s3-client.service';
 
 @ApiTags('File Download')
-@Controller('api/v1/files')
+@Controller('files')
 export class FileDownloadController {
   private readonly logger = new Logger(FileDownloadController.name);
 

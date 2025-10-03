@@ -2,17 +2,16 @@ import {
   Controller,
   Post,
   Body,
-  UploadedFile,
-  UploadedFiles,
-  UseInterceptors,
   UseGuards,
   Request,
   HttpCode,
   HttpStatus,
   BadRequestException,
   Logger,
+  UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+// import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
@@ -24,16 +23,16 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { FileUploadService } from '../services/file-upload.service';
 import { UploadProgressService } from '../services/upload-progress.service';
 import { FileUploadInterceptor } from '../interceptors/file-upload.interceptor';
-import { multerConfig } from '../config/multer.config';
+// import { multerConfig } from '../config/multer.config'; // Fastify multipart 사용으로 불필요
 import { ConfigService } from '@nestjs/config';
 import { FileUploadRequestDto, FileUploadResponseDto } from '../dto';
 import { UploadProgressDto } from '../dto/upload-progress.dto';
 
 @ApiTags('File Upload')
-@Controller('api/v1/files/upload')
+@Controller('files/upload')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@UseInterceptors(FileUploadInterceptor)
+// @UseInterceptors(FileUploadInterceptor) // 임시 비활성화
 export class FileUploadController {
   private readonly logger = new Logger(FileUploadController.name);
 
@@ -60,23 +59,31 @@ export class FileUploadController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 413, description: 'File too large' })
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(
-    FileInterceptor('file', multerConfig((this as any).configService)),
-  )
-  async uploadSingleFile(
-    @Body() uploadRequest: FileUploadRequestDto,
-    @Request() req: any,
-    @UploadedFile() file?: Express.Multer.File,
-  ): Promise<FileUploadResponseDto> {
+  async uploadSingleFile(@Request() req: any): Promise<FileUploadResponseDto> {
     this.logger.log(`Single file upload request from user ${req.user.id}`);
 
-    if (!file) {
+    // Fastify multipart parsing
+    const data = await req.file();
+
+    if (!data) {
       throw new BadRequestException('No file provided');
     }
 
+    // Extract form data from the file stream
+    const uploadRequest: FileUploadRequestDto = {
+      displayName: data.fields.displayName?.value || data.filename,
+      accessType: data.fields.accessType?.value || 'PRIVATE',
+      threadId: data.fields.threadId?.value,
+      chatroomId: data.fields.chatroomId?.value,
+      sessionName: data.fields.sessionName?.value,
+      createThread: data.fields.createThread?.value === 'true',
+      threadTitle: data.fields.threadTitle?.value,
+      threadDescription: data.fields.threadDescription?.value,
+    };
+
     try {
       const result = await this.fileUploadService.uploadSingleFile(
-        file,
+        data,
         uploadRequest,
         req.user.id,
       );
@@ -103,9 +110,7 @@ export class FileUploadController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(
-    FilesInterceptor('files', 10, multerConfig((this as any).configService)),
-  )
+  // @UseInterceptors(FilesInterceptor('files', 10, multerConfig)) // Fastify multipart 사용
   async createUploadSession(
     @Body() uploadRequest: FileUploadRequestDto,
     @Request() req: any,
@@ -157,9 +162,7 @@ export class FileUploadController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Upload session not found' })
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(
-    FileInterceptor('file', multerConfig((this as any).configService)),
-  )
+  // @UseInterceptors(FileInterceptor('file', multerConfig)) // Fastify multipart 사용
   async uploadFileToSession(
     @Body() uploadRequest: FileUploadRequestDto,
     @Request() req: any,

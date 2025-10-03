@@ -1,7 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { MulterModule } from '@nestjs/platform-express';
+// import { MulterModule } from '@nestjs/platform-express'; // Fastify multipart 사용으로 불필요
 
 // Entities
 import { File } from './entities/file.entity';
@@ -10,6 +10,8 @@ import { UploadSession } from './entities/upload-session.entity';
 import { FileAssociation } from './entities/file-association.entity';
 import { StorageQuota } from './entities/storage-quota.entity';
 import { DownloadToken } from './entities/download-token.entity';
+import { User } from '../user/entities/user.entity';
+import { Company } from '../company/entities/company.entity';
 
 // Services
 import { S3ClientService } from './services/s3-client.service';
@@ -24,7 +26,7 @@ import { FileManagementController } from './controllers/file-management.controll
 import { FileDownloadController } from './controllers/file-download.controller';
 
 // Configuration
-import { multerConfig } from './config/multer.config';
+// import { multerConfig } from './config/multer.config'; // Fastify multipart 사용으로 불필요
 
 // WebSocket Module (forwardRef to avoid circular dependency)
 import { WebSocketModule } from '../websocket/websocket.module';
@@ -38,12 +40,11 @@ import { WebSocketModule } from '../websocket/websocket.module';
       FileAssociation,
       StorageQuota,
       DownloadToken,
+      User,
+      Company,
     ]),
     ConfigModule,
-    MulterModule.registerAsync({
-      useFactory: multerConfig,
-      inject: [ConfigModule],
-    }),
+    // MulterModule.register(multerConfig), // Fastify multipart 사용으로 불필요
     forwardRef(() => WebSocketModule),
   ],
   controllers: [
