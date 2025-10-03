@@ -1,0 +1,673 @@
+{
+  "title": "ThreadFileSharing - Unified WebSocket Events",
+  "version": "2.0.0",
+  "description": "Unified WebSocket events for file upload, chat, and real-time collaboration",
+  "events": {
+    "client_to_server": {
+      "join_room": {
+        "description": "Join a chatroom, thread, or upload session",
+        "payload": {
+          "roomType": {
+            "type": "string",
+            "enum": [
+              "chatroom",
+              "thread",
+              "upload_session",
+              "user_notifications"
+            ],
+            "description": "Type of room to join"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Room identifier"
+          },
+          "context": {
+            "type": "object",
+            "description": "Additional context based on room type",
+            "properties": {
+              "sessionName": {
+                "type": "string",
+                "description": "Upload session name (for upload_session)"
+              },
+              "userId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "User ID (for user_notifications)"
+              }
+            }
+          }
+        },
+        "acknowledgment": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether join was successful"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Confirmed room ID"
+          },
+          "roomType": {
+            "type": "string",
+            "description": "Confirmed room type"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserInfo"
+            },
+            "description": "Current room participants"
+          }
+        }
+      },
+      "leave_room": {
+        "description": "Leave a room",
+        "payload": {
+          "roomType": {
+            "type": "string",
+            "enum": [
+              "chatroom",
+              "thread",
+              "upload_session",
+              "user_notifications"
+            ]
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "typing_start": {
+        "description": "User starts typing in chatroom or thread",
+        "payload": {
+          "roomType": {
+            "type": "string",
+            "enum": ["chatroom", "thread"]
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "typing_stop": {
+        "description": "User stops typing",
+        "payload": {
+          "roomType": {
+            "type": "string",
+            "enum": ["chatroom", "thread"]
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "send_message": {
+        "description": "Send message to chatroom or thread",
+        "payload": {
+          "roomType": {
+            "type": "string",
+            "enum": ["chatroom", "thread"]
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string",
+            "description": "Message content"
+          },
+          "messageType": {
+            "type": "string",
+            "enum": ["text", "file_share", "system"],
+            "default": "text"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "File ID for file_share messages"
+          },
+          "replyToId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Message ID being replied to"
+          }
+        },
+        "acknowledgment": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "cancel_upload": {
+        "description": "Cancel ongoing file upload",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Specific file to cancel (optional)"
+          }
+        }
+      },
+      "user_status_update": {
+        "description": "Update user online/away/busy status",
+        "payload": {
+          "status": {
+            "type": "string",
+            "enum": ["online", "away", "busy", "offline"]
+          },
+          "customMessage": {
+            "type": "string",
+            "description": "Custom status message"
+          }
+        }
+      }
+    },
+    "server_to_client": {
+      "room_joined": {
+        "description": "User successfully joined a room",
+        "payload": {
+          "roomType": {
+            "type": "string",
+            "enum": [
+              "chatroom",
+              "thread",
+              "upload_session",
+              "user_notifications"
+            ]
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "room_left": {
+        "description": "User left a room",
+        "payload": {
+          "roomType": {
+            "type": "string",
+            "enum": [
+              "chatroom",
+              "thread",
+              "upload_session",
+              "user_notifications"
+            ]
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "leftAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "message_received": {
+        "description": "New message received in chatroom or thread",
+        "payload": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "roomType": {
+            "type": "string",
+            "enum": ["chatroom", "thread"]
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "content": {
+            "type": "string"
+          },
+          "messageType": {
+            "type": "string",
+            "enum": ["text", "file_share", "system"]
+          },
+          "fileInfo": {
+            "type": "object",
+            "description": "File information for file_share messages",
+            "properties": {
+              "fileId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "originalName": {
+                "type": "string"
+              },
+              "size": {
+                "type": "integer"
+              },
+              "mimeType": {
+                "type": "string"
+              },
+              "downloadUrl": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          },
+          "replyTo": {
+            "type": "object",
+            "description": "Information about message being replied to",
+            "properties": {
+              "messageId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "content": {
+                "type": "string"
+              },
+              "senderName": {
+                "type": "string"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "typing_indicator": {
+        "description": "User typing indicator",
+        "payload": {
+          "roomType": {
+            "type": "string",
+            "enum": ["chatroom", "thread"]
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "isTyping": {
+            "type": "boolean"
+          }
+        }
+      },
+      "file_upload_progress": {
+        "description": "File upload progress update",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "UPLOADING", "COMPLETED", "FAILED", "CANCELLED"]
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "bytesUploaded": {
+            "type": "integer"
+          },
+          "totalBytes": {
+            "type": "integer"
+          },
+          "uploadSpeed": {
+            "type": "integer"
+          },
+          "estimatedTimeRemaining": {
+            "type": "integer"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "file_upload_completed": {
+        "description": "File upload completed - triggers chat notification",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalName": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "downloadUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "uploadedBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "associatedRoom": {
+            "type": "object",
+            "description": "Room where file was uploaded",
+            "properties": {
+              "roomType": {
+                "type": "string",
+                "enum": ["chatroom", "thread"]
+              },
+              "roomId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          "autoShareMessage": {
+            "type": "object",
+            "description": "Auto-generated chat message for file sharing",
+            "properties": {
+              "messageId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "content": {
+                "type": "string",
+                "description": "Auto-generated message content"
+              },
+              "messageType": {
+                "type": "string",
+                "enum": ["file_share", "system"]
+              }
+            }
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "file_upload_failed": {
+        "description": "File upload failed",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalName": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "failedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "user_status_changed": {
+        "description": "User online status changed",
+        "payload": {
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["online", "away", "busy", "offline"]
+          },
+          "customMessage": {
+            "type": "string"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "notification": {
+        "description": "General notification (quota warnings, system messages, etc.)",
+        "payload": {
+          "notificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "storage_quota_warning",
+              "storage_quota_exceeded",
+              "file_processed",
+              "system_message",
+              "user_mention"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["low", "normal", "high", "urgent"]
+          },
+          "data": {
+            "type": "object",
+            "description": "Additional notification data"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "thread_created": {
+        "description": "New thread created from file upload",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "rootFile": {
+            "type": "object",
+            "properties": {
+              "fileId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "originalName": {
+                "type": "string"
+              },
+              "mimeType": {
+                "type": "string"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "room_management": {
+    "unified_rooms": {
+      "description": "Unified room management for all real-time features",
+      "patterns": {
+        "chatroom": {
+          "pattern": "chatroom:{chatroomId}",
+          "description": "Chatroom for messaging and file sharing",
+          "example": "chatroom:123e4567-e89b-12d3-a456-426614174000"
+        },
+        "thread": {
+          "pattern": "thread:{threadId}",
+          "description": "Thread for focused discussions",
+          "example": "thread:123e4567-e89b-12d3-a456-426614174000"
+        },
+        "upload_session": {
+          "pattern": "upload_session:{sessionId}",
+          "description": "Upload session for progress tracking",
+          "example": "upload_session:123e4567-e89b-12d3-a456-426614174000"
+        },
+        "user_notifications": {
+          "pattern": "user:{userId}",
+          "description": "User-specific notifications and status updates",
+          "example": "user:123e4567-e89b-12d3-a456-426614174000"
+        },
+        "company_notifications": {
+          "pattern": "company:{companyId}",
+          "description": "Company-wide notifications (quota warnings, etc.)",
+          "example": "company:123e4567-e89b-12d3-a456-426614174000"
+        }
+      }
+    },
+    "room_hierarchy": {
+      "description": "Room relationships and inheritance",
+      "relationships": {
+        "chatroom_contains_threads": {
+          "description": "Chatroom contains multiple threads",
+          "parent": "chatroom:{chatroomId}",
+          "children": ["thread:{threadId}"]
+        },
+        "thread_has_upload_sessions": {
+          "description": "Thread can have associated upload sessions",
+          "parent": "thread:{threadId}",
+          "children": ["upload_session:{sessionId}"]
+        },
+        "user_belongs_to_company": {
+          "description": "User notifications inherit company notifications",
+          "parent": "company:{companyId}",
+          "children": ["user:{userId}"]
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserInfo": {
+        "type": "object",
+        "required": ["id", "username", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["online", "away", "busy", "offline"]
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "companyRole": {
+            "type": "string",
+            "enum": ["owner", "admin", "member"]
+          }
+        }
+      }
+    }
+  },
+  "integration_points": {
+    "file_upload_to_chat": {
+      "description": "Seamless integration between file upload and chat",
+      "flow": [
+        "User uploads file to chatroom/thread",
+        "Upload progress broadcast to upload_session room",
+        "Upload completion triggers file_upload_completed event",
+        "Auto-generated chat message created in chatroom/thread",
+        "All chatroom/thread participants notified of new file",
+        "File appears in chat interface with download link"
+      ]
+    },
+    "thread_creation_from_file": {
+      "description": "Automatic thread creation from file uploads",
+      "flow": [
+        "User uploads file with 'Create Thread' action",
+        "File upload completes successfully",
+        "New thread automatically created",
+        "Thread creation broadcast to chatroom participants",
+        "File associated with new thread",
+        "Users can join thread for file discussion"
+      ]
+    },
+    "unified_notifications": {
+      "description": "Centralized notification system",
+      "features": [
+        "Storage quota warnings sent to company and affected users",
+        "File processing completion notifications",
+        "User mention notifications in chat messages",
+        "System maintenance and update notifications"
+      ]
+    }
+  }
+}

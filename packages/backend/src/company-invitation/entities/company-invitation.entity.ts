@@ -9,8 +9,8 @@ import {
   Index,
 } from 'typeorm';
 import { CompanyRole } from '../../constants/permissions';
-import { Company } from 'src/company/entities/company.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Company } from '../../company/entities/company.entity';
+import { User } from '../../user/entities/user.entity';
 
 export enum InvitationStatus {
   PENDING = 'pending',
@@ -71,4 +71,3 @@ export class CompanyInvitation {
   @JoinColumn({ name: 'invitedBy' })
   inviter: User;
 }
-

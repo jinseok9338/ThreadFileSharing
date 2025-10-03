@@ -17,6 +17,10 @@ import { ThreadParticipant } from '../../thread/entities/thread-participant.enti
 import { Message } from '../../message/entities/message.entity';
 import { ThreadMessage } from '../../thread-message/entities/thread-message.entity';
 import { File } from '../../file/entities/file.entity';
+import { UploadProgress } from '../../file/entities/upload-progress.entity';
+import { UploadSession } from '../../file/entities/upload-session.entity';
+import { FileAssociation } from '../../file/entities/file-association.entity';
+import { DownloadToken } from '../../file/entities/download-token.entity';
 import { RefreshToken } from '../../refresh-token/entities/refresh-token.entity';
 import { CompanyInvitation } from '../../invitation/entities/company-invitation.entity';
 import { TeamMember } from '../../team/entities/team-member.entity';
@@ -106,6 +110,21 @@ export class User {
 
   @OneToMany(() => File, (file) => file.uploadedBy)
   files: File[];
+
+  @OneToMany(() => UploadProgress, (uploadProgress) => uploadProgress.user)
+  uploadProgresses: UploadProgress[];
+
+  @OneToMany(() => UploadSession, (uploadSession) => uploadSession.user)
+  uploadSessions: UploadSession[];
+
+  @OneToMany(
+    () => FileAssociation,
+    (fileAssociation) => fileAssociation.sharedBy,
+  )
+  sharedFiles: FileAssociation[];
+
+  @OneToMany(() => DownloadToken, (downloadToken) => downloadToken.user)
+  downloadTokens: DownloadToken[];
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshToken[];

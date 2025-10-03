@@ -1,5 +1,5 @@
-import { Company } from 'src/company/entities/company.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Company } from '../../company/entities/company.entity';
+import { User } from '../../user/entities/user.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -13,8 +13,10 @@ import {
   Index,
 } from 'typeorm';
 import { ChatRoomMember } from './chatroom-member.entity';
-import { Thread } from 'src/thread/entities/thread.entity';
-import { Message } from 'src/message/entities/message.entity';
+import { Thread } from '../../thread/entities/thread.entity';
+import { Message } from '../../message/entities/message.entity';
+import { File } from '../../file/entities/file.entity';
+import { FileAssociation } from '../../file/entities/file-association.entity';
 
 @Entity('chatrooms')
 @Index(['companyId'])
@@ -71,4 +73,13 @@ export class ChatRoom {
 
   @OneToMany('Message', 'chatRoom')
   messages: Message[];
+
+  @OneToMany(() => File, (file) => file.chatRoom)
+  files: File[];
+
+  @OneToMany(
+    () => FileAssociation,
+    (fileAssociation) => fileAssociation.chatRoom,
+  )
+  fileAssociations: FileAssociation[];
 }

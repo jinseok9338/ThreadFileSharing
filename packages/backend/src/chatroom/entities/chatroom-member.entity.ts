@@ -8,7 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import { ChatRoom } from './chatroom.entity';
-import { User } from 'src/user/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity('chatroom_members')
 @Index(['chatroomId', 'userId'], { unique: true })
@@ -34,4 +34,3 @@ export class ChatRoomMember {
   @JoinColumn({ name: 'userId' })
   user: User;
 }
-

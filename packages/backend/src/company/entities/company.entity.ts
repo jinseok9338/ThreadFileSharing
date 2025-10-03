@@ -1,7 +1,10 @@
-import { ChatRoom } from 'src/chatroom/entities/chatroom.entity';
-import { CompanyInvitation } from 'src/invitation/entities/company-invitation.entity';
-import { Team } from 'src/team/entities/team.entity';
-import { User } from 'src/user/entities/user.entity';
+import { ChatRoom } from '../../chatroom/entities/chatroom.entity';
+import { CompanyInvitation } from '../../invitation/entities/company-invitation.entity';
+import { Team } from '../../team/entities/team.entity';
+import { User } from '../../user/entities/user.entity';
+import { File } from '../../file/entities/file.entity';
+import { UploadSession } from '../../file/entities/upload-session.entity';
+import { StorageQuota } from '../../file/entities/storage-quota.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -10,6 +13,7 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
+  OneToOne,
   Index,
 } from 'typeorm';
 
@@ -69,4 +73,13 @@ export class Company {
 
   @OneToMany(() => Team, (team) => team.company)
   teams: Team[];
+
+  @OneToMany(() => File, (file) => file.company)
+  files: File[];
+
+  @OneToMany(() => UploadSession, (uploadSession) => uploadSession.company)
+  uploadSessions: UploadSession[];
+
+  @OneToOne(() => StorageQuota, (storageQuota) => storageQuota.company)
+  storageQuota: StorageQuota;
 }

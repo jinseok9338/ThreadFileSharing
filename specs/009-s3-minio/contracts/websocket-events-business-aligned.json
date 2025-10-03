@@ -1,0 +1,1223 @@
+{
+  "title": "ThreadFileSharing - Business-Aligned WebSocket Events",
+  "version": "3.0.0",
+  "description": "Unified WebSocket events aligned with ThreadFileSharing business logic",
+  "events": {
+    "client_to_server": {
+      "join_company": {
+        "description": "Join company-wide notifications and status updates",
+        "payload": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "join_chatroom": {
+        "description": "Join chatroom for messaging and file sharing",
+        "payload": {
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "join_thread": {
+        "description": "Join thread for focused file discussion",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "join_upload_session": {
+        "description": "Join upload session for progress tracking",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "chatroomId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "If uploading to chatroom"
+              },
+              "threadId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "If uploading to thread"
+              },
+              "action": {
+                "type": "string",
+                "enum": ["SHARE_FILE", "CREATE_THREAD"],
+                "description": "Upload action type"
+              }
+            }
+          }
+        }
+      },
+      "leave_company": {
+        "description": "Leave company notifications",
+        "payload": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "leave_chatroom": {
+        "description": "Leave chatroom",
+        "payload": {
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "leave_thread": {
+        "description": "Leave thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "leave_upload_session": {
+        "description": "Leave upload session",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "send_chatroom_message": {
+        "description": "Send message to chatroom",
+        "payload": {
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "messageType": {
+            "type": "string",
+            "enum": ["TEXT", "SYSTEM"],
+            "default": "TEXT"
+          },
+          "replyToId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Message being replied to"
+          }
+        }
+      },
+      "send_thread_message": {
+        "description": "Send message to thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "messageType": {
+            "type": "string",
+            "enum": ["TEXT", "SYSTEM"],
+            "default": "TEXT"
+          },
+          "replyToId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Message being replied to"
+          }
+        }
+      },
+      "edit_chatroom_message": {
+        "description": "Edit message in chatroom",
+        "payload": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "edit_thread_message": {
+        "description": "Edit message in thread",
+        "payload": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "delete_chatroom_message": {
+        "description": "Delete message in chatroom",
+        "payload": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "delete_thread_message": {
+        "description": "Delete message in thread",
+        "payload": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "chatroom_typing_start": {
+        "description": "Start typing in chatroom",
+        "payload": {
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "chatroom_typing_stop": {
+        "description": "Stop typing in chatroom",
+        "payload": {
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "thread_typing_start": {
+        "description": "Start typing in thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "thread_typing_stop": {
+        "description": "Stop typing in thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "share_thread": {
+        "description": "Share thread with user",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threadRole": {
+            "type": "string",
+            "enum": ["MEMBER", "VIEWER"]
+          },
+          "message": {
+            "type": "string",
+            "description": "Optional sharing message"
+          }
+        }
+      },
+      "add_thread_participant": {
+        "description": "Add participant to thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threadRole": {
+            "type": "string",
+            "enum": ["OWNER", "MEMBER", "VIEWER"]
+          }
+        }
+      },
+      "update_thread_participant": {
+        "description": "Update thread participant role",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threadRole": {
+            "type": "string",
+            "enum": ["OWNER", "MEMBER", "VIEWER"]
+          }
+        }
+      },
+      "remove_thread_participant": {
+        "description": "Remove participant from thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "cancel_upload": {
+        "description": "Cancel ongoing file upload",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Specific file to cancel (optional)"
+          }
+        }
+      },
+      "update_user_status": {
+        "description": "Update user online status",
+        "payload": {
+          "status": {
+            "type": "string",
+            "enum": ["online", "away", "busy", "offline"]
+          },
+          "customMessage": {
+            "type": "string",
+            "description": "Custom status message"
+          }
+        }
+      }
+    },
+    "server_to_client": {
+      "company_notification": {
+        "description": "Company-wide notification (quota warnings, system messages)",
+        "payload": {
+          "notificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "storage_quota_warning",
+              "storage_quota_exceeded",
+              "system_message",
+              "company_update"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["low", "normal", "high", "urgent"]
+          },
+          "data": {
+            "type": "object",
+            "description": "Additional notification data"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "chatroom_message_received": {
+        "description": "New message received in chatroom",
+        "payload": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "content": {
+            "type": "string"
+          },
+          "messageType": {
+            "type": "string",
+            "enum": ["TEXT", "SYSTEM"]
+          },
+          "replyTo": {
+            "type": "object",
+            "description": "Information about message being replied to",
+            "properties": {
+              "messageId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "content": {
+                "type": "string"
+              },
+              "senderName": {
+                "type": "string"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "thread_message_received": {
+        "description": "New message received in thread",
+        "payload": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "content": {
+            "type": "string"
+          },
+          "messageType": {
+            "type": "string",
+            "enum": ["TEXT", "SYSTEM"]
+          },
+          "replyTo": {
+            "type": "object",
+            "description": "Information about message being replied to",
+            "properties": {
+              "messageId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "content": {
+                "type": "string"
+              },
+              "senderName": {
+                "type": "string"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "message_edited": {
+        "description": "Message was edited",
+        "payload": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contextType": {
+            "type": "string",
+            "enum": ["chatroom", "thread"]
+          },
+          "contextId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "content": {
+            "type": "string"
+          },
+          "editedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "message_deleted": {
+        "description": "Message was deleted",
+        "payload": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contextType": {
+            "type": "string",
+            "enum": ["chatroom", "thread"]
+          },
+          "contextId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deletedBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "chatroom_typing": {
+        "description": "User typing in chatroom",
+        "payload": {
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "isTyping": {
+            "type": "boolean"
+          }
+        }
+      },
+      "thread_typing": {
+        "description": "User typing in thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "isTyping": {
+            "type": "boolean"
+          }
+        }
+      },
+      "user_joined_chatroom": {
+        "description": "User joined chatroom",
+        "payload": {
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "user_left_chatroom": {
+        "description": "User left chatroom",
+        "payload": {
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "leftAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "user_joined_thread": {
+        "description": "User joined thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "threadRole": {
+            "type": "string",
+            "enum": ["OWNER", "MEMBER", "VIEWER"]
+          },
+          "accessType": {
+            "type": "string",
+            "enum": ["MEMBER", "SHARED"]
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "user_left_thread": {
+        "description": "User left thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "leftAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "thread_shared": {
+        "description": "Thread was shared with user",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "thread": {
+            "$ref": "#/components/schemas/ThreadInfo"
+          },
+          "sharedBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "sharedWith": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "threadRole": {
+            "type": "string",
+            "enum": ["MEMBER", "VIEWER"]
+          },
+          "message": {
+            "type": "string",
+            "description": "Sharing message"
+          },
+          "sharedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "thread_participant_added": {
+        "description": "Participant added to thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "participant": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "threadRole": {
+            "type": "string",
+            "enum": ["OWNER", "MEMBER", "VIEWER"]
+          },
+          "addedBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "addedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "thread_participant_updated": {
+        "description": "Thread participant role updated",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "participant": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "oldRole": {
+            "type": "string",
+            "enum": ["OWNER", "MEMBER", "VIEWER"]
+          },
+          "newRole": {
+            "type": "string",
+            "enum": ["OWNER", "MEMBER", "VIEWER"]
+          },
+          "updatedBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "thread_participant_removed": {
+        "description": "Participant removed from thread",
+        "payload": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "participant": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "removedBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "removedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "file_upload_progress": {
+        "description": "File upload progress update",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "UPLOADING", "COMPLETED", "FAILED", "CANCELLED"]
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "bytesUploaded": {
+            "type": "integer"
+          },
+          "totalBytes": {
+            "type": "integer"
+          },
+          "uploadSpeed": {
+            "type": "integer"
+          },
+          "estimatedTimeRemaining": {
+            "type": "integer"
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "chatroomId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "threadId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": ["SHARE_FILE", "CREATE_THREAD"]
+              }
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "file_upload_completed": {
+        "description": "File upload completed - triggers context-specific actions",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalName": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "downloadUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "uploadedBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "chatroomId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "threadId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": ["SHARE_FILE", "CREATE_THREAD"]
+              }
+            }
+          },
+          "autoActions": {
+            "type": "object",
+            "properties": {
+              "chatroomMessage": {
+                "type": "object",
+                "description": "Auto-generated chatroom message",
+                "properties": {
+                  "messageId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "messageType": {
+                    "type": "string",
+                    "enum": ["FILE_SHARE"]
+                  }
+                }
+              },
+              "threadCreated": {
+                "type": "object",
+                "description": "Auto-created thread",
+                "properties": {
+                  "threadId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "file_upload_failed": {
+        "description": "File upload failed",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalName": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "chatroomId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "threadId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": ["SHARE_FILE", "CREATE_THREAD"]
+              }
+            }
+          },
+          "failedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "file_processed": {
+        "description": "File processing completed",
+        "payload": {
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalName": {
+            "type": "string"
+          },
+          "processingStatus": {
+            "type": "string",
+            "enum": ["COMPLETED", "FAILED"]
+          },
+          "processingResults": {
+            "type": "object",
+            "properties": {
+              "thumbnails": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "previewUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "extractedText": {
+                "type": "string"
+              },
+              "metadata": {
+                "type": "object"
+              }
+            }
+          },
+          "processedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "user_status_changed": {
+        "description": "User online status changed",
+        "payload": {
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["online", "away", "busy", "offline"]
+          },
+          "customMessage": {
+            "type": "string"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "permission_changed": {
+        "description": "User permissions changed (real-time)",
+        "payload": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "changeType": {
+            "type": "string",
+            "enum": ["role_changed", "access_revoked", "access_granted"]
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["company", "chatroom", "thread"]
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "oldRole": {
+            "type": "string"
+          },
+          "newRole": {
+            "type": "string"
+          },
+          "changedBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "changedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "room_management": {
+    "hierarchical_rooms": {
+      "description": "Business-aligned room hierarchy",
+      "patterns": {
+        "company": {
+          "pattern": "company:{companyId}",
+          "description": "Company-wide notifications and status",
+          "example": "company:123e4567-e89b-12d3-a456-426614174000",
+          "inheritance": "All company users automatically inherit"
+        },
+        "chatroom": {
+          "pattern": "chatroom:{chatroomId}",
+          "description": "Chatroom messaging and file sharing",
+          "example": "chatroom:123e4567-e89b-12d3-a456-426614174000",
+          "inheritance": "Chatroom members only"
+        },
+        "thread": {
+          "pattern": "thread:{threadId}",
+          "description": "Thread messaging and file discussion",
+          "example": "thread:123e4567-e89b-12d3-a456-426614174000",
+          "inheritance": "Thread participants only"
+        },
+        "upload_session": {
+          "pattern": "upload_session:{sessionId}",
+          "description": "File upload progress tracking",
+          "example": "upload_session:123e4567-e89b-12d3-a456-426614174000",
+          "inheritance": "Upload participants and observers"
+        },
+        "user_session": {
+          "pattern": "user:{userId}",
+          "description": "User-specific notifications and status",
+          "example": "user:123e4567-e89b-12d3-a456-426614174000",
+          "inheritance": "Individual user only"
+        }
+      }
+    },
+    "room_relationships": {
+      "description": "Business logic relationships",
+      "relationships": {
+        "company_contains_all": {
+          "description": "Company contains all chatrooms, threads, and users",
+          "parent": "company:{companyId}",
+          "children": [
+            "chatroom:{chatroomId}",
+            "thread:{threadId}",
+            "user:{userId}"
+          ]
+        },
+        "chatroom_contains_threads": {
+          "description": "Chatroom can spawn threads",
+          "parent": "chatroom:{chatroomId}",
+          "children": ["thread:{threadId}"]
+        },
+        "thread_has_upload_sessions": {
+          "description": "Thread can have associated upload sessions",
+          "parent": "thread:{threadId}",
+          "children": ["upload_session:{sessionId}"]
+        },
+        "chatroom_has_upload_sessions": {
+          "description": "Chatroom can have upload sessions",
+          "parent": "chatroom:{chatroomId}",
+          "children": ["upload_session:{sessionId}"]
+        }
+      }
+    },
+    "permission_based_access": {
+      "description": "Role-based room access control",
+      "access_rules": {
+        "company_owner": {
+          "description": "Company owner access",
+          "can_access": [
+            "company",
+            "chatroom",
+            "thread",
+            "upload_session",
+            "user_session"
+          ],
+          "can_modify": ["company", "chatroom", "thread", "permissions"]
+        },
+        "company_admin": {
+          "description": "Company admin access",
+          "can_access": [
+            "company",
+            "chatroom",
+            "thread",
+            "upload_session",
+            "user_session"
+          ],
+          "can_modify": ["chatroom", "thread", "permissions"]
+        },
+        "company_member": {
+          "description": "Company member access",
+          "can_access": [
+            "company",
+            "chatroom",
+            "thread",
+            "upload_session",
+            "user_session"
+          ],
+          "can_modify": ["thread", "upload_session"]
+        },
+        "thread_owner": {
+          "description": "Thread owner access",
+          "can_access": ["thread", "upload_session"],
+          "can_modify": ["thread", "upload_session", "participants"]
+        },
+        "thread_member": {
+          "description": "Thread member access",
+          "can_access": ["thread", "upload_session"],
+          "can_modify": ["upload_session"]
+        },
+        "thread_viewer": {
+          "description": "Thread viewer access",
+          "can_access": ["thread"],
+          "can_modify": []
+        }
+      }
+    }
+  },
+  "business_logic_integration": {
+    "file_centric_thread_creation": {
+      "description": "File upload triggers thread creation",
+      "flow": [
+        "User uploads file with CREATE_THREAD action",
+        "File upload progress broadcast to upload_session room",
+        "Upload completion triggers file_upload_completed event",
+        "System automatically creates thread with file as root",
+        "Thread creation broadcast to company and chatroom participants",
+        "File uploader becomes thread owner automatically",
+        "Thread room created for participants"
+      ]
+    },
+    "file_sharing_to_chatroom": {
+      "description": "File upload to chatroom",
+      "flow": [
+        "User uploads file with SHARE_FILE action to chatroom",
+        "File upload progress broadcast to upload_session room",
+        "Upload completion triggers file_upload_completed event",
+        "System automatically creates chatroom message with file",
+        "Message broadcast to chatroom participants",
+        "File appears in chatroom with download link"
+      ]
+    },
+    "thread_sharing_workflow": {
+      "description": "Thread sharing with external users",
+      "flow": [
+        "Thread owner shares thread with user",
+        "share_thread event triggers thread_participant_added",
+        "Shared user receives thread_shared notification",
+        "Shared user can join thread with VIEWER or MEMBER role",
+        "Access type set to SHARED for tracking",
+        "Thread activity broadcast to all participants"
+      ]
+    },
+    "permission_change_propagation": {
+      "description": "Real-time permission updates",
+      "flow": [
+        "Admin changes user role or removes access",
+        "permission_changed event broadcast to affected user",
+        "User's UI updates to reflect permission changes",
+        "Access revoked users disconnected from restricted rooms",
+        "Permission changes logged for audit trail"
+      ]
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserInfo": {
+        "type": "object",
+        "required": ["id", "username", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["online", "away", "busy", "offline"]
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "companyRole": {
+            "type": "string",
+            "enum": ["owner", "admin", "member"]
+          }
+        }
+      },
+      "ThreadInfo": {
+        "type": "object",
+        "required": ["id", "title", "chatroomId"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "chatroomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "participantCount": {
+            "type": "integer"
+          },
+          "fileCount": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

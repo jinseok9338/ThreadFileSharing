@@ -1,4 +1,4 @@
-import { ChatRoom } from 'src/chatroom/entities/chatroom.entity';
+import { ChatRoom } from '../../chatroom/entities/chatroom.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -12,9 +12,10 @@ import {
   Index,
 } from 'typeorm';
 import { ThreadParticipant } from './thread-participant.entity';
-import { ThreadMessage } from 'src/thread-message/entities/thread-message.entity';
-import { User } from 'src/user/entities/user.entity';
-import { File } from 'src/file/entities/file.entity';
+import { ThreadMessage } from '../../thread-message/entities/thread-message.entity';
+import { User } from '../../user/entities/user.entity';
+import { File } from '../../file/entities/file.entity';
+import { FileAssociation } from '../../file/entities/file-association.entity';
 
 @Entity('threads')
 @Index(['chatroomId'])
@@ -74,4 +75,7 @@ export class Thread {
 
   @OneToMany('File', 'thread')
   files: File[];
+
+  @OneToMany(() => FileAssociation, (fileAssociation) => fileAssociation.thread)
+  fileAssociations: FileAssociation[];
 }

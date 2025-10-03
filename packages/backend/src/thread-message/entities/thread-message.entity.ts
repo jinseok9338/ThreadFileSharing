@@ -9,8 +9,8 @@ import {
   Index,
 } from 'typeorm';
 import { MessageType } from '../../message/entities/message.entity';
-import { Thread } from 'src/thread/entities/thread.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Thread } from '../../thread/entities/thread.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity('thread_messages')
 @Index(['threadId'])
@@ -57,4 +57,3 @@ export class ThreadMessage {
   @JoinColumn({ name: 'senderId' })
   sender: User;
 }
-

@@ -1,0 +1,476 @@
+{
+  "title": "ThreadFileSharing - File Upload WebSocket Events",
+  "version": "1.0.0",
+  "description": "Real-time WebSocket events for file upload progress tracking",
+  "events": {
+    "client_to_server": {
+      "join_upload_session": {
+        "description": "Client joins an upload session to receive progress updates",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Upload session ID"
+          }
+        },
+        "acknowledgment": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether join was successful"
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Confirmed session ID"
+          }
+        }
+      },
+      "leave_upload_session": {
+        "description": "Client leaves an upload session",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Upload session ID"
+          }
+        }
+      },
+      "cancel_upload": {
+        "description": "Client cancels an ongoing upload",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Upload session ID"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Specific file ID to cancel (optional)"
+          }
+        },
+        "acknowledgment": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether cancellation was successful"
+          },
+          "cancelledFiles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "List of cancelled file IDs"
+          }
+        }
+      }
+    },
+    "server_to_client": {
+      "upload_progress": {
+        "description": "Real-time upload progress update for a file",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Upload session ID"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "File ID"
+          },
+          "originalName": {
+            "type": "string",
+            "description": "Original filename"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "UPLOADING",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ],
+            "description": "Current upload status"
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Upload progress percentage"
+          },
+          "bytesUploaded": {
+            "type": "integer",
+            "description": "Number of bytes uploaded"
+          },
+          "totalBytes": {
+            "type": "integer",
+            "description": "Total file size in bytes"
+          },
+          "uploadSpeed": {
+            "type": "integer",
+            "description": "Current upload speed in bytes per second"
+          },
+          "estimatedTimeRemaining": {
+            "type": "integer",
+            "description": "Estimated time remaining in seconds"
+          },
+          "currentChunk": {
+            "type": "integer",
+            "description": "Current chunk being uploaded"
+          },
+          "totalChunks": {
+            "type": "integer",
+            "description": "Total number of chunks"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Progress update timestamp"
+          }
+        }
+      },
+      "upload_session_progress": {
+        "description": "Overall upload session progress update",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Upload session ID"
+          },
+          "sessionName": {
+            "type": "string",
+            "description": "Optional session name"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "COMPLETED", "FAILED", "CANCELLED"],
+            "description": "Overall session status"
+          },
+          "totalFiles": {
+            "type": "integer",
+            "description": "Total number of files in session"
+          },
+          "completedFiles": {
+            "type": "integer",
+            "description": "Number of completed files"
+          },
+          "failedFiles": {
+            "type": "integer",
+            "description": "Number of failed files"
+          },
+          "totalSize": {
+            "type": "integer",
+            "description": "Total size of all files in bytes"
+          },
+          "uploadedSize": {
+            "type": "integer",
+            "description": "Total uploaded size in bytes"
+          },
+          "overallProgressPercentage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Overall session progress percentage"
+          },
+          "averageUploadSpeed": {
+            "type": "integer",
+            "description": "Average upload speed across all files"
+          },
+          "estimatedTimeRemaining": {
+            "type": "integer",
+            "description": "Estimated time remaining for entire session"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Progress update timestamp"
+          }
+        }
+      },
+      "upload_completed": {
+        "description": "File upload completed successfully",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Upload session ID"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Completed file ID"
+          },
+          "originalName": {
+            "type": "string",
+            "description": "Original filename"
+          },
+          "size": {
+            "type": "integer",
+            "description": "File size in bytes"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "File MIME type"
+          },
+          "downloadUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Secure download URL"
+          },
+          "processingStatus": {
+            "type": "string",
+            "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED"],
+            "description": "File processing status"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Upload completion timestamp"
+          }
+        }
+      },
+      "upload_failed": {
+        "description": "File upload failed",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Upload session ID"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Failed file ID"
+          },
+          "originalName": {
+            "type": "string",
+            "description": "Original filename"
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "Error code for failure"
+          },
+          "errorMessage": {
+            "type": "string",
+            "description": "Human-readable error message"
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the upload can be retried"
+          },
+          "failedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Failure timestamp"
+          }
+        }
+      },
+      "upload_cancelled": {
+        "description": "File upload was cancelled",
+        "payload": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Upload session ID"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Cancelled file ID"
+          },
+          "originalName": {
+            "type": "string",
+            "description": "Original filename"
+          },
+          "cancelledBy": {
+            "type": "string",
+            "format": "uuid",
+            "description": "User ID who cancelled the upload"
+          },
+          "cancelledAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Cancellation timestamp"
+          }
+        }
+      },
+      "storage_quota_warning": {
+        "description": "Storage quota warning when approaching limits",
+        "payload": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company ID"
+          },
+          "storageUsedBytes": {
+            "type": "integer",
+            "description": "Current storage usage in bytes"
+          },
+          "storageLimitBytes": {
+            "type": "integer",
+            "description": "Storage limit in bytes"
+          },
+          "usagePercentage": {
+            "type": "number",
+            "format": "float",
+            "description": "Storage usage percentage"
+          },
+          "warningThreshold": {
+            "type": "number",
+            "format": "float",
+            "description": "Warning threshold percentage"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Warning timestamp"
+          }
+        }
+      },
+      "storage_quota_exceeded": {
+        "description": "Storage quota exceeded - uploads blocked",
+        "payload": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company ID"
+          },
+          "storageUsedBytes": {
+            "type": "integer",
+            "description": "Current storage usage in bytes"
+          },
+          "storageLimitBytes": {
+            "type": "integer",
+            "description": "Storage limit in bytes"
+          },
+          "blockedUploads": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "List of blocked upload session IDs"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Quota exceeded timestamp"
+          }
+        }
+      },
+      "file_processed": {
+        "description": "File processing completed (thumbnails, metadata extraction, etc.)",
+        "payload": {
+          "fileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Processed file ID"
+          },
+          "originalName": {
+            "type": "string",
+            "description": "Original filename"
+          },
+          "processingStatus": {
+            "type": "string",
+            "enum": ["COMPLETED", "FAILED"],
+            "description": "Processing result"
+          },
+          "processingResults": {
+            "type": "object",
+            "description": "Processing results (thumbnails, extracted text, etc.)",
+            "properties": {
+              "thumbnails": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "description": "Generated thumbnail URLs"
+              },
+              "previewUrl": {
+                "type": "string",
+                "format": "uri",
+                "description": "Preview URL for the file"
+              },
+              "extractedText": {
+                "type": "string",
+                "description": "Extracted text content"
+              },
+              "metadata": {
+                "type": "object",
+                "description": "Extracted metadata"
+              }
+            }
+          },
+          "processedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Processing completion timestamp"
+          }
+        }
+      }
+    }
+  },
+  "error_events": {
+    "upload_error": {
+      "description": "General upload error",
+      "payload": {
+        "sessionId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Upload session ID"
+        },
+        "errorCode": {
+          "type": "string",
+          "description": "Error code"
+        },
+        "errorMessage": {
+          "type": "string",
+          "description": "Error message"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Error timestamp"
+        }
+      }
+    },
+    "connection_error": {
+      "description": "WebSocket connection error",
+      "payload": {
+        "errorCode": {
+          "type": "string",
+          "description": "Connection error code"
+        },
+        "errorMessage": {
+          "type": "string",
+          "description": "Connection error message"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Error timestamp"
+        }
+      }
+    }
+  },
+  "room_management": {
+    "upload_sessions": {
+      "description": "Room for upload session progress updates",
+      "pattern": "upload_session:{sessionId}",
+      "example": "upload_session:123e4567-e89b-12d3-a456-426614174000"
+    },
+    "company_notifications": {
+      "description": "Room for company-wide notifications (quota warnings, etc.)",
+      "pattern": "company:{companyId}",
+      "example": "company:123e4567-e89b-12d3-a456-426614174000"
+    },
+    "user_sessions": {
+      "description": "Room for user-specific upload notifications",
+      "pattern": "user:{userId}",
+      "example": "user:123e4567-e89b-12d3-a456-426614174000"
+    }
+  }
+}
