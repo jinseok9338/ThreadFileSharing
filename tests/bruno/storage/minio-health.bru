@@ -1,0 +1,29 @@
+meta {
+  name: MinIO Health Check Test
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{minio_url}}/minio/health/live
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response indicates MinIO is healthy", function() {
+    // MinIO health endpoint typically returns "OK" or similar
+    expect(res.body).to.be.oneOf(['OK', 'ok', 'healthy', '']);
+  });
+  
+  test("Response time is reasonable", function() {
+    expect(res.responseTime).to.be.at.most(5000); // 5 seconds max
+  });
+}
+
+vars:pre-request {
+  minio_url: "http://localhost:9000"
+}

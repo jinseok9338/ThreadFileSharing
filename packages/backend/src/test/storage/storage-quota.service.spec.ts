@@ -5,11 +5,13 @@ import { BadRequestException } from '@nestjs/common';
 import { StorageQuotaService } from '../../storage/storage-quota.service';
 import { Company } from '../../company/entities/company.entity';
 import { File } from '../../file/entities/file.entity';
+import { StorageQuota } from '../../file/entities/storage-quota.entity';
 
 describe('StorageQuotaService', () => {
   let service: StorageQuotaService;
   let companyRepository: Repository<Company>;
   let fileRepository: Repository<File>;
+  let storageQuotaRepository: Repository<StorageQuota>;
 
   const mockCompanyRepository = {
     findOne: jest.fn(),
@@ -20,7 +22,19 @@ describe('StorageQuotaService', () => {
 
   const mockFileRepository = {
     count: jest.fn(),
-    createQueryBuilder: jest.fn(),
+    createQueryBuilder: jest.fn(() => ({
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getRawOne: jest.fn().mockResolvedValue({ totalSize: '1073741824' }),
+    })),
+  };
+
+  const mockStorageQuotaRepository = {
+    findOne: jest.fn(),
+    save: jest.fn(),
+    update: jest.fn(),
+    create: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -35,6 +49,10 @@ describe('StorageQuotaService', () => {
           provide: getRepositoryToken(File),
           useValue: mockFileRepository,
         },
+        {
+          provide: getRepositoryToken(StorageQuota),
+          useValue: mockStorageQuotaRepository,
+        },
       ],
     }).compile();
 
@@ -43,6 +61,9 @@ describe('StorageQuotaService', () => {
       getRepositoryToken(Company),
     );
     fileRepository = module.get<Repository<File>>(getRepositoryToken(File));
+    storageQuotaRepository = module.get<Repository<StorageQuota>>(
+      getRepositoryToken(StorageQuota),
+    );
   });
 
   afterEach(() => {
@@ -55,21 +76,20 @@ describe('StorageQuotaService', () => {
         id: 'company-1',
         storageLimitGb: 50,
         storageUsedBytes: BigInt(1073741824), // 1GB
-      } as Company;
+        maxStorageBytes: BigInt(53687091200), // 50GB
+      } as unknown as Company;
 
       mockCompanyRepository.findOne.mockResolvedValue(mockCompany);
       mockFileRepository.count.mockResolvedValue(100);
 
       const result = await service.getStorageQuota('company-1');
 
-      expect(result).toEqual({
-        companyId: 'company-1',
-        storageLimitBytes: 53687091200, // 50GB in bytes
-        storageUsedBytes: 1073741824, // 1GB
-        storageAvailableBytes: 52613349376, // 49GB
-        storageUsedPercent: 2.0,
-        fileCount: 100,
-      });
+      expect(result.companyId).toBe('company-1');
+      expect(result.storageLimitBytes).toBe(53687091200); // 50GB in bytes
+      expect(result.storageUsedBytes).toBe(1073741824); // 1GB
+      expect(result.storageAvailableBytes).toBe(52613349376); // 49GB
+      expect(result.storageUsedPercent).toBe(2);
+      expect(result.fileCount).toBe(100);
     });
 
     it('should throw error for non-existent company', async () => {
@@ -87,7 +107,8 @@ describe('StorageQuotaService', () => {
         id: 'company-1',
         storageLimitGb: 50,
         storageUsedBytes: BigInt(1073741824), // 1GB
-      } as Company;
+        maxStorageBytes: BigInt(53687091200), // 50GB
+      } as unknown as Company;
 
       mockCompanyRepository.findOne.mockResolvedValue(mockCompany);
       mockFileRepository.count.mockResolvedValue(100);
@@ -102,7 +123,8 @@ describe('StorageQuotaService', () => {
         id: 'company-1',
         storageLimitGb: 1, // 1GB limit
         storageUsedBytes: BigInt(1073741824), // 1GB used
-      } as Company;
+        maxStorageBytes: BigInt(1073741824), // 1GB
+      } as unknown as Company;
 
       mockCompanyRepository.findOne.mockResolvedValue(mockCompany);
       mockFileRepository.count.mockResolvedValue(100);
@@ -119,7 +141,8 @@ describe('StorageQuotaService', () => {
         id: 'company-1',
         storageLimitGb: 50,
         storageUsedBytes: BigInt(1073741824), // 1GB
-      } as Company;
+        maxStorageBytes: BigInt(53687091200), // 50GB
+      } as unknown as Company;
 
       mockCompanyRepository.findOne.mockResolvedValue(mockCompany);
       mockFileRepository.count.mockResolvedValue(100);
@@ -134,7 +157,8 @@ describe('StorageQuotaService', () => {
         id: 'company-1',
         storageLimitGb: 1, // 1GB limit
         storageUsedBytes: BigInt(1073741824), // 1GB used
-      } as Company;
+        maxStorageBytes: BigInt(1073741824), // 1GB
+      } as unknown as Company;
 
       mockCompanyRepository.findOne.mockResolvedValue(mockCompany);
       mockFileRepository.count.mockResolvedValue(100);
@@ -146,29 +170,29 @@ describe('StorageQuotaService', () => {
   });
 
   describe('addStorageUsage', () => {
-    it('should increment storage usage', async () => {
-      mockCompanyRepository.increment.mockResolvedValue({ affected: 1 });
+    it('should log storage usage addition', async () => {
+      // Mock the logger
+      const mockLogger = { debug: jest.fn() };
+      (service as any).logger = mockLogger;
 
       await service.addStorageUsage('company-1', 1048576); // 1MB
 
-      expect(mockCompanyRepository.increment).toHaveBeenCalledWith(
-        { id: 'company-1' },
-        'storageUsedBytes',
-        1048576,
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        'Storage usage added: 1048576 bytes for company company-1',
       );
     });
   });
 
   describe('removeStorageUsage', () => {
-    it('should decrement storage usage', async () => {
-      mockCompanyRepository.decrement.mockResolvedValue({ affected: 1 });
+    it('should log storage usage removal', async () => {
+      // Mock the logger
+      const mockLogger = { debug: jest.fn() };
+      (service as any).logger = mockLogger;
 
       await service.removeStorageUsage('company-1', 1048576); // 1MB
 
-      expect(mockCompanyRepository.decrement).toHaveBeenCalledWith(
-        { id: 'company-1' },
-        'storageUsedBytes',
-        1048576,
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        'Storage usage removed: 1048576 bytes for company company-1',
       );
     });
   });
@@ -179,10 +203,19 @@ describe('StorageQuotaService', () => {
         id: 'company-1',
         storageLimitGb: 10,
         storageUsedBytes: BigInt(9 * 1024 * 1024 * 1024), // 9GB
-      } as Company;
+        maxStorageBytes: BigInt(10 * 1024 * 1024 * 1024), // 10GB
+      } as unknown as Company;
 
       mockCompanyRepository.findOne.mockResolvedValue(mockCompany);
       mockFileRepository.count.mockResolvedValue(100);
+
+      // Mock the query builder to return 9GB usage
+      mockFileRepository.createQueryBuilder.mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({ totalSize: '9663676416' }), // 9GB
+      });
 
       const result = await service.isNearQuotaLimit('company-1', 90);
 
@@ -194,10 +227,19 @@ describe('StorageQuotaService', () => {
         id: 'company-1',
         storageLimitGb: 10,
         storageUsedBytes: BigInt(5 * 1024 * 1024 * 1024), // 5GB
-      } as Company;
+        maxStorageBytes: BigInt(10 * 1024 * 1024 * 1024), // 10GB
+      } as unknown as Company;
 
       mockCompanyRepository.findOne.mockResolvedValue(mockCompany);
       mockFileRepository.count.mockResolvedValue(100);
+
+      // Mock the query builder to return 5GB usage
+      mockFileRepository.createQueryBuilder.mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({ totalSize: '5368709120' }), // 5GB
+      });
 
       const result = await service.isNearQuotaLimit('company-1', 90);
 
@@ -223,7 +265,8 @@ describe('StorageQuotaService', () => {
         id: 'company-1',
         storageLimitGb: 50,
         storageUsedBytes: BigInt(0),
-      } as Company;
+        maxStorageBytes: BigInt(53687091200), // 50GB
+      } as unknown as Company;
 
       mockCompanyRepository.findOne.mockResolvedValue(mockCompany);
       mockFileRepository.count.mockResolvedValue(0);

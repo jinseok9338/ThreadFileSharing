@@ -42,26 +42,26 @@
 - **Environment files**: Repository root (docker-compose.yml)
 - **File entities**: `packages/backend/src/file/entities/`
 
-## Phase 3.1: Infrastructure Setup
+## Phase 3.1: Infrastructure Setup ✅ **완료**
 
-- [x] T001 [P] Add MinIO service to Docker Compose configuration in `docker-compose.yml`
-- [x] T002 [P] Create MinIO environment variables in `env.template` (`.env.local`, `.env.development`, `.env.staging`, `.env.production`)
-- [x] T003 [P] Install AWS SDK v3 and MinIO client dependencies in `packages/backend/package.json`
-- [x] T004 [P] Install Multer and Socket.io dependencies in `packages/backend/package.json`
-- [x] T005 [P] Configure MinIO health checks and volume persistence in `docker-compose.yml`
+- [x] T001 [P] Add MinIO service to Docker Compose configuration in `docker-compose.yml` ✅
+- [x] T002 [P] Create MinIO environment variables in `env.template` (`.env.local`, `.env.development`, `.env.staging`, `.env.production`) ✅
+- [x] T003 [P] Install AWS SDK v3 and MinIO client dependencies in `packages/backend/package.json` ✅
+- [x] T004 [P] Install Multer and Socket.io dependencies in `packages/backend/package.json` ✅
+- [x] T005 [P] Configure MinIO health checks and volume persistence in `docker-compose.yml` ✅
 
-## Phase 3.2: Database Setup
+## Phase 3.2: Database Setup ✅ **완료**
 
-- [ ] T006 Create File entity with S3/MinIO metadata in `packages/backend/src/file/entities/file.entity.ts`
-- [ ] T007 Create UploadProgress entity for real-time tracking in `packages/backend/src/file/entities/upload-progress.entity.ts`
-- [ ] T008 Create UploadSession entity for multi-file sessions in `packages/backend/src/file/entities/upload-session.entity.ts`
-- [ ] T009 Create FileAssociation entity for chatroom/thread relationships in `packages/backend/src/file/entities/file-association.entity.ts`
-- [ ] T010 Create StorageQuota entity for company limits in `packages/backend/src/file/entities/storage-quota.entity.ts`
-- [ ] T011 Create DownloadToken entity for secure downloads in `packages/backend/src/file/entities/download-token.entity.ts`
-- [ ] T012 Generate TypeORM migration for file entities in `packages/backend/src/database/migrations/`
-- [ ] T013 Update DatabaseModule to include file entities in `packages/backend/src/database/database.module.ts`
+- [x] T006 Create File entity with S3/MinIO metadata in `packages/backend/src/file/entities/file.entity.ts` ✅
+- [x] T007 Create UploadProgress entity for real-time tracking in `packages/backend/src/file/entities/upload-progress.entity.ts` ✅
+- [x] T008 Create UploadSession entity for multi-file sessions in `packages/backend/src/file/entities/upload-session.entity.ts` ✅
+- [x] T009 Create FileAssociation entity for chatroom/thread relationships in `packages/backend/src/file/entities/file-association.entity.ts` ✅
+- [x] T010 Create StorageQuota entity for company limits in `packages/backend/src/file/entities/storage-quota.entity.ts` ✅
+- [x] T011 Create DownloadToken entity for secure downloads in `packages/backend/src/file/entities/download-token.entity.ts` ✅
+- [x] T012 Generate TypeORM migration for file entities in `packages/backend/src/database/migrations/` ✅
+- [x] T013 Update DatabaseModule to include file entities in `packages/backend/src/database/database.module.ts` ✅
 
-## Phase 3.3: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.4
+## Phase 3.3: Tests First (TDD) ❌ **미완료** ⚠️ CRITICAL
 
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
@@ -74,46 +74,46 @@
 - [ ] T020 [P] Bruno API test GET /api/v1/files/storage/quota in `tests/bruno/storage/storage-quota.bru`
 - [ ] T021 [P] Bruno API test MinIO health check in `tests/bruno/storage/minio-health.bru`
 - [ ] T022 [P] Backend unit tests for FileService in `packages/backend/test/file/file.service.spec.ts`
-- [ ] T023 [P] Backend unit tests for StorageService in `packages/backend/test/storage/storage.service.spec.ts`
+- [x] T023 [P] Backend unit tests for StorageService in `packages/backend/test/storage/storage.service.spec.ts` ✅ (부분 완료: StorageQuotaService만)
 - [ ] T024 [P] Backend unit tests for UploadProgressService in `packages/backend/test/upload-progress/upload-progress.service.spec.ts`
 - [ ] T025 [P] WebSocket gateway tests for upload progress in `packages/backend/test/websocket/upload.gateway.spec.ts`
 
-## Phase 3.4: Core Implementation (ONLY after tests are failing)
+## Phase 3.4: Core Implementation ✅ **부분 완료** (TDD 무시하고 구현됨)
 
-- [ ] T026 Create StorageService with MinIO/S3 integration in `packages/backend/src/storage/storage.service.ts`
-- [ ] T027 Create MinIOService for local development in `packages/backend/src/storage/minio.service.ts`
-- [ ] T028 Create FileService with upload/download logic in `packages/backend/src/file/file.service.ts`
-- [ ] T029 Create UploadProgressService for real-time tracking in `packages/backend/src/upload-progress/upload-progress.service.ts`
-- [ ] T030 Create FileController with all endpoints in `packages/backend/src/file/file.controller.ts`
-- [ ] T031 Create UploadProgressController for progress tracking in `packages/backend/src/upload-progress/upload-progress.controller.ts`
-- [ ] T032 Create File DTOs for request/response in `packages/backend/src/file/dto/`
-- [ ] T033 Create UploadProgress DTOs in `packages/backend/src/upload-progress/dto/`
+- [x] T026 Create StorageService with MinIO/S3 integration in `packages/backend/src/storage/storage.service.ts` ✅ (StorageQuotaService로 구현)
+- [ ] T027 Create MinIOService for local development in `packages/backend/src/storage/minio.service.ts` ❌ (별도 서비스로 분리 필요)
+- [x] T028 Create FileService with upload/download logic in `packages/backend/src/file/file.service.ts` ✅ (FileUploadService, FileManagementService로 구현)
+- [x] T029 Create UploadProgressService for real-time tracking in `packages/backend/src/upload-progress/upload-progress.service.ts` ✅
+- [x] T030 Create FileController with all endpoints in `packages/backend/src/file/file.controller.ts` ✅ (FileUploadController, FileManagementController, FileDownloadController로 구현)
+- [x] T031 Create UploadProgressController for progress tracking in `packages/backend/src/upload-progress/upload-progress.controller.ts` ✅ (FileManagementController에 포함)
+- [x] T032 Create File DTOs for request/response in `packages/backend/src/file/dto/` ✅ (15개 DTO 파일)
+- [x] T033 Create UploadProgress DTOs in `packages/backend/src/upload-progress/dto/` ✅
 
-## Phase 3.5: WebSocket Integration
+## Phase 3.5: WebSocket Integration ✅ **완료**
 
-- [ ] T034 Create UploadGateway for real-time progress updates in `packages/backend/src/websocket/upload.gateway.ts`
-- [ ] T035 Configure Socket.io for file upload events in `packages/backend/src/websocket/websocket.module.ts`
-- [ ] T036 Integrate WebSocket with file upload progress in `packages/backend/src/file/file.service.ts`
-- [ ] T037 Add WebSocket room management for upload sessions in `packages/backend/src/websocket/upload.gateway.ts`
+- [x] T034 Create UploadGateway for real-time progress updates in `packages/backend/src/websocket/upload.gateway.ts` ✅ (WebSocketGateway로 구현)
+- [x] T035 Configure Socket.io for file upload events in `packages/backend/src/websocket/websocket.module.ts` ✅
+- [x] T036 Integrate WebSocket with file upload progress in `packages/backend/src/file/file.service.ts` ✅ (FileUploadService에 연동)
+- [x] T037 Add WebSocket room management for upload sessions in `packages/backend/src/websocket/upload.gateway.ts` ✅ (WebSocketRoomService로 구현)
 
-## Phase 3.6: Integration & Configuration
+## Phase 3.6: Integration & Configuration ✅ **완료**
 
-- [ ] T038 Configure file upload middleware with Multer in `packages/backend/src/file/file.module.ts`
-- [ ] T039 Configure S3/MinIO client with environment variables in `packages/backend/src/storage/storage.module.ts`
-- [ ] T040 Add file size and type validation in `packages/backend/src/file/file.service.ts`
-- [ ] T041 Implement storage quota enforcement in `packages/backend/src/file/file.service.ts`
-- [ ] T042 Add secure download token generation in `packages/backend/src/file/file.service.ts`
-- [ ] T043 Configure file upload progress tracking in `packages/backend/src/upload-progress/upload-progress.service.ts`
+- [x] T038 Configure file upload middleware with Multer in `packages/backend/src/file/file.module.ts` ✅
+- [x] T039 Configure S3/MinIO client with environment variables in `packages/backend/src/storage/storage.module.ts` ✅
+- [x] T040 Add file size and type validation in `packages/backend/src/file/file.service.ts` ✅
+- [x] T041 Implement storage quota enforcement in `packages/backend/src/file/file.service.ts` ✅
+- [x] T042 Add secure download token generation in `packages/backend/src/file/file.service.ts` ✅
+- [x] T043 Configure file upload progress tracking in `packages/backend/src/upload-progress/upload-progress.service.ts` ✅
 
-## Phase 3.7: Module Configuration
+## Phase 3.7: Module Configuration ✅ **완료**
 
-- [ ] T044 Create FileModule with all dependencies in `packages/backend/src/file/file.module.ts`
-- [ ] T045 Create StorageModule with MinIO/S3 configuration in `packages/backend/src/storage/storage.module.ts`
-- [ ] T046 Create UploadProgressModule in `packages/backend/src/upload-progress/upload-progress.module.ts`
-- [ ] T047 Create WebSocketModule for upload events in `packages/backend/src/websocket/websocket.module.ts`
-- [ ] T048 Update AppModule to include all file upload modules in `packages/backend/src/app.module.ts`
+- [x] T044 Create FileModule with all dependencies in `packages/backend/src/file/file.module.ts` ✅
+- [x] T045 Create StorageModule with MinIO/S3 configuration in `packages/backend/src/storage/storage.module.ts` ✅
+- [x] T046 Create UploadProgressModule in `packages/backend/src/upload-progress/upload-progress.module.ts` ✅ (FileModule에 통합)
+- [x] T047 Create WebSocketModule for upload events in `packages/backend/src/websocket/websocket.module.ts` ✅
+- [x] T048 Update AppModule to include all file upload modules in `packages/backend/src/app.module.ts` ✅
 
-## Phase 3.8: Validation & Polish
+## Phase 3.8: Validation & Polish ❌ **미완료**
 
 - [ ] T049 [P] Run Bruno test suite for all file upload endpoints
 - [ ] T050 [P] Execute quickstart validation scenarios from `quickstart.md`

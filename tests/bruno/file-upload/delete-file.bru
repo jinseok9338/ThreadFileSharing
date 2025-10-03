@@ -1,0 +1,42 @@
+meta {
+  name: Delete File Test
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/api/v1/files/{{file_id}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has success status", function() {
+    expect(res.body.success).to.be.true;
+  });
+  
+  test("Response contains success message", function() {
+    expect(res.body.message).to.be.a('string');
+    expect(res.body.message.length).to.be.greaterThan(0);
+  });
+  
+  test("Response indicates deletion success", function() {
+    expect(res.body.message.toLowerCase()).to.include('deleted');
+  });
+  
+  test("Response has no data field", function() {
+    expect(res.body.data).to.be.undefined;
+  });
+}
+
+vars:pre-request {
+  auth_token: "{{jwt_token}}"
+  file_id: "{{uploaded_file_id}}"
+}

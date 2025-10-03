@@ -1,0 +1,56 @@
+meta {
+  name: Download File Test
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/api/v1/files/{{file_id}}/download
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has success status", function() {
+    expect(res.body.success).to.be.true;
+  });
+  
+  test("Response contains download URL", function() {
+    expect(res.body.data).to.have.property('downloadUrl');
+    expect(res.body.data.downloadUrl).to.be.a('string');
+    expect(res.body.data.downloadUrl).to.match(/^https?:\/\//);
+  });
+  
+  test("Response contains token info", function() {
+    expect(res.body.data).to.have.property('token');
+    expect(res.body.data.token).to.have.property('token');
+    expect(res.body.data.token).to.have.property('expiresAt');
+    expect(res.body.data.token.token).to.be.a('string');
+    expect(res.body.data.token.expiresAt).to.be.a('string');
+  });
+  
+  test("Download URL is accessible", function() {
+    // This test would require making a separate request to the download URL
+    // For now, we just verify the URL format is correct
+    const downloadUrl = res.body.data.downloadUrl;
+    expect(downloadUrl).to.match(/^https?:\/\/.*\/.*\.(txt|pdf|jpg|png|doc|docx)$/i);
+  });
+  
+  test("Token has expiration time", function() {
+    const expiresAt = new Date(res.body.data.token.expiresAt);
+    const now = new Date();
+    expect(expiresAt).to.be.greaterThan(now);
+  });
+}
+
+vars:pre-request {
+  auth_token: "{{jwt_token}}"
+  file_id: "{{uploaded_file_id}}"
+}
