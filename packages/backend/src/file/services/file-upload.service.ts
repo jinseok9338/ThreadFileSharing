@@ -191,6 +191,9 @@ export class FileUploadService {
         companyId: user.company.id,
       });
 
+      // Get actual file size
+      const actualFileSize = fileBuffer.length;
+
       // Create file record
       const fileEntity = this.fileRepository.create({
         companyId: user.company.id,
@@ -200,7 +203,7 @@ export class FileUploadService {
         originalName: file.filename,
         displayName: uploadRequest.displayName,
         mimeType: file.mimetype,
-        sizeBytes: file._buf?.length || 0,
+        sizeBytes: actualFileSize,
         hash,
         storageKey,
         storageBucket: this.getStorageBucketName(),
@@ -220,7 +223,8 @@ export class FileUploadService {
 
       // Generate download URL
       const storageServiceForDownload = this.getStorageService();
-      const downloadUrl = await storageServiceForDownload.getSignedDownloadUrl(storageKey);
+      const downloadUrl =
+        await storageServiceForDownload.getSignedDownloadUrl(storageKey);
 
       // Update file with download URL
       savedFile.downloadUrl = downloadUrl;
@@ -463,9 +467,10 @@ export class FileUploadService {
       // Generate download URL
       if (!savedFile.downloadUrl) {
         const storageServiceForDownload = this.getStorageService();
-        const downloadUrl = await storageServiceForDownload.getSignedDownloadUrl(
-          savedFile.storageKey,
-        );
+        const downloadUrl =
+          await storageServiceForDownload.getSignedDownloadUrl(
+            savedFile.storageKey,
+          );
         savedFile.downloadUrl = downloadUrl;
         await this.fileRepository.save(savedFile);
       }

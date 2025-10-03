@@ -46,7 +46,7 @@ export class Company {
   @Column({ type: 'integer', default: 100 })
   maxUsers: number;
 
-  @Column({ type: 'bigint', default: 5368709120 }) // 5GB
+  @Column({ type: 'bigint', default: 53687091200 }) // 50GB
   maxStorageBytes: bigint;
 
   @CreateDateColumn()

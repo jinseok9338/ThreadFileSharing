@@ -60,9 +60,9 @@ async function bootstrap() {
   await app.register(require('@fastify/multipart'), {
     limits: {
       fileSize: parseInt(
-        process.env.FILE_UPLOAD_MAX_SIZE_BYTES || '5368709120',
+        process.env.FILE_UPLOAD_MAX_SIZE_BYTES || '107374182400',
         10,
-      ),
+      ), // 100GB default
     },
   });
 

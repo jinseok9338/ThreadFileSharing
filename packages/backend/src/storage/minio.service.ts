@@ -83,27 +83,44 @@ export class MinIOService {
    */
   async uploadFile(
     objectKey: string,
-    fileBuffer: Buffer,
+    fileData: Buffer | NodeJS.ReadableStream,
     contentType: string,
     metadata?: Record<string, string>,
   ): Promise<string> {
     try {
       await this.initializeBucket();
 
-      const result = await this.minioClient.putObject(
-        this.bucketName,
-        objectKey,
-        fileBuffer,
-        fileBuffer.length,
-        {
-          'Content-Type': contentType,
-          ...metadata,
-        },
-      );
-
-      this.logger.debug(
-        `File uploaded to MinIO: ${objectKey} (${fileBuffer.length} bytes)`,
-      );
+      let result;
+      if (Buffer.isBuffer(fileData)) {
+        // For small files, use buffer
+        result = await this.minioClient.putObject(
+          this.bucketName,
+          objectKey,
+          fileData,
+          fileData.length,
+          {
+            'Content-Type': contentType,
+            ...metadata,
+          },
+        );
+        this.logger.debug(
+          `File uploaded to MinIO: ${objectKey} (${fileData.length} bytes)`,
+        );
+      } else {
+        // For large files, use stream - convert ReadableStream to Readable
+        const stream = fileData as any; // Type assertion to bypass TypeScript error
+        result = await this.minioClient.putObject(
+          this.bucketName,
+          objectKey,
+          stream,
+          undefined, // Let MinIO determine size from stream
+          {
+            'Content-Type': contentType,
+            ...metadata,
+          },
+        );
+        this.logger.debug(`File stream uploaded to MinIO: ${objectKey}`);
+      }
 
       return result.etag;
     } catch (error) {
