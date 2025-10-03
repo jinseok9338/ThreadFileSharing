@@ -4,6 +4,7 @@ import { IsNull, Repository } from 'typeorm';
 import { Company } from '../company/entities/company.entity';
 import { File } from '../file/entities/file.entity';
 import { StorageQuota } from '../file/entities/storage-quota.entity';
+import { StorageQuotaResponseDto } from '../file/dto/storage-quota-response.dto';
 import { STORAGE_LIMITS } from '../constants/permissions';
 import Big from 'big.js';
 
@@ -27,7 +28,7 @@ export class StorageQuotaService {
   /**
    * Get company storage quota information
    */
-  async getStorageQuota(companyId: string) {
+  async getStorageQuota(companyId: string): Promise<StorageQuotaResponseDto> {
     this.logger.log(`getStorageQuota called for company: ${companyId}`);
 
     const company = await this.companyRepository.findOne({
@@ -73,14 +74,29 @@ export class StorageQuotaService {
       storageLimitBytes,
     });
 
-    return {
-      companyId,
-      storageLimitBytes: Number(storageLimitBytes),
-      storageUsedBytes: storageUsedBytes.toNumber(),
-      storageAvailableBytes: storageAvailableBytes.toNumber(),
-      storageUsedPercent: Math.round(storageUsedPercent.toNumber() * 100) / 100,
-      fileCount,
-    };
+    // Create StorageQuotaResponseDto with real-time calculated values
+    const dto = new StorageQuotaResponseDto();
+    dto.companyId = companyId;
+    dto.storageLimitBytes = Number(storageLimitBytes);
+    dto.storageUsedBytes = storageUsedBytes.toNumber();
+    dto.storageAvailableBytes = storageAvailableBytes.toNumber();
+    dto.storageUsedPercent =
+      Math.round(storageUsedPercent.toNumber() * 100) / 100;
+    dto.fileCount = fileCount;
+    dto.lastCalculatedAt = new Date();
+    dto.createdAt = new Date();
+    dto.updatedAt = new Date();
+
+    // Add company info if available
+    if (company) {
+      dto.company = {
+        id: company.id,
+        name: company.name,
+        slug: company.slug,
+      };
+    }
+
+    return dto;
   }
 
   /**

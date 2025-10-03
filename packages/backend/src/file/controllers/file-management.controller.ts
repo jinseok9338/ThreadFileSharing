@@ -340,7 +340,11 @@ export class FileManagementController {
     );
 
     try {
-      const result = await this.storageQuotaService.recalculateStorageQuota(
+      await this.storageQuotaService.recalculateStorageUsage(
+        req.user.companyId,
+      );
+
+      const result = await this.storageQuotaService.getStorageQuota(
         req.user.companyId,
       );
 
@@ -365,32 +369,47 @@ export class FileManagementController {
   @HttpCode(HttpStatus.OK)
   async getStorageUsageReport(@Request() req: any): Promise<{
     quota: StorageQuotaResponseDto;
-    topFiles: Array<{
-      id: string;
-      name: string;
+    breakdown: {
+      totalFiles: number;
+      totalSize: number;
+      totalSizeFormatted: string;
+    };
+    byType: Array<{
+      type: string;
+      count: number;
       size: number;
       sizeFormatted: string;
     }>;
-    usageByType: Record<
-      string,
-      {
-        count: number;
-        size: number;
-        sizeFormatted: string;
-      }
-    >;
   }> {
     this.logger.log(
       `Get storage usage report request from user ${req.user.id}`,
     );
 
     try {
-      const result = await this.storageQuotaService.getStorageUsageReport(
+      const quota = await this.storageQuotaService.getStorageQuota(
         req.user.companyId,
       );
 
+      // Simple usage report with just the quota information
+      const result = {
+        quota,
+        breakdown: {
+          totalFiles: quota.fileCount,
+          totalSize: quota.storageUsedBytes,
+          totalSizeFormatted: quota.storageUsedFormatted,
+        },
+        byType: [
+          {
+            type: 'All Files',
+            count: quota.fileCount,
+            size: quota.storageUsedBytes,
+            sizeFormatted: quota.storageUsedFormatted,
+          },
+        ],
+      };
+
       this.logger.log(
-        `Storage usage report retrieved: ${result.quota.storageUsedFormatted}/${result.quota.storageLimitFormatted}`,
+        `Storage usage report retrieved: ${quota.storageUsedFormatted}/${quota.storageLimitFormatted}`,
       );
 
       return result;

@@ -17,7 +17,7 @@ import { DownloadToken } from '../entities/download-token.entity';
 import { User } from '../../user/entities/user.entity';
 import { Company } from '../../company/entities/company.entity';
 import { S3ClientService } from './s3-client.service';
-import { StorageQuotaService } from './storage-quota.service';
+import { StorageQuotaService } from '../../storage/storage-quota.service';
 import {
   FileQueryDto,
   FileResponseDto,
@@ -208,10 +208,9 @@ export class FileManagementService {
       await this.fileRepository.softDelete(fileId);
 
       // Update storage quota
-      await this.storageQuotaService.updateStorageUsage(
+      await this.storageQuotaService.addStorageUsage(
         user.company.id,
         -file.sizeBytes,
-        -1,
       );
 
       this.logger.log(`File ${fileId} deleted successfully`);

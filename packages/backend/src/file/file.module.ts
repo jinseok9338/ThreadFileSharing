@@ -18,7 +18,7 @@ import { S3ClientService } from './services/s3-client.service';
 import { FileUploadService } from './services/file-upload.service';
 import { UploadProgressService } from './services/upload-progress.service';
 import { FileManagementService } from './services/file-management.service';
-import { StorageQuotaService } from './services/storage-quota.service';
+import { StorageModule } from '../storage/storage.module';
 
 // Controllers
 import { FileUploadController } from './controllers/file-upload.controller';
@@ -44,6 +44,7 @@ import { WebSocketModule } from '../websocket/websocket.module';
       Company,
     ]),
     ConfigModule,
+    StorageModule,
     // MulterModule.register(multerConfig), // Fastify multipart 사용으로 불필요
     forwardRef(() => WebSocketModule),
   ],
@@ -57,14 +58,12 @@ import { WebSocketModule } from '../websocket/websocket.module';
     FileUploadService,
     UploadProgressService,
     FileManagementService,
-    StorageQuotaService,
   ],
   exports: [
     S3ClientService,
     FileUploadService,
     UploadProgressService,
     FileManagementService,
-    StorageQuotaService,
   ],
 })
 export class FileModule {}

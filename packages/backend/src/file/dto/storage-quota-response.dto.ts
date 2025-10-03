@@ -7,6 +7,8 @@ export class StorageQuotaResponseDto {
   companyId: string;
   storageLimitBytes: number;
   storageUsedBytes: number;
+  storageAvailableBytes: number;
+  storageUsedPercent: number;
   fileCount: number;
   lastCalculatedAt: Date;
   createdAt: Date;
@@ -20,11 +22,6 @@ export class StorageQuotaResponseDto {
   };
 
   // Computed properties
-  get storageUsedPercent(): number {
-    if (this.storageLimitBytes === 0) return 0;
-    return (this.storageUsedBytes / this.storageLimitBytes) * 100;
-  }
-
   get storageRemainingBytes(): number {
     return Math.max(0, this.storageLimitBytes - this.storageUsedBytes);
   }

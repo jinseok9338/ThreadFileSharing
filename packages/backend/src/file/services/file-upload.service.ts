@@ -27,7 +27,7 @@ import { StorageQuota } from '../entities/storage-quota.entity';
 import { User } from '../../user/entities/user.entity';
 import { Company } from '../../company/entities/company.entity';
 import { S3ClientService } from './s3-client.service';
-import { StorageQuotaService } from './storage-quota.service';
+import { StorageQuotaService } from '../../storage/storage-quota.service';
 import { WebSocketGateway } from '../../websocket/gateway/websocket.gateway';
 import {
   FileUploadRequestDto,
@@ -84,7 +84,7 @@ export class FileUploadService {
       const fileBuffer = await file.toBuffer();
 
       // Check storage quota
-      await this.storageQuotaService.checkStorageQuota(
+      await this.storageQuotaService.validateFileUpload(
         user.company.id,
         BigInt(fileBuffer.length),
       );
@@ -155,10 +155,9 @@ export class FileUploadService {
       await this.createFileAssociation(savedFile.id, uploadRequest, userId);
 
       // Update storage quota
-      await this.storageQuotaService.updateStorageUsage(
+      await this.storageQuotaService.addStorageUsage(
         user.company.id,
         fileBuffer.length,
-        1,
       );
 
       // Generate download URL
@@ -214,7 +213,7 @@ export class FileUploadService {
         const fileBuffer = file.buffer;
         totalSize += fileBuffer.length;
       }
-      await this.storageQuotaService.checkStorageQuota(
+      await this.storageQuotaService.validateFileUpload(
         user.company.id,
         totalSize,
       );
@@ -379,10 +378,9 @@ export class FileUploadService {
         savedFile = await this.fileRepository.save(fileEntity);
 
         // Update storage quota
-        await this.storageQuotaService.updateStorageUsage(
+        await this.storageQuotaService.addStorageUsage(
           uploadSession.companyId,
           fileBuffer.length,
-          1,
         );
       }
 
