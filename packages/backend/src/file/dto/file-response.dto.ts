@@ -1,82 +1,106 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { File, ProcessingStatus } from '../entities/file.entity';
+import { User } from '../../user/entities/user.entity';
+import { Company } from '../../company/entities/company.entity';
+import { Thread } from '../../thread/entities/thread.entity';
+import { ChatRoom } from '../../chatroom/entities/chatroom.entity';
 
 export class FileResponseDto {
-  @ApiProperty({
-    description: 'File ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
   id: string;
-
-  @ApiPropertyOptional({
-    description: 'Thread ID if file belongs to a thread',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
+  companyId: string;
   threadId?: string;
-
-  @ApiPropertyOptional({
-    description: 'Chatroom ID if file belongs to a chatroom',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
   chatroomId?: string;
-
-  @ApiProperty({
-    description: 'User ID who uploaded the file',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
   uploadedBy: string;
-
-  @ApiProperty({
-    description: 'Original file name',
-    example: '프로젝트 기획서.pdf',
-  })
   originalName: string;
-
-  @ApiProperty({
-    description: 'Storage key in MinIO/S3',
-    example: 'files/2024/12/abc123def456.pdf',
-  })
-  storageKey: string;
-
-  @ApiProperty({
-    description: 'File MIME type',
-    example: 'application/pdf',
-  })
+  displayName?: string;
   mimeType: string;
-
-  @ApiProperty({
-    description: 'File size in bytes',
-    example: 1048576,
-  })
   sizeBytes: number;
-
-  @ApiProperty({
-    description: 'File hash for integrity verification',
-    example: 'sha256:abc123def456...',
-  })
   hash: string;
-
-  @ApiPropertyOptional({
-    description: 'Additional file metadata',
-    example: { pages: 10, author: 'John Doe' },
-  })
-  metadata?: Record<string, any>;
-
-  @ApiProperty({
-    description: 'Whether file processing is completed',
-    example: true,
-  })
+  storageKey: string;
+  storageBucket: string;
+  downloadUrl?: string;
+  metadata?: Record<string, unknown>;
   isProcessed: boolean;
+  processingStatus: ProcessingStatus;
+  createdAt: Date;
+  updatedAt: Date;
 
-  @ApiProperty({
-    description: 'Creation timestamp',
-    example: '2024-12-19T10:00:00Z',
-  })
-  createdAt: string;
+  // Relations
+  uploader?: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  };
 
-  @ApiProperty({
-    description: 'Last update timestamp',
-    example: '2024-12-19T10:00:00Z',
-  })
-  updatedAt: string;
+  company?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+
+  thread?: {
+    id: string;
+    title: string;
+  };
+
+  chatRoom?: {
+    id: string;
+    name: string;
+  };
+
+  static fromEntity(file: File): FileResponseDto {
+    const dto = new FileResponseDto();
+    dto.id = file.id;
+    dto.companyId = file.companyId;
+    dto.threadId = file.threadId;
+    dto.chatroomId = file.chatroomId;
+    dto.uploadedBy = file.uploadedBy;
+    dto.originalName = file.originalName;
+    dto.displayName = file.displayName;
+    dto.mimeType = file.mimeType;
+    dto.sizeBytes = file.sizeBytes;
+    dto.hash = file.hash;
+    dto.storageKey = file.storageKey;
+    dto.storageBucket = file.storageBucket;
+    dto.downloadUrl = file.downloadUrl;
+    dto.metadata = file.metadata;
+    dto.isProcessed = file.isProcessed;
+    dto.processingStatus = file.processingStatus;
+    dto.createdAt = file.createdAt;
+    dto.updatedAt = file.updatedAt;
+
+    // Populate relations if available
+    if (file.uploader) {
+      dto.uploader = {
+        id: file.uploader.id,
+        email: file.uploader.email,
+        firstName: file.uploader.firstName,
+        lastName: file.uploader.lastName,
+      };
+    }
+
+    if (file.company) {
+      dto.company = {
+        id: file.company.id,
+        name: file.company.name,
+        slug: file.company.slug,
+      };
+    }
+
+    if (file.thread) {
+      dto.thread = {
+        id: file.thread.id,
+        title: file.thread.title,
+      };
+    }
+
+    if (file.chatRoom) {
+      dto.chatRoom = {
+        id: file.chatRoom.id,
+        name: file.chatRoom.name,
+      };
+    }
+
+    return dto;
+  }
 }
-
