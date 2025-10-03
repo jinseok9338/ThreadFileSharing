@@ -23,7 +23,7 @@ export class WebSocketAuthService {
       const authenticatedSocket = socket as AuthenticatedSocket;
       authenticatedSocket.userId = payload.sub;
       authenticatedSocket.companyId = payload.companyId;
-      authenticatedSocket.username = payload.username;
+      authenticatedSocket.username = payload.username || payload.email || `user-${payload.sub.slice(0, 8)}`;
       authenticatedSocket.companyRole = payload.companyRole;
       authenticatedSocket.userStatus = 'online';
       authenticatedSocket.lastSeenAt = new Date();
