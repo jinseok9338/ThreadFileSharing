@@ -28,8 +28,7 @@ export class FileResponseDto {
   uploader?: {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
   };
 
   company?: {
@@ -74,8 +73,7 @@ export class FileResponseDto {
       dto.uploader = {
         id: file.uploader.id,
         email: file.uploader.email,
-        firstName: file.uploader.firstName,
-        lastName: file.uploader.lastName,
+        fullName: file.uploader.fullName,
       };
     }
 

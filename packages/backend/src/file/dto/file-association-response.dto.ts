@@ -43,8 +43,7 @@ export class FileAssociationResponseDto {
   sharer?: {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
   };
 
   // Computed properties
@@ -103,8 +102,7 @@ export class FileAssociationResponseDto {
       dto.sharer = {
         id: fileAssociation.sharer.id,
         email: fileAssociation.sharer.email,
-        firstName: fileAssociation.sharer.firstName,
-        lastName: fileAssociation.sharer.lastName,
+        fullName: fileAssociation.sharer.fullName,
       };
     }
 

@@ -26,8 +26,7 @@ export class DownloadTokenResponseDto {
   user?: {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
   };
 
   // Computed properties
@@ -71,8 +70,7 @@ export class DownloadTokenResponseDto {
       dto.user = {
         id: downloadToken.user.id,
         email: downloadToken.user.email,
-        firstName: downloadToken.user.firstName,
-        lastName: downloadToken.user.lastName,
+        fullName: downloadToken.user.fullName,
       };
     }
 

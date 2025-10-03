@@ -24,8 +24,7 @@ export class UploadSessionResponseDto {
   user?: {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
   };
 
   company?: {
@@ -66,8 +65,7 @@ export class UploadSessionResponseDto {
       dto.user = {
         id: uploadSession.user.id,
         email: uploadSession.user.email,
-        firstName: uploadSession.user.firstName,
-        lastName: uploadSession.user.lastName,
+        fullName: uploadSession.user.fullName,
       };
     }
 
