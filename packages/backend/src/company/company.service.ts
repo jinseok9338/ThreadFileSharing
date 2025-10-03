@@ -183,7 +183,7 @@ export class CompanyService {
     // Calculate actual storage usage from files
     const storageUsageResult = await this.fileRepository
       .createQueryBuilder('file')
-      .select('SUM(file.sizeBytes)', 'totalSize')
+      .select('SUM(CAST(file.sizeBytes AS BIGINT))', 'totalSize')
       .where('file.companyId = :companyId', { companyId: companyId })
       .andWhere('file.deletedAt IS NULL')
       .getRawOne();
