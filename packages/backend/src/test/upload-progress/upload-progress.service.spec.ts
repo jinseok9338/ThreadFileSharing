@@ -169,7 +169,11 @@ describe('UploadProgressService', () => {
       mockUploadProgressRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.markAsFailed('nonexistent-progress', 'Upload failed', 'user-123'),
+        service.markAsFailed(
+          'nonexistent-progress',
+          'Upload failed',
+          'user-123',
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -219,7 +223,10 @@ describe('UploadProgressService', () => {
 
       mockUploadProgressRepository.findOne.mockResolvedValue(mockProgress);
 
-      const result = await service.getUploadProgress('progress-123', 'user-123');
+      const result = await service.getUploadProgress(
+        'progress-123',
+        'user-123',
+      );
 
       expect(result).toBeDefined();
       expect(mockUploadProgressRepository.findOne).toHaveBeenCalledWith({
@@ -250,7 +257,10 @@ describe('UploadProgressService', () => {
 
       mockUploadProgressRepository.find.mockResolvedValue(mockProgresses);
 
-      const result = await service.getSessionProgress('session-123', 'user-123');
+      const result = await service.getSessionProgress(
+        'session-123',
+        'user-123',
+      );
 
       expect(result).toBeDefined();
       expect(mockUploadProgressRepository.find).toHaveBeenCalledWith({
