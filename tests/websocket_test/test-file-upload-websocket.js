@@ -7,13 +7,16 @@ console.log("🔌 파일 업로드 WebSocket 연동 테스트 시작...");
 
 // JWT 토큰
 const TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjNGRmNGUwOC1mODgyLTQyYTAtYTY3Mi0zZmEwOGU4ZTY5NWIiLCJjb21wYW55SWQiOiI0MTYzYzNjOC1lNWIzLTRhMzEtYWUxYy00M2U3Y2RjZjk0OGIiLCJjb21wYW55Um9sZSI6Im93bmVyIiwiaWF0IjoxNzU5NDkxNzA1LCJleHAiOjE3NTk0OTI2MDV9.jzHFz7fOHyEuniIj_d30XeKpduMAd4OXtUw_Hx3qm2k";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjNGRmNGUwOC1mODgyLTQyYTAtYTY3Mi0zZmEwOGU4ZTY5NWIiLCJjb21wYW55SWQiOiI0MTYzYzNjOC1lNWIzLTRhMzEtYWUxYy00M2U3Y2RjZjk0OGIiLCJjb21wYW55Um9sZSI6Im93bmVyIiwiaWF0IjoxNzU5NDk0MjU4LCJleHAiOjE3NTk0OTUxNTh9.thHWUZ4cxC8icChPf7FNiCmGrWbjf8sWtEe_C8BUoUA";
 const COMPANY_ID = "4163c3c8-e5b3-4a31-ae1c-43e7cdcf948b";
+const CHATROOM_ID = "7dadddb2-a419-4788-ae5e-bcfe4cc0bdff";
 
-// 테스트 파일 생성
+// 테스트 파일 생성 (고유한 파일명)
+const timestamp = Date.now();
 const testFileContent =
+  `WebSocket Test File - ${timestamp}\n` +
   "This is a test file for WebSocket upload progress monitoring. ".repeat(100);
-const testFilePath = "/tmp/test-websocket-file.txt";
+const testFilePath = `/tmp/test-websocket-file-${timestamp}.txt`;
 fs.writeFileSync(testFilePath, testFileContent);
 
 console.log("📁 테스트 파일 생성 완료:", testFilePath);
@@ -60,10 +63,17 @@ socket.on("connect", async () => {
 
   console.log("🏠 회사 룸 조인 요청 전송");
 
+  // 채팅방에 조인
+  socket.emit("join_chatroom", {
+    chatroomId: CHATROOM_ID,
+  });
+
+  console.log("💬 채팅방 조인 요청 전송");
+
   // 잠시 대기 후 파일 업로드 시작
   setTimeout(async () => {
     await testFileUpload();
-  }, 2000);
+  }, 3000);
 });
 
 socket.on("connect_error", (error) => {
@@ -88,6 +98,7 @@ async function testFileUpload() {
     form.append("accessType", "PRIVATE");
     form.append("sessionName", "WebSocket Test Session");
     form.append("createThread", "false");
+    form.append("chatroomId", CHATROOM_ID);
 
     const response = await axios.post(
       "http://localhost:3001/api/v1/files/upload/single",

@@ -1,0 +1,21 @@
+{
+  "name": "websocket-tests",
+  "version": "1.0.0",
+  "description": "WebSocket integration tests for ThreadFileSharing",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test-file-upload-websocket.js",
+    "test-auth": "node test-websocket-auth.js",
+    "test-events": "node test-websocket-events-detailed.js",
+    "test-storage": "node test-storage-fix.js"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1",
+    "form-data": "^4.0.1",
+    "axios": "^1.7.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "keywords": ["websocket", "test", "file-upload"],
+  "author": "",
+  "license": "ISC"
+}
