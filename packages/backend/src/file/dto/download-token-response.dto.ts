@@ -42,7 +42,10 @@ export class DownloadTokenResponseDto {
     return this.maxDownloads - this.downloadCount;
   }
 
-  static fromEntity(downloadToken: DownloadToken): DownloadTokenResponseDto {
+  static fromEntity(
+    downloadToken: DownloadToken,
+    downloadBaseUrl?: string,
+  ): DownloadTokenResponseDto {
     const dto = new DownloadTokenResponseDto();
     dto.id = downloadToken.id;
     dto.fileId = downloadToken.fileId;
@@ -55,6 +58,13 @@ export class DownloadTokenResponseDto {
     dto.userAgent = downloadToken.userAgent;
     dto.createdAt = downloadToken.createdAt;
     dto.lastUsedAt = downloadToken.lastUsedAt;
+    // Note: isExpired and downloadUrl are computed properties, set via Object.assign
+    Object.assign(dto, {
+      isExpired: downloadToken.isExpired,
+      downloadUrl: downloadBaseUrl
+        ? `${downloadBaseUrl}/api/v1/files/download/token/${downloadToken.token}`
+        : `/api/v1/files/download/token/${downloadToken.token}`,
+    });
 
     // Populate relations if available
     if (downloadToken.file) {

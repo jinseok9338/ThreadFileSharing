@@ -17,6 +17,10 @@ async function bootstrap() {
     'DATABASE_USERNAME',
     'DATABASE_PASSWORD',
     'DATABASE_NAME',
+    'JWT_SECRET',
+    'JWT_ACCESS_EXPIRATION',
+    'JWT_REFRESH_EXPIRATION',
+    'BCRYPT_ROUNDS',
   ];
   const missingVars = requiredEnvVars.filter(
     (varName) => !process.env[varName],
@@ -27,6 +31,24 @@ async function bootstrap() {
       `Missing required environment variables: ${missingVars.join(', ')}`,
     );
     process.exit(1);
+  }
+
+  // 파일 업로드 관련 환경변수 검증
+  const fileUploadVars = [
+    'FILE_UPLOAD_MAX_SIZE_BYTES',
+    'FILE_UPLOAD_ALLOWED_MIMETYPES',
+    'MINIO_BUCKET_NAME',
+    'BACKEND_BASE_URL',
+  ];
+  const missingFileVars = fileUploadVars.filter(
+    (varName) => !process.env[varName],
+  );
+
+  if (missingFileVars.length > 0) {
+    console.warn(
+      `Missing file upload environment variables: ${missingFileVars.join(', ')}`,
+    );
+    console.warn('File upload functionality may not work properly.');
   }
 
   const app = await NestFactory.create<NestFastifyApplication>(

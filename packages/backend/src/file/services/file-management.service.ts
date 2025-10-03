@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import { File } from '../entities/file.entity';
 import {
   FileAssociation,
@@ -42,6 +43,7 @@ export class FileManagementService {
     private readonly companyRepository: Repository<Company>,
     private readonly s3ClientService: S3ClientService,
     private readonly storageQuotaService: StorageQuotaService,
+    private readonly configService: ConfigService,
   ) {}
 
   async getFiles(
@@ -297,49 +299,6 @@ export class FileManagementService {
     }
   }
 
-  async downloadFileByToken(
-    token: string,
-  ): Promise<{ stream: any; file: File }> {
-    this.logger.log(`Downloading file by token: ${token}`);
-
-    try {
-      const downloadToken = await this.downloadTokenRepository.findOne({
-        where: { token },
-        relations: ['file', 'user'],
-      });
-
-      if (!downloadToken) {
-        throw new NotFoundException('Download token not found');
-      }
-
-      if (downloadToken.isExpired) {
-        throw new BadRequestException('Download token has expired');
-      }
-
-      if (downloadToken.downloadCount >= downloadToken.maxDownloads) {
-        throw new BadRequestException('Download limit exceeded');
-      }
-
-      // Update download count
-      downloadToken.downloadCount += 1;
-      downloadToken.lastUsedAt = new Date();
-      await this.downloadTokenRepository.save(downloadToken);
-
-      // Get file stream from S3/MinIO
-      const stream = await this.s3ClientService.downloadFile(
-        downloadToken.file.storageKey,
-      );
-
-      return {
-        stream,
-        file: downloadToken.file,
-      };
-    } catch (error) {
-      this.logger.error(`Failed to download file by token: ${error.message}`);
-      throw error;
-    }
-  }
-
   async searchFiles(
     searchTerm: string,
     userId: string,
@@ -445,6 +404,84 @@ export class FileManagementService {
         return new Date(now.getTime() + num * 24 * 60 * 60 * 1000);
       default:
         throw new BadRequestException('Invalid time unit. Use h, m, or d');
+    }
+  }
+
+  /**
+   * Download file using token
+   */
+  async downloadFileByToken(
+    token: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<{
+    file: FileResponseDto;
+    downloadToken: DownloadTokenResponseDto;
+  }> {
+    try {
+      // Find and validate token
+      const downloadToken = await this.downloadTokenRepository.findOne({
+        where: { token },
+        relations: ['file', 'user'],
+      });
+
+      if (!downloadToken) {
+        throw new NotFoundException('Download token not found');
+      }
+
+      if (downloadToken.isExpired) {
+        throw new ForbiddenException('Download token has expired');
+      }
+
+      if (downloadToken.downloadCount >= downloadToken.maxDownloads) {
+        throw new ForbiddenException('Download limit exceeded');
+      }
+
+      // Increment download count
+      downloadToken.downloadCount += 1;
+      downloadToken.lastUsedAt = new Date();
+      await this.downloadTokenRepository.save(downloadToken);
+
+      // Convert to DTOs
+      const fileDto = FileResponseDto.fromEntity(downloadToken.file);
+      const tokenDto = DownloadTokenResponseDto.fromEntity(
+        downloadToken,
+        this.configService.get<string>(
+          'BACKEND_BASE_URL',
+          'http://localhost:3001',
+        ),
+      );
+
+      this.logger.log(`File downloaded via token: ${downloadToken.fileId}`);
+
+      return {
+        file: fileDto,
+        downloadToken: tokenDto,
+      };
+    } catch (error) {
+      this.logger.error(`Token-based download failed: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Track file download
+   */
+  async trackDownload(fileId: string, userId: string): Promise<void> {
+    try {
+      this.logger.debug(`Tracking download: file ${fileId} by user ${userId}`);
+
+      // In a real implementation, you might want to:
+      // 1. Store download analytics
+      // 2. Update file metadata
+      // 3. Send notifications
+      // 4. Update user activity logs
+
+      // For now, just log the download
+      this.logger.log(`File download tracked: ${fileId} by user ${userId}`);
+    } catch (error) {
+      this.logger.error(`Failed to track download: ${error.message}`);
+      // Don't throw error - tracking failure shouldn't break the download
     }
   }
 }

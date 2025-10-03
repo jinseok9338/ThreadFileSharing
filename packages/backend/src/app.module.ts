@@ -12,6 +12,7 @@ import { UserModule } from './user/user.module';
 import { InvitationModule } from './invitation/invitation.module';
 import { ChatRoomModule } from './chatroom/chatroom.module';
 import { ThreadModule } from './thread/thread.module';
+import { FileModule } from './file/file.module';
 import * as path from 'path';
 
 @Module({
@@ -43,6 +44,7 @@ import * as path from 'path';
     InvitationModule,
     ChatRoomModule,
     ThreadModule,
+    FileModule,
   ],
   controllers: [AppController],
   providers: [
