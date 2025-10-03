@@ -40,7 +40,7 @@ export class StorageQuotaService {
     // Calculate actual storage usage from files
     const result = await this.fileRepository
       .createQueryBuilder('file')
-      .select('SUM(file.sizeBytes)', 'totalSize')
+      .select('SUM(CAST(file.sizeBytes AS BIGINT))', 'totalSize')
       .where('file.companyId = :companyId', { companyId })
       .andWhere('file.deletedAt IS NULL')
       .getRawOne();
@@ -53,7 +53,7 @@ export class StorageQuotaService {
     // Get file count
     const fileCount = await this.fileRepository.count({
       where: {
-        chatroomId: companyId,
+        companyId: companyId,
         deletedAt: IsNull(),
       },
     });
@@ -186,8 +186,8 @@ export class StorageQuotaService {
   async recalculateStorageUsage(companyId: string): Promise<void> {
     const result = await this.fileRepository
       .createQueryBuilder('file')
-      .select('SUM(file.sizeBytes)', 'totalSize')
-      .where('file.chatroomId = :companyId', { companyId })
+      .select('SUM(CAST(file.sizeBytes AS BIGINT))', 'totalSize')
+      .where('file.companyId = :companyId', { companyId })
       .andWhere('file.deletedAt IS NULL')
       .getRawOne();
 
@@ -196,7 +196,7 @@ export class StorageQuotaService {
     // Note: We'll need to add storageUsedBytes field to Company entity if needed
     // For now, this method is disabled as storageUsedBytes doesn't exist in current schema
     console.warn(
-      'recalculateStorageUsage: storageUsedBytes field not available in current schema',
+      `recalculateStorageUsage: Calculated storage usage for company ${companyId}: ${totalSize} bytes`,
     );
   }
 
