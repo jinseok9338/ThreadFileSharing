@@ -1,0 +1,375 @@
+import { MigrationInterface, QueryRunner } from 'typeorm';
+
+export class CreateMessagesTable1759577951603 implements MigrationInterface {
+  name = 'CreateMessagesTable1759577951603';
+
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP CONSTRAINT "FK_888027e25f3cd96aca2b013e6d3"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" DROP CONSTRAINT "FK_file_upload_sessions_threadId"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" DROP CONSTRAINT "FK_file_upload_sessions_chatroomId"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" DROP CONSTRAINT "FK_file_upload_sessions_uploadedById"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP CONSTRAINT "FK_00055abbeb83a83ba412257fd8c"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP CONSTRAINT "FK_9955c6fc3e8c37d502265ce846d"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_b17ece011731d382257720d39f"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_265e3e740b00f6ba3f5f3ccb0c"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_9955c6fc3e8c37d502265ce846"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_file_upload_sessions_expiresAt"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_file_upload_sessions_threadId_status"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_file_upload_sessions_chatroomId_status"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_file_upload_sessions_uploadedById_status"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_949ca0615dd0fec6147bd20503"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_29f9fd9e0c0c432e1b246292e6"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_d12b21996dce25ab816deffe57"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "companyRole"`,
+    );
+    await queryRunner.query(
+      `DROP TYPE "public"."company_invitations_companyrole_enum"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "invitationToken"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "invitedBy"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "updatedAt"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "invitedByUserId"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "role"`,
+    );
+    await queryRunner.query(
+      `DROP TYPE "public"."company_invitations_role_enum"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP CONSTRAINT "UQ_d12b21996dce25ab816deffe573"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "token"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "acceptedAt"`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."company_invitations_role_enum" AS ENUM('admin', 'member')`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "invitedByUserId" uuid NOT NULL`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "role" "public"."company_invitations_role_enum" NOT NULL DEFAULT 'member'`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "token" character varying(255) NOT NULL`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD CONSTRAINT "UQ_d12b21996dce25ab816deffe573" UNIQUE ("token")`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "acceptedAt" TIMESTAMP`,
+    );
+    await queryRunner.query(`ALTER TABLE "messages" ADD "replyToId" uuid`);
+    await queryRunner.query(`ALTER TABLE "messages" ADD "threadId" uuid`);
+    await queryRunner.query(
+      `CREATE TYPE "public"."company_invitations_companyrole_enum" AS ENUM('owner', 'admin', 'member')`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "companyRole" "public"."company_invitations_companyrole_enum" NOT NULL DEFAULT 'member'`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "invitationToken" character varying(255) NOT NULL`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "invitedBy" uuid`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "updatedAt" TIMESTAMP NOT NULL DEFAULT now()`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "companies" ALTER COLUMN "maxStorageBytes" SET DEFAULT '53687091200'`,
+    );
+    await queryRunner.query(
+      `ALTER TYPE "public"."company_invitations_status_enum" RENAME TO "company_invitations_status_enum_old"`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."company_invitations_status_enum" AS ENUM('pending', 'accepted', 'declined', 'expired')`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ALTER COLUMN "status" DROP DEFAULT`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ALTER COLUMN "status" TYPE "public"."company_invitations_status_enum" USING "status"::"text"::"public"."company_invitations_status_enum"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ALTER COLUMN "status" SET DEFAULT 'pending'`,
+    );
+    await queryRunner.query(
+      `DROP TYPE "public"."company_invitations_status_enum_old"`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_949ca0615dd0fec6147bd20503" ON "company_invitations" ("expiresAt") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_29f9fd9e0c0c432e1b246292e6" ON "company_invitations" ("companyId", "email", "status") `,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "IDX_d12b21996dce25ab816deffe57" ON "company_invitations" ("token") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_2b6db53ec6a020a2bb0f55710c" ON "file_upload_sessions" ("expiresAt") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_ff000ca60b39f5a755080eb6bd" ON "file_upload_sessions" ("threadId", "status") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_6b9b1b38eb8a7d060d8af87ee6" ON "file_upload_sessions" ("chatroomId", "status") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_b84b3498bc29b6ed35222f97b4" ON "file_upload_sessions" ("uploadedById", "status") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_b17ece011731d382257720d39f" ON "company_invitations" ("status") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_265e3e740b00f6ba3f5f3ccb0c" ON "company_invitations" ("email") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_9955c6fc3e8c37d502265ce846" ON "company_invitations" ("companyId") `,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD CONSTRAINT "FK_9955c6fc3e8c37d502265ce846d" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD CONSTRAINT "FK_00055abbeb83a83ba412257fd8c" FOREIGN KEY ("invitedByUserId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" ADD CONSTRAINT "FK_2c7fd69d5df1295aefd3044d368" FOREIGN KEY ("uploadedById") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" ADD CONSTRAINT "FK_e0ea898795f93747e3d2c4b77a1" FOREIGN KEY ("chatroomId") REFERENCES "chatrooms"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" ADD CONSTRAINT "FK_83e15ed458d8b53349a746821ac" FOREIGN KEY ("threadId") REFERENCES "threads"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD CONSTRAINT "FK_888027e25f3cd96aca2b013e6d3" FOREIGN KEY ("invitedBy") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+  }
+
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP CONSTRAINT "FK_888027e25f3cd96aca2b013e6d3"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" DROP CONSTRAINT "FK_83e15ed458d8b53349a746821ac"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" DROP CONSTRAINT "FK_e0ea898795f93747e3d2c4b77a1"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" DROP CONSTRAINT "FK_2c7fd69d5df1295aefd3044d368"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP CONSTRAINT "FK_00055abbeb83a83ba412257fd8c"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP CONSTRAINT "FK_9955c6fc3e8c37d502265ce846d"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_9955c6fc3e8c37d502265ce846"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_265e3e740b00f6ba3f5f3ccb0c"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_b17ece011731d382257720d39f"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_b84b3498bc29b6ed35222f97b4"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_6b9b1b38eb8a7d060d8af87ee6"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_ff000ca60b39f5a755080eb6bd"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_2b6db53ec6a020a2bb0f55710c"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_d12b21996dce25ab816deffe57"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_29f9fd9e0c0c432e1b246292e6"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_949ca0615dd0fec6147bd20503"`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."company_invitations_status_enum_old" AS ENUM('pending', 'accepted', 'expired', 'revoked')`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ALTER COLUMN "status" DROP DEFAULT`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ALTER COLUMN "status" TYPE "public"."company_invitations_status_enum_old" USING "status"::"text"::"public"."company_invitations_status_enum_old"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ALTER COLUMN "status" SET DEFAULT 'pending'`,
+    );
+    await queryRunner.query(
+      `DROP TYPE "public"."company_invitations_status_enum"`,
+    );
+    await queryRunner.query(
+      `ALTER TYPE "public"."company_invitations_status_enum_old" RENAME TO "company_invitations_status_enum"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "companies" ALTER COLUMN "maxStorageBytes" SET DEFAULT '5368709120'`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "updatedAt"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "invitedBy"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "invitationToken"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "companyRole"`,
+    );
+    await queryRunner.query(`ALTER TABLE "messages" DROP COLUMN "threadId"`);
+    await queryRunner.query(`ALTER TABLE "messages" DROP COLUMN "replyToId"`);
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "acceptedAt"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP CONSTRAINT "UQ_d12b21996dce25ab816deffe573"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "token"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "role"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" DROP COLUMN "invitedByUserId"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "acceptedAt" TIMESTAMP`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "token" character varying(255) NOT NULL`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD CONSTRAINT "UQ_d12b21996dce25ab816deffe573" UNIQUE ("token")`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."company_invitations_role_enum" AS ENUM('admin', 'member')`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "role" "public"."company_invitations_role_enum" NOT NULL DEFAULT 'member'`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "invitedByUserId" uuid NOT NULL`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "updatedAt" TIMESTAMP NOT NULL DEFAULT now()`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "invitedBy" uuid`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "invitationToken" character varying(255) NOT NULL`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."company_invitations_companyrole_enum" AS ENUM('owner', 'admin', 'member')`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD "companyRole" "public"."company_invitations_companyrole_enum" NOT NULL DEFAULT 'member'`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "IDX_d12b21996dce25ab816deffe57" ON "company_invitations" ("token") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_29f9fd9e0c0c432e1b246292e6" ON "company_invitations" ("companyId", "email", "status") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_949ca0615dd0fec6147bd20503" ON "company_invitations" ("expiresAt") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_file_upload_sessions_uploadedById_status" ON "file_upload_sessions" ("status", "uploadedById") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_file_upload_sessions_chatroomId_status" ON "file_upload_sessions" ("status", "chatroomId") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_file_upload_sessions_threadId_status" ON "file_upload_sessions" ("status", "threadId") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_file_upload_sessions_expiresAt" ON "file_upload_sessions" ("expiresAt") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_9955c6fc3e8c37d502265ce846" ON "company_invitations" ("companyId") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_265e3e740b00f6ba3f5f3ccb0c" ON "company_invitations" ("email") `,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_b17ece011731d382257720d39f" ON "company_invitations" ("status") `,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD CONSTRAINT "FK_9955c6fc3e8c37d502265ce846d" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD CONSTRAINT "FK_00055abbeb83a83ba412257fd8c" FOREIGN KEY ("invitedByUserId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" ADD CONSTRAINT "FK_file_upload_sessions_uploadedById" FOREIGN KEY ("uploadedById") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" ADD CONSTRAINT "FK_file_upload_sessions_chatroomId" FOREIGN KEY ("chatroomId") REFERENCES "chatrooms"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "file_upload_sessions" ADD CONSTRAINT "FK_file_upload_sessions_threadId" FOREIGN KEY ("threadId") REFERENCES "threads"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "company_invitations" ADD CONSTRAINT "FK_888027e25f3cd96aca2b013e6d3" FOREIGN KEY ("invitedBy") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+  }
+}
