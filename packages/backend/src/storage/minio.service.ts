@@ -214,6 +214,26 @@ export class MinIOService {
   }
 
   /**
+   * Download file from MinIO as stream
+   */
+  async downloadFile(objectKey: string): Promise<Readable> {
+    try {
+      const stream = await this.minioClient.getObject(this.bucketName, objectKey);
+      
+      this.logger.debug(
+        `File downloaded from MinIO: ${objectKey}`,
+      );
+
+      return stream;
+    } catch (error) {
+      this.logger.error(
+        `Failed to download file from MinIO: ${error.message}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Check if file exists in MinIO
    */
   async fileExists(objectKey: string): Promise<boolean> {

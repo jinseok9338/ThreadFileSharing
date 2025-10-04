@@ -1,0 +1,54 @@
+meta {
+  name: Initiate Upload Session
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/files/upload/initiate
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+body:json {
+  {
+    "fileName": "large-video.mp4",
+    "totalSizeBytes": 10737418240,
+    "mimeType": "video/mp4",
+    "chunkSizeBytes": 5242880,
+    "checksum": "sha256:abc123def456789",
+    "chatroomId": "{{chatroom_id}}",
+    "metadata": {
+      "description": "Test large file upload"
+    }
+  }
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("Response has sessionId", function() {
+    expect(res.getBody().data.sessionId).to.be.a('string');
+    expect(res.getBody().data.sessionId).to.match(/^upload_session_/);
+  });
+
+  test("Response has correct status", function() {
+    expect(res.getBody().data.status).to.equal('pending');
+  });
+
+  test("Response has correct file info", function() {
+    expect(res.getBody().data.fileName).to.equal('large-video.mp4');
+    expect(res.getBody().data.totalSizeBytes).to.equal(10737418240);
+    expect(res.getBody().data.totalChunks).to.be.a('number');
+  });
+
+  test("Response has expiration time", function() {
+    expect(res.getBody().data.expiresAt).to.be.a('string');
+  });
+}

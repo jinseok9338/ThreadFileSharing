@@ -1,0 +1,40 @@
+meta {
+  name: Get Upload Session Status
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/api/v1/files/upload/session/{{upload_session_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has session details", function() {
+    expect(res.getBody().data.sessionId).to.equal({{upload_session_id}});
+    expect(res.getBody().data.fileName).to.be.a('string');
+    expect(res.getBody().data.totalSizeBytes).to.be.a('number');
+    expect(res.getBody().data.uploadedBytes).to.be.a('number');
+    expect(res.getBody().data.progressPercentage).to.be.a('number');
+  });
+
+  test("Progress values are valid", function() {
+    expect(res.getBody().data.progressPercentage).to.be.at.least(0);
+    expect(res.getBody().data.progressPercentage).to.be.at.most(100);
+    expect(res.getBody().data.uploadedBytes).to.be.at.most(res.getBody().data.totalSizeBytes);
+  });
+
+  test("Status is valid enum", function() {
+    const validStatuses = ['pending', 'in_progress', 'completed', 'failed', 'cancelled'];
+    expect(validStatuses).to.include(res.getBody().data.status);
+  });
+}

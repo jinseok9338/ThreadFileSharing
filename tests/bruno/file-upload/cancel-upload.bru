@@ -1,0 +1,30 @@
+meta {
+  name: Cancel Upload Session
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{base_url}}/api/v1/files/upload/session/{{upload_session_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response confirms cancellation", function() {
+    expect(res.getBody().data.sessionId).to.equal({{upload_session_id}});
+    expect(res.getBody().data.status).to.equal('cancelled');
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.include('cancelled');
+  });
+}

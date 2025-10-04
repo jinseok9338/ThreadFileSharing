@@ -1,0 +1,460 @@
+openapi: 3.0.3
+info:
+  title: Chatroom Management API
+  description: API for chatroom creation, management, and member operations
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server
+
+paths:
+  /chatrooms:
+    get:
+      summary: Get chatrooms for user's company
+      tags: [Chatrooms]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: lastIndex
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of chatrooms
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomListResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+
+    post:
+      summary: Create new chatroom
+      tags: [Chatrooms]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateChatroomRequest"
+      responses:
+        "201":
+          description: Chatroom created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+
+  /chatrooms/{chatroomId}:
+    get:
+      summary: Get chatroom details
+      tags: [Chatrooms]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Chatroom details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    put:
+      summary: Update chatroom
+      tags: [Chatrooms]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChatroomRequest"
+      responses:
+        "200":
+          description: Chatroom updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    delete:
+      summary: Archive chatroom
+      tags: [Chatrooms]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Chatroom archived successfully
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /chatrooms/{chatroomId}/members:
+    get:
+      summary: Get chatroom members
+      tags: [Chatroom Members]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of chatroom members
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomMemberListResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    post:
+      summary: Add member to chatroom
+      tags: [Chatroom Members]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddChatroomMemberRequest"
+      responses:
+        "201":
+          description: Member added successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomMemberResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /chatrooms/{chatroomId}/members/{userId}:
+    delete:
+      summary: Remove member from chatroom
+      tags: [Chatroom Members]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Member removed successfully
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Chatroom:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [public, private, direct]
+        status:
+          type: string
+          enum: [active, archived, deleted]
+        settings:
+          type: object
+          nullable: true
+        companyId:
+          type: string
+          format: uuid
+        memberCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ChatroomMember:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [creator, admin, moderator, member]
+        accessType:
+          type: string
+          enum: [full, read_only]
+        user:
+          $ref: "#/components/schemas/User"
+        joinedAt:
+          type: string
+          format: date-time
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        avatar:
+          type: string
+          nullable: true
+
+    CreateChatroomRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        type:
+          type: string
+          enum: [public, private]
+          default: public
+        settings:
+          type: object
+          properties:
+            allowFileUploads:
+              type: boolean
+              default: true
+            allowThreadCreation:
+              type: boolean
+              default: true
+            maxMembers:
+              type: integer
+              default: 100
+
+    UpdateChatroomRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        settings:
+          type: object
+          properties:
+            allowFileUploads:
+              type: boolean
+            allowThreadCreation:
+              type: boolean
+            maxMembers:
+              type: integer
+
+    AddChatroomMemberRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [admin, moderator, member]
+          default: member
+        accessType:
+          type: string
+          enum: [full, read_only]
+          default: full
+
+    ChatroomResponse:
+      allOf:
+        - $ref: "#/components/schemas/Chatroom"
+        - type: object
+          properties:
+            members:
+              type: array
+              items:
+                $ref: "#/components/schemas/ChatroomMember"
+
+    ChatroomListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Chatroom"
+        pagination:
+          $ref: "#/components/schemas/CursorPagination"
+
+    ChatroomMemberResponse:
+      allOf:
+        - $ref: "#/components/schemas/ChatroomMember"
+
+    ChatroomMemberListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatroomMember"
+        pagination:
+          $ref: "#/components/schemas/CursorPagination"
+
+    CursorPagination:
+      type: object
+      properties:
+        hasNext:
+          type: boolean
+        nextIndex:
+          type: string
+          nullable: true
+        limit:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+        statusCode:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequestError:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    ForbiddenError:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    NotFoundError:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"

@@ -323,7 +323,7 @@ export class FileUploadService {
       this.logger.log(`Upload session created: ${savedSession.id}`);
 
       return FileUploadResponseDto.multiFileSession(
-        UploadSessionResponseDto.fromEntity(savedSession),
+        savedSession as any,
         'Upload session created successfully',
       );
     } catch (error) {

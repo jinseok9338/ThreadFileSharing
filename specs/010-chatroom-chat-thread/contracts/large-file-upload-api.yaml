@@ -1,0 +1,430 @@
+openapi: 3.0.3
+info:
+  title: Large File Upload API
+  description: API for chunked file uploads, resumable uploads, and large file processing (>4GB)
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server
+
+paths:
+  /files/upload/initiate:
+    post:
+      summary: Initiate large file upload session
+      tags: [File Upload]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitiateUploadRequest"
+      responses:
+        "201":
+          description: Upload session initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadSessionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+
+  /files/upload/{sessionId}/chunk:
+    post:
+      summary: Upload file chunk
+      tags: [File Upload]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadChunkRequest"
+      responses:
+        "200":
+          description: Chunk uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChunkUploadResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /files/upload/{sessionId}/complete:
+    post:
+      summary: Complete file upload session
+      tags: [File Upload]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteUploadRequest"
+      responses:
+        "200":
+          description: Upload completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /files/upload/{sessionId}:
+    get:
+      summary: Get upload session status
+      tags: [File Upload]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Upload session status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadSessionResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    delete:
+      summary: Cancel upload session
+      tags: [File Upload]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Upload session cancelled successfully
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /files/upload/{sessionId}/resume:
+    post:
+      summary: Resume upload session
+      tags: [File Upload]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Upload session resumed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadSessionResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UploadSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        originalFileName:
+          type: string
+        totalSizeBytes:
+          type: integer
+          format: int64
+        totalChunks:
+          type: integer
+        uploadedChunks:
+          type: integer
+        uploadedBytes:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [pending, in_progress, completed, failed, cancelled]
+        chunkSize:
+          type: integer
+        chunkMetadata:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChunkMetadata"
+        metadata:
+          type: object
+          nullable: true
+        chatroomId:
+          type: string
+          format: uuid
+          nullable: true
+        threadId:
+          type: string
+          format: uuid
+          nullable: true
+        uploadedById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+
+    ChunkMetadata:
+      type: object
+      properties:
+        chunkIndex:
+          type: integer
+        chunkSize:
+          type: integer
+        uploaded:
+          type: boolean
+        uploadedAt:
+          type: string
+          format: date-time
+          nullable: true
+        checksum:
+          type: string
+          nullable: true
+
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        originalName:
+          type: string
+        displayName:
+          type: string
+          nullable: true
+        mimeType:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        hash:
+          type: string
+        storageKey:
+          type: string
+        storageBucket:
+          type: string
+        downloadUrl:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+        uploadedById:
+          type: string
+          format: uuid
+        chatroomId:
+          type: string
+          format: uuid
+          nullable: true
+        threadId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    InitiateUploadRequest:
+      type: object
+      required: [fileName, fileSize, chunkSize]
+      properties:
+        fileName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        fileSize:
+          type: integer
+          format: int64
+          minimum: 1
+        chunkSize:
+          type: integer
+          minimum: 1048576
+          maximum: 52428800
+          default: 10485760
+        mimeType:
+          type: string
+        chatroomId:
+          type: string
+          format: uuid
+          nullable: true
+        threadId:
+          type: string
+          format: uuid
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+
+    UploadChunkRequest:
+      type: object
+      required: [chunkIndex, chunkData]
+      properties:
+        chunkIndex:
+          type: integer
+          minimum: 0
+        chunkData:
+          type: string
+          format: binary
+
+    CompleteUploadRequest:
+      type: object
+      required: [chunksChecksum]
+      properties:
+        chunksChecksum:
+          type: array
+          items:
+            type: string
+        displayName:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+
+    UploadSessionResponse:
+      allOf:
+        - $ref: "#/components/schemas/UploadSession"
+
+    ChunkUploadResponse:
+      type: object
+      properties:
+        chunkIndex:
+          type: integer
+        uploaded:
+          type: boolean
+        uploadedBytes:
+          type: integer
+          format: int64
+        totalUploadedBytes:
+          type: integer
+          format: int64
+        progress:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+
+    FileResponse:
+      allOf:
+        - $ref: "#/components/schemas/File"
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+        statusCode:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequestError:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    ForbiddenError:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    NotFoundError:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
