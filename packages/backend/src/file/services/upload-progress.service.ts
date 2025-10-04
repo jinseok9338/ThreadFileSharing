@@ -1,8 +1,8 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, LessThan, In } from "typeorm";
-import { FileUploadSession } from "../entities/file-upload-session.entity";
-import { UploadStatus } from "../../common/enums/upload-status.enum";
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, LessThan, In } from 'typeorm';
+import { FileUploadSession } from '../entities/file-upload-session.entity';
+import { UploadStatus } from '../../common/enums/upload-status.enum';
 
 @Injectable()
 export class UploadProgressService {
@@ -78,7 +78,8 @@ export class UploadProgressService {
     }
 
     const progress = uploadSession.progressPercentage;
-    const estimatedTimeRemaining = this.calculateEstimatedTimeRemaining(uploadSession);
+    const estimatedTimeRemaining =
+      this.calculateEstimatedTimeRemaining(uploadSession);
     const uploadSpeed = this.calculateUploadSpeed(uploadSession);
 
     return {
@@ -110,16 +111,18 @@ export class UploadProgressService {
       if (staleSessions.length > 0) {
         // Update status to cancelled
         await this.uploadSessionRepository.update(
-          { id: In(staleSessions.map(s => s.id)) },
+          { id: In(staleSessions.map((s) => s.id)) },
           { status: UploadStatus.CANCELLED },
         );
 
-        this.logger.log(`Cleaned up ${staleSessions.length} stale upload sessions`);
+        this.logger.log(
+          `Cleaned up ${staleSessions.length} stale upload sessions`,
+        );
       }
 
       return staleSessions.length;
     } catch (error) {
-      this.logger.error("Failed to cleanup stale progress:", error);
+      this.logger.error('Failed to cleanup stale progress:', error);
       throw error;
     }
   }
@@ -138,7 +141,8 @@ export class UploadProgressService {
     // Calculate average upload speed based on time elapsed
     const timeElapsed = Date.now() - uploadSession.createdAt.getTime();
     const timeElapsedSeconds = timeElapsed / 1000;
-    const averageSpeed = Number(uploadSession.uploadedBytes) / timeElapsedSeconds;
+    const averageSpeed =
+      Number(uploadSession.uploadedBytes) / timeElapsedSeconds;
 
     if (averageSpeed <= 0) {
       return undefined;
@@ -150,7 +154,9 @@ export class UploadProgressService {
     return Math.round(estimatedSeconds);
   }
 
-  private calculateUploadSpeed(uploadSession: FileUploadSession): number | undefined {
+  private calculateUploadSpeed(
+    uploadSession: FileUploadSession,
+  ): number | undefined {
     if (uploadSession.status !== UploadStatus.IN_PROGRESS) {
       return undefined;
     }
@@ -167,7 +173,8 @@ export class UploadProgressService {
       return undefined;
     }
 
-    const averageSpeed = Number(uploadSession.uploadedBytes) / timeElapsedSeconds;
+    const averageSpeed =
+      Number(uploadSession.uploadedBytes) / timeElapsedSeconds;
     return Math.round(averageSpeed);
   }
 
@@ -177,7 +184,7 @@ export class UploadProgressService {
         uploadedById: userId,
         status: In([UploadStatus.PENDING, UploadStatus.IN_PROGRESS]),
       },
-      order: { createdAt: "DESC" },
+      order: { createdAt: 'DESC' },
     });
   }
 
@@ -188,7 +195,7 @@ export class UploadProgressService {
   ): Promise<{ uploads: FileUploadSession[]; total: number }> {
     const [uploads, total] = await this.uploadSessionRepository.findAndCount({
       where: { uploadedById: userId },
-      order: { createdAt: "DESC" },
+      order: { createdAt: 'DESC' },
       take: limit,
       skip: offset,
     });

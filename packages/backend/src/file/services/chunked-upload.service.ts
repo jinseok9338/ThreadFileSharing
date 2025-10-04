@@ -1,12 +1,19 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, LessThan, In } from "typeorm";
-import { randomUUID } from "crypto";
-import { FileUploadSession, ChunkMetadata } from "../entities/file-upload-session.entity";
-import { UploadStatus } from "../../common/enums/upload-status.enum";
-import { InitiateUploadDto } from "../dto/initiate-upload.dto";
-import { UploadChunkDto } from "../dto/upload-chunk.dto";
-import { UploadProgressService } from "./upload-progress.service";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, LessThan, In } from 'typeorm';
+import { randomUUID } from 'crypto';
+import {
+  FileUploadSession,
+  ChunkMetadata,
+} from '../entities/file-upload-session.entity';
+import { UploadStatus } from '../../common/enums/upload-status.enum';
+import { InitiateUploadDto } from '../dto/initiate-upload.dto';
+import { UploadChunkDto } from '../dto/upload-chunk.dto';
+import { UploadProgressService } from './upload-progress.service';
 
 @Injectable()
 export class ChunkedUploadService {
@@ -21,7 +28,9 @@ export class ChunkedUploadService {
     userId: string,
   ): Promise<FileUploadSession> {
     // Calculate number of chunks
-    const totalChunks = Math.ceil(initiateDto.totalSizeBytes / initiateDto.chunkSizeBytes);
+    const totalChunks = Math.ceil(
+      initiateDto.totalSizeBytes / initiateDto.chunkSizeBytes,
+    );
 
     // Generate unique session ID
     const sessionId = `upload_session_${randomUUID()}`;
@@ -67,20 +76,20 @@ export class ChunkedUploadService {
     });
 
     if (!uploadSession) {
-      throw new NotFoundException("Upload session not found");
+      throw new NotFoundException('Upload session not found');
     }
 
     // Validate session status
     if (uploadSession.status === UploadStatus.COMPLETED) {
-      throw new BadRequestException("Upload session already completed");
+      throw new BadRequestException('Upload session already completed');
     }
 
     if (uploadSession.status === UploadStatus.CANCELLED) {
-      throw new BadRequestException("Upload session has been cancelled");
+      throw new BadRequestException('Upload session has been cancelled');
     }
 
     if (uploadSession.isExpired) {
-      throw new BadRequestException("Upload session has expired");
+      throw new BadRequestException('Upload session has expired');
     }
 
     // Validate chunk sequence
@@ -91,8 +100,11 @@ export class ChunkedUploadService {
     }
 
     // Validate chunk size (except for the last chunk)
-    if (!chunkDto.isFinalChunk && chunkDto.chunkSizeBytes !== uploadSession.metadata.chunkSize) {
-      throw new BadRequestException("Invalid chunk size");
+    if (
+      !chunkDto.isFinalChunk &&
+      chunkDto.chunkSizeBytes !== uploadSession.metadata.chunkSize
+    ) {
+      throw new BadRequestException('Invalid chunk size');
     }
 
     // TODO: Validate chunk checksum
@@ -110,8 +122,12 @@ export class ChunkedUploadService {
     };
 
     // Update session
-    const updatedChunkMetadata = [...uploadSession.chunkMetadata, chunkMetadata];
-    const newUploadedBytes = uploadSession.uploadedBytes + BigInt(chunkDto.chunkSizeBytes);
+    const updatedChunkMetadata = [
+      ...uploadSession.chunkMetadata,
+      chunkMetadata,
+    ];
+    const newUploadedBytes =
+      uploadSession.uploadedBytes + BigInt(chunkDto.chunkSizeBytes);
     const newUploadedChunks = uploadSession.uploadedChunks + 1;
 
     // Determine new status
@@ -120,7 +136,10 @@ export class ChunkedUploadService {
       newStatus = UploadStatus.IN_PROGRESS;
     }
 
-    if (chunkDto.isFinalChunk || newUploadedChunks === uploadSession.totalChunks) {
+    if (
+      chunkDto.isFinalChunk ||
+      newUploadedChunks === uploadSession.totalChunks
+    ) {
       newStatus = UploadStatus.COMPLETED;
     }
 
@@ -130,7 +149,8 @@ export class ChunkedUploadService {
       uploadedBytes: newUploadedBytes,
       chunkMetadata: updatedChunkMetadata,
       status: newStatus,
-      completedAt: newStatus === UploadStatus.COMPLETED ? new Date() : undefined,
+      completedAt:
+        newStatus === UploadStatus.COMPLETED ? new Date() : undefined,
     });
 
     // Get updated session
@@ -139,7 +159,7 @@ export class ChunkedUploadService {
     });
 
     if (!updatedSession) {
-      throw new BadRequestException("Failed to retrieve updated session");
+      throw new BadRequestException('Failed to retrieve updated session');
     }
 
     // Update progress tracking
@@ -157,7 +177,7 @@ export class ChunkedUploadService {
     });
 
     if (!uploadSession) {
-      throw new NotFoundException("Upload session not found");
+      throw new NotFoundException('Upload session not found');
     }
 
     return uploadSession;
@@ -169,11 +189,11 @@ export class ChunkedUploadService {
     });
 
     if (!uploadSession) {
-      throw new NotFoundException("Upload session not found");
+      throw new NotFoundException('Upload session not found');
     }
 
     if (uploadSession.status === UploadStatus.COMPLETED) {
-      throw new BadRequestException("Cannot cancel completed upload session");
+      throw new BadRequestException('Cannot cancel completed upload session');
     }
 
     // Update status to cancelled
@@ -187,7 +207,7 @@ export class ChunkedUploadService {
     });
 
     if (!updatedSession) {
-      throw new BadRequestException("Failed to retrieve updated session");
+      throw new BadRequestException('Failed to retrieve updated session');
     }
 
     // Broadcast cancellation
@@ -206,7 +226,7 @@ export class ChunkedUploadService {
 
     if (expiredSessions.length > 0) {
       await this.uploadSessionRepository.update(
-        { id: In(expiredSessions.map(s => s.id)) },
+        { id: In(expiredSessions.map((s) => s.id)) },
         { status: UploadStatus.CANCELLED },
       );
     }
