@@ -1,0 +1,356 @@
+meta {
+  name: GET /api/v1/threads - List Threads Access (Owner)
+  type: http
+  seq: 124
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+  chatroomId: {{chatroomId}}
+}
+
+tests {
+  test("Status code is 200 for owner access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has threads array", function() {
+    expect(res.getBody().threads).to.be.an('array');
+  });
+  
+  test("Response has pagination info", function() {
+    expect(res.getBody().pagination).to.be.an('object');
+  });
+  
+  test("Pagination has correct structure", function() {
+    expect(res.getBody().pagination.page).to.be.a('number');
+    expect(res.getBody().pagination.limit).to.be.a('number');
+    expect(res.getBody().pagination.total).to.be.a('number');
+    expect(res.getBody().pagination.totalPages).to.be.a('number');
+  });
+  
+  test("Each thread has required fields", function() {
+    const threads = res.getBody().threads;
+    if (threads.length > 0) {
+      const thread = threads[0];
+      expect(thread.id).to.be.a('string');
+      expect(thread.title).to.be.a('string');
+      expect(thread.description).to.be.a('string');
+      expect(thread.createdAt).to.be.a('string');
+      expect(thread.updatedAt).to.be.a('string');
+    }
+  });
+  
+  test("All threads belong to specified chatroom", function() {
+    const threads = res.getBody().threads;
+    threads.forEach(thread => {
+      expect(thread.chatroom.id).to.equal("{{chatroomId}}");
+    });
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads - List Threads Access (Admin)
+  type: http
+  seq: 125
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 5
+  chatroomId: {{chatroomId}}
+}
+
+tests {
+  test("Status code is 200 for admin access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has threads array", function() {
+    expect(res.getBody().threads).to.be.an('array');
+  });
+  
+  test("Response has pagination info", function() {
+    expect(res.getBody().pagination).to.be.an('object');
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads - List Threads Access (Member)
+  type: http
+  seq: 126
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 3
+  chatroomId: {{chatroomId}}
+}
+
+tests {
+  test("Status code is 200 for member access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has threads array", function() {
+    expect(res.getBody().threads).to.be.an('array');
+  });
+  
+  test("Limited results for member access", function() {
+    expect(res.getBody().threads.length).to.be.lessThanOrEqual(3);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads - List Threads Access (Guest)
+  type: http
+  seq: 127
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 2
+  chatroomId: {{chatroomId}}
+}
+
+tests {
+  test("Status code is 200 for guest access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has threads array", function() {
+    expect(res.getBody().threads).to.be.an('array');
+  });
+  
+  test("Limited results for guest access", function() {
+    expect(res.getBody().threads.length).to.be.lessThanOrEqual(2);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads - Filter by Participant
+  type: http
+  seq: 128
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+  chatroomId: {{chatroomId}}
+  participantId: {{memberUserId}}
+}
+
+tests {
+  test("Status code is 200 for participant filter", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has threads array", function() {
+    expect(res.getBody().threads).to.be.an('array');
+  });
+  
+  test("All returned threads have specified participant", function() {
+    const threads = res.getBody().threads;
+    threads.forEach(thread => {
+      const hasParticipant = thread.participants.some(p => p.user.id === "{{memberUserId}}");
+      expect(hasParticipant).to.be.true;
+    });
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads - Search by Title
+  type: http
+  seq: 129
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+  chatroomId: {{chatroomId}}
+  search: TestThread
+}
+
+tests {
+  test("Status code is 200 for title search", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has threads array", function() {
+    expect(res.getBody().threads).to.be.an('array');
+  });
+  
+  test("All returned threads match search term", function() {
+    const threads = res.getBody().threads;
+    threads.forEach(thread => {
+      expect(thread.title.toLowerCase()).to.include("testthread");
+    });
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads - Invalid Chatroom ID
+  type: http
+  seq: 130
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+  chatroomId: invalid-uuid
+}
+
+tests {
+  test("Status code is 400 for invalid chatroom ID", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error message", function() {
+    expect(res.getBody().message).to.include("Invalid UUID");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads - No Token
+  type: http
+  seq: 131
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads
+  body: none
+  auth: none
+}
+
+query:params {
+  page: 1
+  limit: 10
+  chatroomId: {{chatroomId}}
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

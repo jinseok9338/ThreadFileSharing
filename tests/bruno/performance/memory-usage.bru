@@ -1,0 +1,234 @@
+meta {
+  name: GET /api/v1/health - Memory Test 1
+  type: http
+  seq: 292
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200 for health check", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 100ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(100);
+  });
+  
+  test("Response has health status", function() {
+    expect(res.getBody().status).to.equal("ok");
+  });
+  
+  test("Response size is reasonable", function() {
+    expect(res.getBody().length).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users - Memory Test
+  type: http
+  seq: 293
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 50
+}
+
+tests {
+  test("Status code is 200 for user list", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+  
+  test("Response has users array", function() {
+    expect(res.getBody().users).to.be.an('array');
+  });
+  
+  test("Response size is reasonable for 50 users", function() {
+    expect(res.getBody().length).to.be.lessThan(10000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms - Memory Test
+  type: http
+  seq: 294
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 100
+}
+
+tests {
+  test("Status code is 200 for chatroom list", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+  
+  test("Response has chatrooms array", function() {
+    expect(res.getBody().chatrooms).to.be.an('array');
+  });
+  
+  test("Response size is reasonable for 100 chatrooms", function() {
+    expect(res.getBody().length).to.be.lessThan(20000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads - Memory Test
+  type: http
+  seq: 295
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 200
+}
+
+tests {
+  test("Status code is 200 for thread list", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+  
+  test("Response has threads array", function() {
+    expect(res.getBody().threads).to.be.an('array');
+  });
+  
+  test("Response size is reasonable for 200 threads", function() {
+    expect(res.getBody().length).to.be.lessThan(30000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/messages/chatroom/{id} - Memory Test
+  type: http
+  seq: 296
+}
+
+get {
+  url: {{baseUrl}}/api/v1/messages/chatroom/{{chatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 100
+}
+
+tests {
+  test("Status code is 200 for message list", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+  
+  test("Response has messages array", function() {
+    expect(res.getBody().messages).to.be.an('array');
+  });
+  
+  test("Response size is reasonable for 100 messages", function() {
+    expect(res.getBody().length).to.be.lessThan(50000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - Memory Test
+  type: http
+  seq: 297
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 50
+}
+
+tests {
+  test("Status code is 200 for file list", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("Response size is reasonable for 50 files", function() {
+    expect(res.getBody().length).to.be.lessThan(15000);
+  });
+}

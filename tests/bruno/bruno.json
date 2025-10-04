@@ -1,5 +1,49 @@
 {
   "version": "1",
-  "name": "ThreadFileSharing API Tests",
-  "type": "collection"
+  "name": "ThreadFileSharing Comprehensive API Tests",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"],
+  "settings": {
+    "followRedirects": true,
+    "requestTimeout": 30000,
+    "enableTelemetry": false
+  },
+  "tests": {
+    "auth": {
+      "description": "Authentication and Authorization Tests",
+      "baseUrl": "{{baseUrl}}/api/v1/auth"
+    },
+    "users": {
+      "description": "User Management Tests",
+      "baseUrl": "{{baseUrl}}/api/v1/users"
+    },
+    "companies": {
+      "description": "Company Management Tests",
+      "baseUrl": "{{baseUrl}}/api/v1/companies"
+    },
+    "chatrooms": {
+      "description": "Chatroom Management Tests",
+      "baseUrl": "{{baseUrl}}/api/v1/chatrooms"
+    },
+    "threads": {
+      "description": "Thread Management Tests",
+      "baseUrl": "{{baseUrl}}/api/v1/threads"
+    },
+    "messages": {
+      "description": "Message System Tests",
+      "baseUrl": "{{baseUrl}}/api/v1/messages"
+    },
+    "files": {
+      "description": "File Management Tests",
+      "baseUrl": "{{baseUrl}}/api/v1/files"
+    },
+    "security": {
+      "description": "Security Testing",
+      "baseUrl": "{{baseUrl}}/api/v1"
+    },
+    "performance": {
+      "description": "Performance Testing",
+      "baseUrl": "{{baseUrl}}/api/v1"
+    }
+  }
 }

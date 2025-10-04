@@ -1,0 +1,165 @@
+meta {
+  name: POST /api/v1/chatrooms - Create Chatroom Success
+  type: http
+  seq: 75
+}
+
+post {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "{{testChatroomName}}",
+    "description": "{{testChatroomDescription}}",
+    "isPublic": true
+  }
+}
+
+tests {
+  test("Status code is 201 for successful chatroom creation", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has chatroom object", function() {
+    expect(res.getBody().chatroom).to.be.an('object');
+  });
+  
+  test("Chatroom name matches request", function() {
+    expect(res.getBody().chatroom.name).to.equal("{{testChatroomName}}");
+  });
+  
+  test("Chatroom description matches request", function() {
+    expect(res.getBody().chatroom.description).to.equal("{{testChatroomDescription}}");
+  });
+  
+  test("Chatroom is public", function() {
+    expect(res.getBody().chatroom.isPublic).to.equal(true);
+  });
+  
+  test("Chatroom has valid ID", function() {
+    expect(res.getBody().chatroom.id).to.be.a('string');
+    expect(res.getBody().chatroom.id).to.have.length.greaterThan(0);
+  });
+  
+  test("Chatroom belongs to same company", function() {
+    expect(res.getBody().chatroom.company.id).to.equal("{{companyId}}");
+  });
+  
+  test("Chatroom has creator information", function() {
+    expect(res.getBody().chatroom.createdBy).to.be.an('object');
+    expect(res.getBody().chatroom.createdBy.id).to.equal("{{ownerUserId}}");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/chatrooms - Create Private Chatroom
+  type: http
+  seq: 76
+}
+
+post {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Private Test Chatroom",
+    "description": "Private chatroom for testing",
+    "isPublic": false
+  }
+}
+
+tests {
+  test("Status code is 201 for private chatroom creation", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has chatroom object", function() {
+    expect(res.getBody().chatroom).to.be.an('object');
+  });
+  
+  test("Chatroom is private", function() {
+    expect(res.getBody().chatroom.isPublic).to.equal(false);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/chatrooms - Create Chatroom with Members
+  type: http
+  seq: 77
+}
+
+post {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Chatroom with Members",
+    "description": "Chatroom with initial members",
+    "isPublic": true,
+    "memberIds": ["{{adminUserId}}", "{{memberUserId}}"]
+  }
+}
+
+tests {
+  test("Status code is 201 for chatroom with members", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has chatroom object", function() {
+    expect(res.getBody().chatroom).to.be.an('object');
+  });
+  
+  test("Chatroom has members", function() {
+    expect(res.getBody().chatroom.members).to.be.an('array');
+    expect(res.getBody().chatroom.members.length).to.be.greaterThan(0);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}

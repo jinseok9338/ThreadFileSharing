@@ -1,0 +1,310 @@
+meta {
+  name: PUT /api/v1/users/{id} - Update User Permissions
+  type: http
+  seq: 35
+}
+
+put {
+  url: {{baseUrl}}/api/v1/users/{{memberUserId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "fullName": "Updated Member Name",
+    "role": "MEMBER",
+    "isActive": true
+  }
+}
+
+tests {
+  test("Status code is 200 for successful user update", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has updated user object", function() {
+    expect(res.getBody().user).to.be.an('object');
+  });
+  
+  test("User full name is updated", function() {
+    expect(res.getBody().user.fullName).to.equal("Updated Member Name");
+  });
+  
+  test("User role is maintained", function() {
+    expect(res.getBody().user.role).to.equal("MEMBER");
+  });
+  
+  test("User is active", function() {
+    expect(res.getBody().user.isActive).to.equal(true);
+  });
+  
+  test("User ID remains the same", function() {
+    expect(res.getBody().user.id).to.equal("{{memberUserId}}");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/users/{id} - Update User Role (Admin)
+  type: http
+  seq: 36
+}
+
+put {
+  url: {{baseUrl}}/api/v1/users/{{memberUserId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "role": "ADMIN",
+    "isActive": true
+  }
+}
+
+tests {
+  test("Status code is 200 for role update", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("User role is updated to ADMIN", function() {
+    expect(res.getBody().user.role).to.equal("ADMIN");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/users/{id} - Invalid Data
+  type: http
+  seq: 37
+}
+
+put {
+  url: {{baseUrl}}/api/v1/users/{{memberUserId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "fullName": "",
+    "role": "INVALID_ROLE",
+    "isActive": "invalid_boolean"
+  }
+}
+
+tests {
+  test("Status code is 400 for invalid data", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation errors", function() {
+    expect(res.getBody().errors).to.be.an('array');
+    expect(res.getBody().errors).to.have.length.greaterThan(0);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/users/{id} - Non-existent User
+  type: http
+  seq: 38
+}
+
+put {
+  url: {{baseUrl}}/api/v1/users/00000000-0000-0000-0000-000000000000
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "fullName": "Updated Name",
+    "role": "MEMBER"
+  }
+}
+
+tests {
+  test("Status code is 404 for non-existent user", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/users/{id} - Unauthorized Access (Member)
+  type: http
+  seq: 39
+}
+
+put {
+  url: {{baseUrl}}/api/v1/users/{{adminUserId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "fullName": "Unauthorized Update"
+  }
+}
+
+tests {
+  test("Status code is 403 for unauthorized access", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/users/{id} - Self Update (Allowed)
+  type: http
+  seq: 40
+}
+
+put {
+  url: {{baseUrl}}/api/v1/users/{{memberUserId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "fullName": "Self Updated Name"
+  }
+}
+
+tests {
+  test("Status code is 200 for self update", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("User full name is updated", function() {
+    expect(res.getBody().user.fullName).to.equal("Self Updated Name");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/users/{id} - No Token
+  type: http
+  seq: 41
+}
+
+put {
+  url: {{baseUrl}}/api/v1/users/{{memberUserId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "fullName": "Unauthorized Update"
+  }
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

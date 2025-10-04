@@ -1,0 +1,441 @@
+meta {
+  name: GET /api/v1/files - List Files (Owner)
+  type: http
+  seq: 210
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+}
+
+tests {
+  test("Status code is 200 for owner access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("Response has pagination info", function() {
+    expect(res.getBody().pagination).to.be.an('object');
+  });
+  
+  test("Pagination has correct structure", function() {
+    expect(res.getBody().pagination.page).to.be.a('number');
+    expect(res.getBody().pagination.limit).to.be.a('number');
+    expect(res.getBody().pagination.total).to.be.a('number');
+    expect(res.getBody().pagination.totalPages).to.be.a('number');
+  });
+  
+  test("Each file has required fields", function() {
+    const files = res.getBody().files;
+    if (files.length > 0) {
+      const file = files[0];
+      expect(file.id).to.be.a('string');
+      expect(file.originalName).to.be.a('string');
+      expect(file.mimeType).to.be.a('string');
+      expect(file.size).to.be.a('number');
+      expect(file.uploadedBy).to.be.an('object');
+      expect(file.chatroom).to.be.an('object');
+    }
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - List Files (Admin)
+  type: http
+  seq: 211
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 5
+}
+
+tests {
+  test("Status code is 200 for admin access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("Response has pagination info", function() {
+    expect(res.getBody().pagination).to.be.an('object');
+  });
+  
+  test("Limited results for admin access", function() {
+    expect(res.getBody().files.length).to.be.lessThanOrEqual(5);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - List Files (Member)
+  type: http
+  seq: 212
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 3
+}
+
+tests {
+  test("Status code is 200 for member access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("Limited results for member access", function() {
+    expect(res.getBody().files.length).to.be.lessThanOrEqual(3);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - List Files (Guest)
+  type: http
+  seq: 213
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 2
+}
+
+tests {
+  test("Status code is 200 for guest access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("Limited results for guest access", function() {
+    expect(res.getBody().files.length).to.be.lessThanOrEqual(2);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - Filter by Chatroom
+  type: http
+  seq: 214
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+  chatroomId: {{chatroomId}}
+}
+
+tests {
+  test("Status code is 200 for chatroom filter", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("All returned files belong to specified chatroom", function() {
+    const files = res.getBody().files;
+    files.forEach(file => {
+      expect(file.chatroom.id).to.equal("{{chatroomId}}");
+    });
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - Filter by Thread
+  type: http
+  seq: 215
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+  threadId: {{threadId}}
+}
+
+tests {
+  test("Status code is 200 for thread filter", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("All returned files belong to specified thread", function() {
+    const files = res.getBody().files;
+    files.forEach(file => {
+      expect(file.thread.id).to.equal("{{threadId}}");
+    });
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - Filter by File Type
+  type: http
+  seq: 216
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+  mimeType: application/pdf
+}
+
+tests {
+  test("Status code is 200 for mime type filter", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("All returned files have specified mime type", function() {
+    const files = res.getBody().files;
+    files.forEach(file => {
+      expect(file.mimeType).to.equal("application/pdf");
+    });
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - Search Files
+  type: http
+  seq: 217
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+  search: sample
+}
+
+tests {
+  test("Status code is 200 for file search", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("All returned files match search term", function() {
+    const files = res.getBody().files;
+    files.forEach(file => {
+      expect(file.originalName.toLowerCase()).to.include("sample");
+    });
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - Sort by Upload Date
+  type: http
+  seq: 218
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+  sortBy: uploadedAt
+  sortOrder: desc
+}
+
+tests {
+  test("Status code is 200 for sorted files", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("Files are sorted by upload date (descending)", function() {
+    const files = res.getBody().files;
+    if (files.length > 1) {
+      const firstFile = new Date(files[0].uploadedAt);
+      const secondFile = new Date(files[1].uploadedAt);
+      expect(firstFile.getTime()).to.be.greaterThanOrEqual(secondFile.getTime());
+    }
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - No Token
+  type: http
+  seq: 219
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

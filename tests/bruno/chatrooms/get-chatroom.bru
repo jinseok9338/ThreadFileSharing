@@ -1,0 +1,315 @@
+meta {
+  name: GET /api/v1/chatrooms/{id} - Get Chatroom by ID (Owner)
+  type: http
+  seq: 90
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/{{chatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for valid chatroom ID", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has chatroom object", function() {
+    expect(res.getBody().chatroom).to.be.an('object');
+  });
+  
+  test("Chatroom ID matches request", function() {
+    expect(res.getBody().chatroom.id).to.equal("{{chatroomId}}");
+  });
+  
+  test("Chatroom has all required fields", function() {
+    const chatroom = res.getBody().chatroom;
+    expect(chatroom.name).to.be.a('string');
+    expect(chatroom.description).to.be.a('string');
+    expect(chatroom.isPublic).to.be.a('boolean');
+    expect(chatroom.createdAt).to.be.a('string');
+    expect(chatroom.updatedAt).to.be.a('string');
+  });
+  
+  test("Chatroom belongs to same company", function() {
+    expect(res.getBody().chatroom.company.id).to.equal("{{companyId}}");
+  });
+  
+  test("Chatroom has creator information", function() {
+    expect(res.getBody().chatroom.createdBy).to.be.an('object');
+    expect(res.getBody().chatroom.createdBy.id).to.be.a('string');
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms/{id} - Get Chatroom by ID (Admin)
+  type: http
+  seq: 91
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/{{chatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for admin access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has chatroom object", function() {
+    expect(res.getBody().chatroom).to.be.an('object');
+  });
+  
+  test("Chatroom ID matches request", function() {
+    expect(res.getBody().chatroom.id).to.equal("{{chatroomId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms/{id} - Get Chatroom by ID (Member)
+  type: http
+  seq: 92
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/{{chatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for member access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has chatroom object", function() {
+    expect(res.getBody().chatroom).to.be.an('object');
+  });
+  
+  test("Chatroom ID matches request", function() {
+    expect(res.getBody().chatroom.id).to.equal("{{chatroomId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms/{id} - Get Chatroom by ID (Guest)
+  type: http
+  seq: 93
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/{{chatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for guest access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has chatroom object", function() {
+    expect(res.getBody().chatroom).to.be.an('object');
+  });
+  
+  test("Chatroom ID matches request", function() {
+    expect(res.getBody().chatroom.id).to.equal("{{chatroomId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms/{id} - Get Private Chatroom (Non-member)
+  type: http
+  seq: 94
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/{{privateChatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+tests {
+  test("Status code is 403 for non-member accessing private chatroom", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms/{id} - Non-existent Chatroom
+  type: http
+  seq: 95
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/00000000-0000-0000-0000-000000000000
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for non-existent chatroom", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms/{id} - Invalid UUID
+  type: http
+  seq: 96
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/invalid-uuid
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 400 for invalid UUID", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error message", function() {
+    expect(res.getBody().message).to.include("Invalid UUID");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms/{id} - Cross-Company Chatroom
+  type: http
+  seq: 97
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/{{otherCompanyChatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for cross-company chatroom", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms/{id} - No Token
+  type: http
+  seq: 98
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/{{chatroomId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

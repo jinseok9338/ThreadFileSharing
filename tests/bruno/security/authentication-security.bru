@@ -1,0 +1,223 @@
+meta {
+  name: GET /api/v1/users - Invalid Token
+  type: http
+  seq: 254
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: invalid-token-here
+}
+
+tests {
+  test("Status code is 401 for invalid token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users - Expired Token
+  type: http
+  seq: 255
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.4Adcj3UFYzPUVaVF43FmMab6RlaQD8A9V8wFzzht-KQ
+}
+
+tests {
+  test("Status code is 401 for expired token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users - Malformed Token
+  type: http
+  seq: 256
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: malformed.token.here
+}
+
+tests {
+  test("Status code is 401 for malformed token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users - Token with Wrong Signature
+  type: http
+  seq: 257
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.wrong-signature-here
+}
+
+tests {
+  test("Status code is 401 for wrong signature", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users - Empty Token
+  type: http
+  seq: 258
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: 
+}
+
+tests {
+  test("Status code is 401 for empty token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users - Token in Query Parameter
+  type: http
+  seq: 259
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users?token={{ownerAccessToken}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for token in query parameter", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users - Token in Body
+  type: http
+  seq: 260
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "token": "{{ownerAccessToken}}"
+  }
+}
+
+tests {
+  test("Status code is 401 for token in body", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

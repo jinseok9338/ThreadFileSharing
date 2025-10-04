@@ -1,0 +1,239 @@
+meta {
+  name: POST /api/v1/messages - XSS Test 1
+  type: http
+  seq: 249
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "<script>alert('XSS')</script>",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for XSS attempt", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+  
+  test("XSS attempt is safely stored", function() {
+    expect(res.getBody().message.content).to.equal("<script>alert('XSS')</script>");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/messages - XSS Test 2
+  type: http
+  seq: 250
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "<img src=x onerror=alert('XSS')>",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for XSS attempt", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+  
+  test("XSS attempt is safely stored", function() {
+    expect(res.getBody().message.content).to.equal("<img src=x onerror=alert('XSS')>");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/chatrooms - XSS in Name
+  type: http
+  seq: 251
+}
+
+post {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "<script>alert('XSS')</script>",
+    "description": "Test description"
+  }
+}
+
+tests {
+  test("Status code is 400 for XSS attempt in name", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error", function() {
+    expect(res.getBody().errors).to.be.an('array');
+  });
+  
+  test("XSS attempt is rejected", function() {
+    const errors = res.getBody().errors;
+    const nameError = errors.find(error => error.field === 'name');
+    expect(nameError).to.exist;
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/threads - XSS in Title
+  type: http
+  seq: 252
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "<img src=x onerror=alert('XSS')>",
+    "description": "Test thread description",
+    "chatroomId": "{{chatroomId}}",
+    "participantIds": ["{{memberUserId}}"]
+  }
+}
+
+tests {
+  test("Status code is 400 for XSS attempt in title", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error", function() {
+    expect(res.getBody().errors).to.be.an('array');
+  });
+  
+  test("XSS attempt is rejected", function() {
+    const errors = res.getBody().errors;
+    const titleError = errors.find(error => error.field === 'title');
+    expect(titleError).to.exist;
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/messages/chatroom/{id} - XSS in Response
+  type: http
+  seq: 253
+}
+
+get {
+  url: {{baseUrl}}/api/v1/messages/chatroom/{{chatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+}
+
+tests {
+  test("Status code is 200 for message retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has messages array", function() {
+    expect(res.getBody().messages).to.be.an('array');
+  });
+  
+  test("XSS content is safely returned", function() {
+    const messages = res.getBody().messages;
+    const xssMessage = messages.find(msg => msg.content.includes('<script>'));
+    if (xssMessage) {
+      expect(xssMessage.content).to.include('<script>');
+      expect(xssMessage.content).to.include('alert');
+    }
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}

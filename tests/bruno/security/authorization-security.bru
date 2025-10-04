@@ -1,0 +1,281 @@
+meta {
+  name: GET /api/v1/companies/{id} - Cross-Company Access
+  type: http
+  seq: 261
+}
+
+get {
+  url: {{baseUrl}}/api/v1/companies/{{otherCompanyId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for cross-company access", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("Company not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms/{id} - Cross-Company Chatroom
+  type: http
+  seq: 262
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/{{otherCompanyChatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for cross-company chatroom", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("Chatroom not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads/{id} - Cross-Company Thread
+  type: http
+  seq: 263
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/{{otherCompanyThreadId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for cross-company thread", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("Thread not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/chatrooms/{id} - Unauthorized Deletion
+  type: http
+  seq: 264
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/chatrooms/{{chatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 403 for unauthorized deletion", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/companies/{id} - Unauthorized Update
+  type: http
+  seq: 265
+}
+
+put {
+  url: {{baseUrl}}/api/v1/companies/{{companyId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Unauthorized Company Update"
+  }
+}
+
+tests {
+  test("Status code is 403 for unauthorized update", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/users - Unauthorized User Creation
+  type: http
+  seq: 266
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "newuser@example.com",
+    "username": "newuser",
+    "fullName": "New User",
+    "password": "password123",
+    "role": "admin"
+  }
+}
+
+tests {
+  test("Status code is 403 for unauthorized user creation", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/users/{id} - Unauthorized User Deletion
+  type: http
+  seq: 267
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/users/{{memberUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 403 for unauthorized user deletion", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users - Guest Access to User List
+  type: http
+  seq: 268
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for guest access to user list", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has users array", function() {
+    expect(res.getBody().users).to.be.an('array');
+  });
+  
+  test("Limited results for guest access", function() {
+    expect(res.getBody().users.length).to.be.lessThanOrEqual(2);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}

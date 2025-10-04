@@ -1,0 +1,1509 @@
+openapi: 3.0.3
+info:
+  title: ThreadFileSharing API - Comprehensive Testing Contracts
+  description: API contracts for comprehensive testing suite covering all endpoints, scenarios, and permission levels
+  version: 1.0.0
+  contact:
+    name: API Testing Team
+    email: testing@threadfilesharing.com
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server
+  - url: https://api.threadfilesharing.com/api/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      summary: Register new user and company
+      description: Register a new user and create a company
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User and company created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      summary: User login
+      description: Authenticate user with email and password
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      description: Refresh expired access token using refresh token
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshResponse"
+        "401":
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      summary: User logout
+      description: Logout user and invalidate tokens
+      tags: [Authentication]
+      responses:
+        "200":
+          description: Logout successful
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      summary: Get current user
+      description: Get current authenticated user information
+      tags: [Authentication]
+      responses:
+        "200":
+          description: User information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # User Management Endpoints
+  /users:
+    get:
+      summary: Get users list
+      description: Get list of users (Admin only)
+      tags: [User Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: lastIndex
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - Admin access required
+
+    post:
+      summary: Create new user
+      description: Create a new user (Admin only)
+      tags: [User Management]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - Admin access required
+        "409":
+          description: User already exists
+
+  /users/{userId}:
+    get:
+      summary: Get user by ID
+      description: Get user information by ID
+      tags: [User Management]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: User not found
+
+    put:
+      summary: Update user
+      description: Update user information
+      tags: [User Management]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: User not found
+
+    delete:
+      summary: Delete user
+      description: Delete user account
+      tags: [User Management]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: User deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: User not found
+
+  # Company Management Endpoints
+  /companies/me:
+    get:
+      summary: Get current company
+      description: Get current user's company information
+      tags: [Company Management]
+      responses:
+        "200":
+          description: Company retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Company not found
+
+    put:
+      summary: Update company
+      description: Update company information (Owner/Admin only)
+      tags: [Company Management]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCompanyRequest"
+      responses:
+        "200":
+          description: Company updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - Owner/Admin access required
+        "404":
+          description: Company not found
+
+  /companies/me/members:
+    get:
+      summary: Get company members
+      description: Get list of company members
+      tags: [Company Management]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: lastIndex
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Members retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberListResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Company not found
+
+  /companies/members/{userId}:
+    delete:
+      summary: Remove company member
+      description: Remove member from company (Owner/Admin only)
+      tags: [Company Management]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Member removed successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - Owner/Admin access required
+        "404":
+          description: User not found
+
+  # Chatroom Management Endpoints
+  /chatrooms:
+    get:
+      summary: Get chatrooms
+      description: Get list of chatrooms for current user
+      tags: [Chatroom Management]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: lastIndex
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Chatrooms retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomListResponse"
+        "401":
+          description: Unauthorized
+
+    post:
+      summary: Create chatroom
+      description: Create a new chatroom
+      tags: [Chatroom Management]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateChatroomRequest"
+      responses:
+        "201":
+          description: Chatroom created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+
+  /chatrooms/{chatroomId}:
+    get:
+      summary: Get chatroom by ID
+      description: Get chatroom information by ID
+      tags: [Chatroom Management]
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Chatroom retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Chatroom not found
+
+    put:
+      summary: Update chatroom
+      description: Update chatroom information (Creator/Admin only)
+      tags: [Chatroom Management]
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChatroomRequest"
+      responses:
+        "200":
+          description: Chatroom updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Chatroom not found
+
+    delete:
+      summary: Delete chatroom
+      description: Delete chatroom (Creator/Admin only)
+      tags: [Chatroom Management]
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Chatroom deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Chatroom not found
+
+  # Thread Management Endpoints
+  /threads:
+    get:
+      summary: Get threads
+      description: Get list of threads for current user
+      tags: [Thread Management]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: lastIndex
+          in: query
+          schema:
+            type: string
+        - name: chatroomId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Threads retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreadListResponse"
+        "401":
+          description: Unauthorized
+
+    post:
+      summary: Create thread
+      description: Create a new thread in a chatroom
+      tags: [Thread Management]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateThreadRequest"
+      responses:
+        "201":
+          description: Thread created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreadResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /threads/{threadId}:
+    get:
+      summary: Get thread by ID
+      description: Get thread information by ID
+      tags: [Thread Management]
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Thread retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreadDetailResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Thread not found
+
+    put:
+      summary: Update thread
+      description: Update thread information (Creator/Admin only)
+      tags: [Thread Management]
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateThreadRequest"
+      responses:
+        "200":
+          description: Thread updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreadResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Thread not found
+
+    delete:
+      summary: Delete thread
+      description: Delete thread (Creator/Admin only)
+      tags: [Thread Management]
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Thread deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Thread not found
+
+  # Message System Endpoints
+  /messages:
+    post:
+      summary: Send message
+      description: Send a new message to a chatroom
+      tags: [Message System]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "201":
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /messages/chatroom/{chatroomId}:
+    get:
+      summary: Get chatroom messages
+      description: Get messages from a specific chatroom
+      tags: [Message System]
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: lastIndex
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageListResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Chatroom not found
+
+  /messages/thread/{threadId}:
+    get:
+      summary: Get thread messages
+      description: Get messages from a specific thread
+      tags: [Message System]
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: lastIndex
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageListResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Thread not found
+
+  # File Management Endpoints
+  /files/upload/initiate:
+    post:
+      summary: Initiate file upload
+      description: Start a new file upload session
+      tags: [File Management]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitiateUploadRequest"
+      responses:
+        "201":
+          description: Upload session initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadSessionResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "413":
+          description: File too large
+
+  /files/upload/chunk:
+    post:
+      summary: Upload file chunk
+      description: Upload a chunk of file data
+      tags: [File Management]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadChunkRequest"
+      responses:
+        "200":
+          description: Chunk uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadChunkResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "404":
+          description: Upload session not found
+
+  /files:
+    get:
+      summary: Get files
+      description: Get list of files for current user
+      tags: [File Management]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: lastIndex
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Files retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileListResponse"
+        "401":
+          description: Unauthorized
+
+  /files/{fileId}:
+    get:
+      summary: Get file metadata
+      description: Get file metadata by ID
+      tags: [File Management]
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: File metadata retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: File not found
+
+    delete:
+      summary: Delete file
+      description: Delete file (Uploader/Admin only)
+      tags: [File Management]
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: File deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: File not found
+
+  /files/download/{fileId}:
+    get:
+      summary: Download file
+      description: Download file by ID
+      tags: [File Management]
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: File download successful
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: File not found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Authentication Schemas
+    RegisterRequest:
+      type: object
+      required: [email, password, fullName, companyName]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        companyName:
+          type: string
+          minLength: 1
+          maxLength: 255
+
+    RegisterResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/UserResponse"
+        company:
+          $ref: "#/components/schemas/CompanyResponse"
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/UserResponse"
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    RefreshResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    # User Schemas
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        fullName:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [OWNER, ADMIN, MEMBER, GUEST]
+        companyId:
+          type: string
+          format: uuid
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserResponse"
+        pagination:
+          $ref: "#/components/schemas/PaginationInfo"
+
+    CreateUserRequest:
+      type: object
+      required: [email, password, fullName, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+        role:
+          type: string
+          enum: [ADMIN, MEMBER, GUEST]
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+        avatarUrl:
+          type: string
+
+    # Company Schemas
+    CompanyResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        domain:
+          type: string
+        maxStorageBytes:
+          type: integer
+          format: int64
+        ownerId:
+          type: string
+          format: uuid
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UpdateCompanyRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        domain:
+          type: string
+          minLength: 1
+          maxLength: 255
+
+    MemberListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserResponse"
+        pagination:
+          $ref: "#/components/schemas/PaginationInfo"
+
+    # Chatroom Schemas
+    ChatroomResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        companyId:
+          type: string
+          format: uuid
+        createdBy:
+          type: string
+          format: uuid
+        isPrivate:
+          type: boolean
+        memberCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ChatroomListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatroomResponse"
+        pagination:
+          $ref: "#/components/schemas/PaginationInfo"
+
+    CreateChatroomRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 500
+        isPrivate:
+          type: boolean
+          default: false
+
+    UpdateChatroomRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 500
+        isPrivate:
+          type: boolean
+
+    # Thread Schemas
+    ThreadResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        chatroomId:
+          type: string
+          format: uuid
+        createdBy:
+          type: string
+          format: uuid
+        isArchived:
+          type: boolean
+        participantCount:
+          type: integer
+        fileCount:
+          type: integer
+        lastMessageAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ThreadDetailResponse:
+      allOf:
+        - $ref: "#/components/schemas/ThreadResponse"
+        - type: object
+          properties:
+            participants:
+              type: array
+              items:
+                $ref: "#/components/schemas/ThreadParticipantResponse"
+
+    ThreadListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThreadResponse"
+        pagination:
+          $ref: "#/components/schemas/PaginationInfo"
+
+    ThreadParticipantResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user:
+          $ref: "#/components/schemas/UserResponse"
+        role:
+          type: string
+        sharedBy:
+          $ref: "#/components/schemas/UserResponse"
+          nullable: true
+        joinedAt:
+          type: string
+          format: date-time
+
+    CreateThreadRequest:
+      type: object
+      required: [chatroomId, title]
+      properties:
+        chatroomId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 500
+        participantIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateThreadRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 500
+        isArchived:
+          type: boolean
+
+    # Message Schemas
+    MessageResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        chatroomId:
+          type: string
+          format: uuid
+        sender:
+          $ref: "#/components/schemas/UserResponse"
+        content:
+          type: string
+        messageType:
+          type: string
+          enum: [TEXT, SYSTEM]
+        isEdited:
+          type: boolean
+        editedAt:
+          type: string
+          format: date-time
+          nullable: true
+        replyTo:
+          $ref: "#/components/schemas/ReplyToResponse"
+          nullable: true
+        threadId:
+          type: string
+          format: uuid
+          nullable: true
+        threadReferences:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThreadReferenceResponse"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MessageListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MessageResponse"
+        pagination:
+          $ref: "#/components/schemas/PaginationInfo"
+
+    ReplyToResponse:
+      type: object
+      properties:
+        messageId:
+          type: string
+          format: uuid
+        content:
+          type: string
+        senderName:
+          type: string
+
+    ThreadReferenceResponse:
+      type: object
+      properties:
+        threadId:
+          type: string
+          format: uuid
+        threadName:
+          type: string
+        originalText:
+          type: string
+
+    SendMessageRequest:
+      type: object
+      required: [chatroomId, content]
+      properties:
+        chatroomId:
+          type: string
+          format: uuid
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        messageType:
+          type: string
+          enum: [TEXT, SYSTEM]
+          default: TEXT
+        replyToId:
+          type: string
+          format: uuid
+        threadId:
+          type: string
+          format: uuid
+
+    # File Schemas
+    FileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        originalName:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: integer
+          format: int64
+        uploadedBy:
+          type: string
+          format: uuid
+        chatroomId:
+          type: string
+          format: uuid
+          nullable: true
+        threadId:
+          type: string
+          format: uuid
+          nullable: true
+        isPublic:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    FileListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileResponse"
+        pagination:
+          $ref: "#/components/schemas/PaginationInfo"
+
+    InitiateUploadRequest:
+      type: object
+      required: [filename, size, mimeType]
+      properties:
+        filename:
+          type: string
+        size:
+          type: integer
+          format: int64
+          minimum: 1
+        mimeType:
+          type: string
+        chatroomId:
+          type: string
+          format: uuid
+        threadId:
+          type: string
+          format: uuid
+        createThread:
+          type: boolean
+          default: false
+        threadTitle:
+          type: string
+        threadDescription:
+          type: string
+
+    UploadSessionResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        uploadUrl:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+
+    UploadChunkRequest:
+      type: object
+      required: [sessionId, chunk, chunkIndex]
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        chunk:
+          type: string
+          format: binary
+        chunkIndex:
+          type: integer
+          minimum: 0
+
+    UploadChunkResponse:
+      type: object
+      properties:
+        chunkIndex:
+          type: integer
+        uploadedBytes:
+          type: integer
+          format: int64
+        totalBytes:
+          type: integer
+          format: int64
+        isComplete:
+          type: boolean
+
+    # Common Schemas
+    PaginationInfo:
+      type: object
+      properties:
+        hasNext:
+          type: boolean
+        hasPrevious:
+          type: boolean
+        limit:
+          type: integer
+        total:
+          type: integer
+        nextCursor:
+          type: string
+          nullable: true
+        previousCursor:
+          type: string
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string

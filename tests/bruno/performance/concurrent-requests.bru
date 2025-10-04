@@ -1,0 +1,324 @@
+meta {
+  name: GET /api/v1/health - Concurrent Request 1
+  type: http
+  seq: 283
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200 for concurrent health check", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 200ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(200);
+  });
+  
+  test("Response has health status", function() {
+    expect(res.getBody().status).to.equal("ok");
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/health - Concurrent Request 2
+  type: http
+  seq: 284
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200 for concurrent health check", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 200ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(200);
+  });
+  
+  test("Response has health status", function() {
+    expect(res.getBody().status).to.equal("ok");
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/health - Concurrent Request 3
+  type: http
+  seq: 285
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200 for concurrent health check", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 200ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(200);
+  });
+  
+  test("Response has health status", function() {
+    expect(res.getBody().status).to.equal("ok");
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms - Concurrent Request 1
+  type: http
+  seq: 286
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+}
+
+tests {
+  test("Status code is 200 for concurrent chatroom request", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+  
+  test("Response has chatrooms array", function() {
+    expect(res.getBody().chatrooms).to.be.an('array');
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms - Concurrent Request 2
+  type: http
+  seq: 287
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+}
+
+tests {
+  test("Status code is 200 for concurrent chatroom request", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+  
+  test("Response has chatrooms array", function() {
+    expect(res.getBody().chatrooms).to.be.an('array');
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms - Concurrent Request 3
+  type: http
+  seq: 288
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+}
+
+tests {
+  test("Status code is 200 for concurrent chatroom request", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+  
+  test("Response has chatrooms array", function() {
+    expect(res.getBody().chatrooms).to.be.an('array');
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/messages - Concurrent Message 1
+  type: http
+  seq: 289
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "Concurrent message 1",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for concurrent message", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/messages - Concurrent Message 2
+  type: http
+  seq: 290
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "Concurrent message 2",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for concurrent message", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/messages - Concurrent Message 3
+  type: http
+  seq: 291
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "Concurrent message 3",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for concurrent message", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+}

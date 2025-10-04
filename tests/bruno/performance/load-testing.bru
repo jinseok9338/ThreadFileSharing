@@ -1,0 +1,260 @@
+meta {
+  name: GET /api/v1/health - Load Test 1
+  type: http
+  seq: 269
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200 for health check", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 100ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(100);
+  });
+  
+  test("Response has health status", function() {
+    expect(res.getBody().status).to.equal("ok");
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/health - Load Test 2
+  type: http
+  seq: 270
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200 for health check", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 100ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(100);
+  });
+  
+  test("Response has health status", function() {
+    expect(res.getBody().status).to.equal("ok");
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/health - Load Test 3
+  type: http
+  seq: 271
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200 for health check", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 100ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(100);
+  });
+  
+  test("Response has health status", function() {
+    expect(res.getBody().status).to.equal("ok");
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/health - Load Test 4
+  type: http
+  seq: 272
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200 for health check", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 100ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(100);
+  });
+  
+  test("Response has health status", function() {
+    expect(res.getBody().status).to.equal("ok");
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/health - Load Test 5
+  type: http
+  seq: 273
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200 for health check", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 100ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(100);
+  });
+  
+  test("Response has health status", function() {
+    expect(res.getBody().status).to.equal("ok");
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms - Performance Test
+  type: http
+  seq: 274
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 20
+}
+
+tests {
+  test("Status code is 200 for chatroom list", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+  
+  test("Response has chatrooms array", function() {
+    expect(res.getBody().chatrooms).to.be.an('array');
+  });
+  
+  test("Response has pagination", function() {
+    expect(res.getBody().pagination).to.be.an('object');
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads - Performance Test
+  type: http
+  seq: 275
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 15
+}
+
+tests {
+  test("Status code is 200 for thread list", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+  
+  test("Response has threads array", function() {
+    expect(res.getBody().threads).to.be.an('array');
+  });
+  
+  test("Response has pagination", function() {
+    expect(res.getBody().pagination).to.be.an('object');
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/messages/chatroom/{id} - Performance Test
+  type: http
+  seq: 276
+}
+
+get {
+  url: {{baseUrl}}/api/v1/messages/chatroom/{{chatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 25
+}
+
+tests {
+  test("Status code is 200 for message list", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+  
+  test("Response has messages array", function() {
+    expect(res.getBody().messages).to.be.an('array');
+  });
+  
+  test("Response has pagination", function() {
+    expect(res.getBody().pagination).to.be.an('object');
+  });
+}

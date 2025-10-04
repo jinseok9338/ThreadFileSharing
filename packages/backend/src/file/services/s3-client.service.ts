@@ -46,16 +46,28 @@ export class S3ClientService {
       throw new Error('AWS S3 credentials are not properly configured');
     }
 
-    this.s3Client = new S3Client({
+    // Check if we're using MinIO (local development/test)
+    const endpoint = this.configService.get<string>('AWS_S3_ENDPOINT');
+
+    const s3Config: any = {
       region: this.region,
       credentials: {
         accessKeyId,
         secretAccessKey,
       },
-    });
+    };
 
+    // Add endpoint for MinIO
+    if (endpoint) {
+      s3Config.endpoint = endpoint;
+      s3Config.forcePathStyle = true; // Required for MinIO
+    }
+
+    this.s3Client = new S3Client(s3Config);
+
+    const serviceName = endpoint ? 'MinIO' : 'AWS S3';
     this.logger.log(
-      `AWS S3 client initialized for bucket: ${this.bucketName} in region: ${this.region}`,
+      `${serviceName} client initialized for bucket: ${this.bucketName} in region: ${this.region}`,
     );
   }
 

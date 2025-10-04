@@ -1,0 +1,152 @@
+version: "3.8"
+
+services:
+  # Test Database
+  postgres-test:
+    image: postgres:14
+    container_name: threadfilesharing_postgres_test
+    environment:
+      POSTGRES_DB: threadfilesharing_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test Redis
+  redis-test:
+    image: redis:6-alpine
+    container_name: threadfilesharing_redis_test
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test MinIO (S3-compatible storage)
+  minio-test:
+    image: minio/minio:latest
+    container_name: threadfilesharing_minio_test
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9001:9000"
+      - "9002:9001"
+    volumes:
+      - minio_test_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Migration runner (runs before backend starts)
+  migration-runner:
+    build:
+      context: ../../packages/backend
+      dockerfile: Dockerfile
+    container_name: threadfilesharing_migration_runner
+    environment:
+      NODE_ENV: test
+      # Database settings
+      DATABASE_URL: postgresql://postgres:password@postgres-test:5432/threadfilesharing_test
+      DATABASE_HOST: postgres-test
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: threadfilesharing_test
+      # Redis settings
+      REDIS_URL: redis://redis-test:6379
+      # JWT settings
+      JWT_SECRET: test-jwt-secret-key
+      # MinIO settings
+      MINIO_ENDPOINT: minio-test
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_USE_SSL: false
+      # AWS S3 settings (using MinIO credentials)
+      AWS_S3_ACCESS_KEY_ID: minioadmin
+      AWS_S3_SECRET_ACCESS_KEY: minioadmin123
+      AWS_S3_REGION: us-east-1
+      AWS_S3_ENDPOINT: http://minio-test:9000
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      minio-test:
+        condition: service_healthy
+    volumes:
+      - ../../packages/backend:/app
+      - /app/node_modules
+    command: ["npm", "run", "migration:run"]
+    restart: "no"
+
+  # Test Backend (for integration tests)
+  backend-test:
+    build:
+      context: ../../packages/backend
+      dockerfile: Dockerfile
+    container_name: threadfilesharing_backend_test
+    environment:
+      NODE_ENV: test
+      # Database settings
+      DATABASE_URL: postgresql://postgres:password@postgres-test:5432/threadfilesharing_test
+      DATABASE_HOST: postgres-test
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: threadfilesharing_test
+      # Redis settings
+      REDIS_URL: redis://redis-test:6379
+      # JWT settings
+      JWT_SECRET: test-jwt-secret-key
+      # MinIO settings
+      MINIO_ENDPOINT: minio-test
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_USE_SSL: false
+      # AWS S3 settings (using MinIO credentials)
+      AWS_S3_ACCESS_KEY_ID: minioadmin
+      AWS_S3_SECRET_ACCESS_KEY: minioadmin123
+      AWS_S3_REGION: us-east-1
+      AWS_S3_ENDPOINT: http://minio-test:9000
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      minio-test:
+        condition: service_healthy
+      migration-runner:
+        condition: service_completed_successfully
+    volumes:
+      - ../../packages/backend:/app
+      - /app/node_modules
+    command: ["node", "dist/main"]
+
+volumes:
+  postgres_test_data:
+  redis_test_data:
+  minio_test_data:
+
+networks:
+  default:
+    name: threadfilesharing_test_network

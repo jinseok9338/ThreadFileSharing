@@ -1,0 +1,173 @@
+meta {
+  name: POST /api/v1/threads - Create Thread Success
+  type: http
+  seq: 114
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "{{testThreadTitle}}",
+    "description": "{{testThreadDescription}}",
+    "chatroomId": "{{chatroomId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for successful thread creation", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread title matches request", function() {
+    expect(res.getBody().thread.title).to.equal("{{testThreadTitle}}");
+  });
+  
+  test("Thread description matches request", function() {
+    expect(res.getBody().thread.description).to.equal("{{testThreadDescription}}");
+  });
+  
+  test("Thread belongs to specified chatroom", function() {
+    expect(res.getBody().thread.chatroom.id).to.equal("{{chatroomId}}");
+  });
+  
+  test("Thread has valid ID", function() {
+    expect(res.getBody().thread.id).to.be.a('string');
+    expect(res.getBody().thread.id).to.have.length.greaterThan(0);
+  });
+  
+  test("Thread has creator information", function() {
+    expect(res.getBody().thread.createdBy).to.be.an('object');
+    expect(res.getBody().thread.createdBy.id).to.equal("{{ownerUserId}}");
+  });
+  
+  test("Thread has creation timestamp", function() {
+    expect(res.getBody().thread.createdAt).to.be.a('string');
+    expect(res.getBody().thread.updatedAt).to.be.a('string');
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/threads - Create Thread with Participants
+  type: http
+  seq: 115
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Thread with Participants",
+    "description": "Thread created with initial participants",
+    "chatroomId": "{{chatroomId}}",
+    "participantIds": ["{{memberUserId}}", "{{guestUserId}}"]
+  }
+}
+
+tests {
+  test("Status code is 201 for thread with participants", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread has participants", function() {
+    expect(res.getBody().thread.participants).to.be.an('array');
+    expect(res.getBody().thread.participants.length).to.be.greaterThan(0);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/threads - Create Thread from File Upload
+  type: http
+  seq: 116
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "File-based Thread",
+    "description": "Thread created from file upload",
+    "chatroomId": "{{chatroomId}}",
+    "createThread": true,
+    "fileUploadSessionId": "{{fileUploadSessionId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for file-based thread", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread title matches request", function() {
+    expect(res.getBody().thread.title).to.equal("File-based Thread");
+  });
+  
+  test("Thread is associated with file", function() {
+    expect(res.getBody().thread.files).to.be.an('array');
+    expect(res.getBody().thread.files.length).to.be.greaterThan(0);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}

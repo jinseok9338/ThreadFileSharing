@@ -1,0 +1,365 @@
+meta {
+  name: PUT /api/v1/threads/{id} - Update Thread (Owner)
+  type: http
+  seq: 141
+}
+
+put {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Updated Thread Title",
+    "description": "Updated thread description"
+  }
+}
+
+tests {
+  test("Status code is 200 for owner update", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has updated thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread title is updated", function() {
+    expect(res.getBody().thread.title).to.equal("Updated Thread Title");
+  });
+  
+  test("Thread description is updated", function() {
+    expect(res.getBody().thread.description).to.equal("Updated thread description");
+  });
+  
+  test("Thread ID remains the same", function() {
+    expect(res.getBody().thread.id).to.equal("{{threadId}}");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/threads/{id} - Update Thread (Admin)
+  type: http
+  seq: 142
+}
+
+put {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Admin Updated Thread",
+    "description": "Updated by admin"
+  }
+}
+
+tests {
+  test("Status code is 200 for admin update", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has updated thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread title is updated", function() {
+    expect(res.getBody().thread.title).to.equal("Admin Updated Thread");
+  });
+  
+  test("Thread description is updated", function() {
+    expect(res.getBody().thread.description).to.equal("Updated by admin");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/threads/{id} - Add Participants
+  type: http
+  seq: 143
+}
+
+put {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "participantIds": ["{{memberUserId}}", "{{guestUserId}}"]
+  }
+}
+
+tests {
+  test("Status code is 200 for adding participants", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has updated thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread has participants", function() {
+    expect(res.getBody().thread.participants).to.be.an('array');
+    expect(res.getBody().thread.participants.length).to.be.greaterThan(0);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/threads/{id} - Invalid Data
+  type: http
+  seq: 144
+}
+
+put {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "",
+    "description": "",
+    "participantIds": ["invalid-uuid"]
+  }
+}
+
+tests {
+  test("Status code is 400 for invalid data", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation errors", function() {
+    expect(res.getBody().errors).to.be.an('array');
+    expect(res.getBody().errors).to.have.length.greaterThan(0);
+  });
+  
+  test("Title validation error present", function() {
+    const errors = res.getBody().errors;
+    const titleError = errors.find(error => error.field === 'title');
+    expect(titleError).to.exist;
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/threads/{id} - Non-existent Thread
+  type: http
+  seq: 145
+}
+
+put {
+  url: {{baseUrl}}/api/v1/threads/00000000-0000-0000-0000-000000000000
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Updated Name"
+  }
+}
+
+tests {
+  test("Status code is 404 for non-existent thread", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/threads/{id} - Unauthorized Access (Member)
+  type: http
+  seq: 146
+}
+
+put {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Member Updated Thread"
+  }
+}
+
+tests {
+  test("Status code is 403 for member access", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/threads/{id} - Guest Access (Denied)
+  type: http
+  seq: 147
+}
+
+put {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Guest Updated Thread"
+  }
+}
+
+tests {
+  test("Status code is 403 for guest access", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/threads/{id} - No Token
+  type: http
+  seq: 148
+}
+
+put {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Unauthorized Update"
+  }
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

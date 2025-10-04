@@ -1,0 +1,208 @@
+meta {
+  name: POST /api/v1/auth/login - SQL Injection Test 1
+  type: http
+  seq: 244
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "admin@example.com'; DROP TABLE users; --",
+    "password": "password"
+  }
+}
+
+tests {
+  test("Status code is 400 for SQL injection attempt", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error", function() {
+    expect(res.getBody().message).to.include("Invalid email format");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/auth/login - SQL Injection Test 2
+  type: http
+  seq: 245
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "admin@example.com",
+    "password": "'; DROP TABLE users; --"
+  }
+}
+
+tests {
+  test("Status code is 401 for SQL injection attempt", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Invalid credentials");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users - SQL Injection in Query Parameter
+  type: http
+  seq: 246
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users?search='; DROP TABLE users; --
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for SQL injection attempt", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has users array", function() {
+    expect(res.getBody().users).to.be.an('array');
+  });
+  
+  test("SQL injection attempt is safely handled", function() {
+    expect(res.getBody().users.length).to.be.a('number');
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/chatrooms - SQL Injection in Name
+  type: http
+  seq: 247
+}
+
+post {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Test Room'; DROP TABLE chatrooms; --",
+    "description": "Test description"
+  }
+}
+
+tests {
+  test("Status code is 400 for SQL injection attempt", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error", function() {
+    expect(res.getBody().errors).to.be.an('array');
+  });
+  
+  test("SQL injection attempt is rejected", function() {
+    const errors = res.getBody().errors;
+    const nameError = errors.find(error => error.field === 'name');
+    expect(nameError).to.exist;
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/messages - SQL Injection in Content
+  type: http
+  seq: 248
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "Hello'; DROP TABLE messages; --",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for SQL injection attempt", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+  
+  test("SQL injection attempt is safely stored", function() {
+    expect(res.getBody().message.content).to.equal("Hello'; DROP TABLE messages; --");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}

@@ -1,0 +1,64 @@
+meta {
+  name: POST /api/v1/auth/register - Success Scenario
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{testOwnerEmail}}",
+    "username": "{{testOwnerUsername}}",
+    "password": "{{testOwnerPassword}}",
+    "fullName": "Test Owner User"
+  }
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has user object", function() {
+    expect(res.getBody().user).to.be.an('object');
+  });
+  
+  test("Response has company object", function() {
+    expect(res.getBody().company).to.be.an('object');
+  });
+  
+  test("Response has access token", function() {
+    expect(res.getBody().accessToken).to.be.a('string');
+    expect(res.getBody().accessToken).to.have.length.greaterThan(0);
+  });
+  
+  test("User email matches request", function() {
+    expect(res.getBody().user.email).to.equal("{{testOwnerEmail}}");
+  });
+  
+  test("User username matches request", function() {
+    expect(res.getBody().user.username).to.equal("{{testOwnerUsername}}");
+  });
+  
+  test("User role is OWNER", function() {
+    expect(res.getBody().user.role).to.equal("OWNER");
+  });
+  
+  test("Company name is generated", function() {
+    expect(res.getBody().company.name).to.be.a('string');
+    expect(res.getBody().company.name).to.have.length.greaterThan(0);
+  });
+  
+  test("Response time is under 2 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(2000);
+  });
+}

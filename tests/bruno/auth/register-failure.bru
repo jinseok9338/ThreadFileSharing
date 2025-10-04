@@ -1,0 +1,103 @@
+meta {
+  name: POST /api/v1/auth/register - Failure Scenarios
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "invalid-email",
+    "username": "",
+    "password": "123",
+    "fullName": ""
+  }
+}
+
+tests {
+  test("Status code is 400 for invalid data", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has error message", function() {
+    expect(res.getBody().message).to.be.a('string');
+    expect(res.getBody().message).to.have.length.greaterThan(0);
+  });
+  
+  test("Response has validation errors", function() {
+    expect(res.getBody().errors).to.be.an('array');
+    expect(res.getBody().errors).to.have.length.greaterThan(0);
+  });
+  
+  test("Email validation error present", function() {
+    const errors = res.getBody().errors;
+    const emailError = errors.find(error => error.field === 'email');
+    expect(emailError).to.exist;
+  });
+  
+  test("Username validation error present", function() {
+    const errors = res.getBody().errors;
+    const usernameError = errors.find(error => error.field === 'username');
+    expect(usernameError).to.exist;
+  });
+  
+  test("Password validation error present", function() {
+    const errors = res.getBody().errors;
+    const passwordError = errors.find(error => error.field === 'password');
+    expect(passwordError).to.exist;
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/auth/register - Duplicate Email
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{testOwnerEmail}}",
+    "username": "different_username",
+    "password": "{{testOwnerPassword}}",
+    "fullName": "Different User"
+  }
+}
+
+tests {
+  test("Status code is 409 for duplicate email", function() {
+    expect(res.getStatus()).to.equal(409);
+  });
+  
+  test("Response has conflict error message", function() {
+    expect(res.getBody().message).to.include("already exists");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}

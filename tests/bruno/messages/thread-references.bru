@@ -1,0 +1,343 @@
+meta {
+  name: POST /api/v1/messages - Thread Reference System Test
+  type: http
+  seq: 185
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "Check out this #FeatureDiscussion thread for more details about the new feature implementation.",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for message with thread reference", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+  
+  test("Message content matches request", function() {
+    expect(res.getBody().message.content).to.equal("Check out this #FeatureDiscussion thread for more details about the new feature implementation.");
+  });
+  
+  test("Message has thread references", function() {
+    expect(res.getBody().message.threadReferences).to.be.an('array');
+    expect(res.getBody().message.threadReferences.length).to.be.greaterThan(0);
+  });
+  
+  test("Thread reference has correct structure", function() {
+    const threadRefs = res.getBody().message.threadReferences;
+    if (threadRefs.length > 0) {
+      const ref = threadRefs[0];
+      expect(ref.threadId).to.be.a('string');
+      expect(ref.threadName).to.be.a('string');
+      expect(ref.originalText).to.equal("#FeatureDiscussion");
+    }
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/messages - Multiple Thread References
+  type: http
+  seq: 186
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "Please review #BugFix and #PerformanceOptimization threads. Also check #SecurityUpdate for latest changes.",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for message with multiple thread references", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+  
+  test("Message has multiple thread references", function() {
+    expect(res.getBody().message.threadReferences).to.be.an('array');
+    expect(res.getBody().message.threadReferences.length).to.be.greaterThanOrEqual(3);
+  });
+  
+  test("Each thread reference has correct structure", function() {
+    const threadRefs = res.getBody().message.threadReferences;
+    threadRefs.forEach(ref => {
+      expect(ref.threadId).to.be.a('string');
+      expect(ref.threadName).to.be.a('string');
+      expect(ref.originalText).to.match(/^#[a-zA-Z]+$/);
+    });
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/messages - Non-existent Thread Reference
+  type: http
+  seq: 187
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "This #NonExistentThread should not be found in the system.",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for message with non-existent thread reference", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+  
+  test("Message content matches request", function() {
+    expect(res.getBody().message.content).to.equal("This #NonExistentThread should not be found in the system.");
+  });
+  
+  test("Message has empty thread references", function() {
+    expect(res.getBody().message.threadReferences).to.be.an('array');
+    expect(res.getBody().message.threadReferences.length).to.equal(0);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/messages - Mixed Valid and Invalid Thread References
+  type: http
+  seq: 188
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "Valid reference: #FeatureDiscussion. Invalid reference: #NonExistentThread.",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for message with mixed thread references", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+  
+  test("Message has only valid thread references", function() {
+    expect(res.getBody().message.threadReferences).to.be.an('array');
+    expect(res.getBody().message.threadReferences.length).to.equal(1);
+  });
+  
+  test("Valid thread reference is included", function() {
+    const threadRefs = res.getBody().message.threadReferences;
+    const validRef = threadRefs.find(ref => ref.originalText === "#FeatureDiscussion");
+    expect(validRef).to.exist;
+    expect(validRef.threadName).to.equal("FeatureDiscussion");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/messages - Thread Reference with Special Characters
+  type: http
+  seq: 189
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "Check #API-v2.1 and #Database_Migration threads for updates.",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for message with special character thread references", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+  
+  test("Message has thread references", function() {
+    expect(res.getBody().message.threadReferences).to.be.an('array');
+    expect(res.getBody().message.threadReferences.length).to.be.greaterThan(0);
+  });
+  
+  test("Special character thread references are handled correctly", function() {
+    const threadRefs = res.getBody().message.threadReferences;
+    const apiRef = threadRefs.find(ref => ref.originalText === "#API-v2.1");
+    const dbRef = threadRefs.find(ref => ref.originalText === "#Database_Migration");
+    
+    if (apiRef) {
+      expect(apiRef.threadName).to.equal("API-v2.1");
+    }
+    if (dbRef) {
+      expect(dbRef.threadName).to.equal("Database_Migration");
+    }
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/messages/thread/{id} - Retrieve Message with Thread References
+  type: http
+  seq: 190
+}
+
+get {
+  url: {{baseUrl}}/api/v1/messages/thread/{{threadId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+}
+
+tests {
+  test("Status code is 200 for retrieving messages", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has messages array", function() {
+    expect(res.getBody().messages).to.be.an('array');
+  });
+  
+  test("Messages with thread references include threadReferences field", function() {
+    const messages = res.getBody().messages;
+    const messagesWithRefs = messages.filter(msg => msg.threadReferences && msg.threadReferences.length > 0);
+    
+    if (messagesWithRefs.length > 0) {
+      const message = messagesWithRefs[0];
+      expect(message.threadReferences).to.be.an('array');
+      expect(message.threadReferences.length).to.be.greaterThan(0);
+      
+      message.threadReferences.forEach(ref => {
+        expect(ref.threadId).to.be.a('string');
+        expect(ref.threadName).to.be.a('string');
+        expect(ref.originalText).to.match(/^#[a-zA-Z0-9_-]+$/);
+      });
+    }
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}

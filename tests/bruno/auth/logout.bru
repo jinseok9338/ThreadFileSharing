@@ -1,12 +1,12 @@
 meta {
-  name: Logout and revoke token
+  name: POST /api/v1/auth/logout - Session Termination
   type: http
-  seq: 6
+  seq: 15
 }
 
 post {
   url: {{baseUrl}}/api/v1/auth/logout
-  body: json
+  body: none
   auth: bearer
 }
 
@@ -14,20 +14,112 @@ auth:bearer {
   token: {{accessToken}}
 }
 
-body:json {
-  {
-    "refreshToken": "{{refreshToken}}"
-  }
-}
-
-assert {
-  res.status: eq 200
-  res.body.message: eq Logged out successfully
-}
-
 tests {
-  test("Should revoke refresh token", function() {
-    expect(res.status).to.equal(200);
+  test("Status code is 200 for successful logout", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.be.a('string');
+    expect(res.getBody().message).to.include("successfully");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
   });
 }
 
+---
+
+meta {
+  name: POST /api/v1/auth/logout - No Token
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/logout
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has error message", function() {
+    expect(res.getBody().message).to.be.a('string');
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/auth/logout - Invalid Token
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/logout
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: invalid-token
+}
+
+tests {
+  test("Status code is 401 for invalid token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has error message", function() {
+    expect(res.getBody().message).to.be.a('string');
+    expect(res.getBody().message).to.include("Invalid token");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/auth/logout - Already Logged Out
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/logout
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{invalidatedAccessToken}}
+}
+
+tests {
+  test("Status code is 401 for already logged out token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has error message", function() {
+    expect(res.getBody().message).to.be.a('string');
+    expect(res.getBody().message).to.include("Invalid token");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

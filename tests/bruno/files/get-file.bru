@@ -1,0 +1,301 @@
+meta {
+  name: GET /api/v1/files/{id} - Get File (Owner)
+  type: http
+  seq: 202
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for owner access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has file object", function() {
+    expect(res.getBody().file).to.be.an('object');
+  });
+  
+  test("File has correct ID", function() {
+    expect(res.getBody().file.id).to.equal("{{fileId}}");
+  });
+  
+  test("File has complete metadata", function() {
+    const file = res.getBody().file;
+    expect(file.originalName).to.be.a('string');
+    expect(file.mimeType).to.be.a('string');
+    expect(file.size).to.be.a('number');
+    expect(file.storageKey).to.be.a('string');
+    expect(file.storageUrl).to.be.a('string');
+  });
+  
+  test("File has uploader information", function() {
+    expect(res.getBody().file.uploadedBy).to.be.an('object');
+    expect(res.getBody().file.uploadedBy.id).to.be.a('string');
+    expect(res.getBody().file.uploadedBy.username).to.be.a('string');
+  });
+  
+  test("File has chatroom information", function() {
+    expect(res.getBody().file.chatroom).to.be.an('object');
+    expect(res.getBody().file.chatroom.id).to.be.a('string');
+    expect(res.getBody().file.chatroom.name).to.be.a('string');
+  });
+  
+  test("File has thread information", function() {
+    expect(res.getBody().file.thread).to.be.an('object');
+    expect(res.getBody().file.thread.id).to.be.a('string');
+    expect(res.getBody().file.thread.title).to.be.a('string');
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id} - Get File (Admin)
+  type: http
+  seq: 203
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for admin access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has file object", function() {
+    expect(res.getBody().file).to.be.an('object');
+  });
+  
+  test("File has complete metadata", function() {
+    const file = res.getBody().file;
+    expect(file.originalName).to.be.a('string');
+    expect(file.mimeType).to.be.a('string');
+    expect(file.size).to.be.a('number');
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id} - Get File (Member)
+  type: http
+  seq: 204
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for member access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has file object", function() {
+    expect(res.getBody().file).to.be.an('object');
+  });
+  
+  test("File has basic metadata", function() {
+    const file = res.getBody().file;
+    expect(file.originalName).to.be.a('string');
+    expect(file.mimeType).to.be.a('string');
+    expect(file.size).to.be.a('number');
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id} - Get File (Guest)
+  type: http
+  seq: 205
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for guest access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has file object", function() {
+    expect(res.getBody().file).to.be.an('object');
+  });
+  
+  test("File has limited metadata for guest", function() {
+    const file = res.getBody().file;
+    expect(file.originalName).to.be.a('string');
+    expect(file.mimeType).to.be.a('string');
+    expect(file.size).to.be.a('number');
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id} - Non-existent File
+  type: http
+  seq: 206
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/00000000-0000-0000-0000-000000000000
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for non-existent file", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("File not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id} - Invalid UUID
+  type: http
+  seq: 207
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/invalid-uuid
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 400 for invalid UUID", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error", function() {
+    expect(res.getBody().message).to.include("Invalid UUID");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id} - Cross-Company File
+  type: http
+  seq: 208
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{otherCompanyFileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for cross-company file", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("File not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id} - No Token
+  type: http
+  seq: 209
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

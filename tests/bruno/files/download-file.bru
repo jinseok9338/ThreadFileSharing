@@ -1,0 +1,316 @@
+meta {
+  name: GET /api/v1/files/{id}/download - Download File (Owner)
+  type: http
+  seq: 220
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}/download
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for file download", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has correct content type", function() {
+    expect(res.getHeader("content-type")).to.include("application/pdf");
+  });
+  
+  test("Response has content disposition header", function() {
+    expect(res.getHeader("content-disposition")).to.include("attachment");
+    expect(res.getHeader("content-disposition")).to.include("filename=");
+  });
+  
+  test("Response has content length", function() {
+    expect(res.getHeader("content-length")).to.be.a('string');
+    expect(parseInt(res.getHeader("content-length"))).to.be.greaterThan(0);
+  });
+  
+  test("Response body is not empty", function() {
+    expect(res.getBody()).to.have.length.greaterThan(0);
+  });
+  
+  test("Response time is under 5 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(5000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id}/download - Download File (Admin)
+  type: http
+  seq: 221
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}/download
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for admin download", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has correct content type", function() {
+    expect(res.getHeader("content-type")).to.be.a('string');
+  });
+  
+  test("Response has content disposition header", function() {
+    expect(res.getHeader("content-disposition")).to.include("attachment");
+  });
+  
+  test("Response time is under 5 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(5000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id}/download - Download File (Member)
+  type: http
+  seq: 222
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}/download
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for member download", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has correct content type", function() {
+    expect(res.getHeader("content-type")).to.be.a('string');
+  });
+  
+  test("Response has content disposition header", function() {
+    expect(res.getHeader("content-disposition")).to.include("attachment");
+  });
+  
+  test("Response time is under 5 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(5000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id}/download - Download File (Guest)
+  type: http
+  seq: 223
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}/download
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for guest download", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has correct content type", function() {
+    expect(res.getHeader("content-type")).to.be.a('string');
+  });
+  
+  test("Response has content disposition header", function() {
+    expect(res.getHeader("content-disposition")).to.include("attachment");
+  });
+  
+  test("Response time is under 5 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(5000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id}/download - Download Large File
+  type: http
+  seq: 224
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{largeFileId}}/download
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for large file download", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has correct content type", function() {
+    expect(res.getHeader("content-type")).to.be.a('string');
+  });
+  
+  test("Response has content disposition header", function() {
+    expect(res.getHeader("content-disposition")).to.include("attachment");
+  });
+  
+  test("Response has content length for large file", function() {
+    expect(res.getHeader("content-length")).to.be.a('string');
+    expect(parseInt(res.getHeader("content-length"))).to.be.greaterThan(1000000);
+  });
+  
+  test("Response time is under 30 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(30000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id}/download - Non-existent File
+  type: http
+  seq: 225
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/00000000-0000-0000-0000-000000000000/download
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for non-existent file download", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("File not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id}/download - Cross-Company File
+  type: http
+  seq: 226
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{otherCompanyFileId}}/download
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for cross-company file download", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("File not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id}/download - Invalid UUID
+  type: http
+  seq: 227
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/invalid-uuid/download
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 400 for invalid UUID", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error", function() {
+    expect(res.getBody().message).to.include("Invalid UUID");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files/{id}/download - No Token
+  type: http
+  seq: 228
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}/download
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

@@ -1,0 +1,281 @@
+meta {
+  name: DELETE /api/v1/files/{id} - Delete File (Owner)
+  type: http
+  seq: 229
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 204 for successful file deletion", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+  
+  test("Response body is empty", function() {
+    expect(res.getBody()).to.equal("");
+  });
+  
+  test("Response time is under 2 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(2000);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/files/{id} - Delete File (Admin)
+  type: http
+  seq: 230
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 204 for admin file deletion", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+  
+  test("Response body is empty", function() {
+    expect(res.getBody()).to.equal("");
+  });
+  
+  test("Response time is under 2 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(2000);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/files/{id} - Delete File (Member - Own File)
+  type: http
+  seq: 231
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/files/{{memberFileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 204 for member deleting own file", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+  
+  test("Response body is empty", function() {
+    expect(res.getBody()).to.equal("");
+  });
+  
+  test("Response time is under 2 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(2000);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/files/{id} - Delete File (Member - Others File)
+  type: http
+  seq: 232
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 403 for member deleting others file", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/files/{id} - Delete File (Guest)
+  type: http
+  seq: 233
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+tests {
+  test("Status code is 403 for guest file deletion", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/files/{id} - Delete Non-existent File
+  type: http
+  seq: 234
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/files/00000000-0000-0000-0000-000000000000
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for non-existent file deletion", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("File not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/files/{id} - Delete Cross-Company File
+  type: http
+  seq: 235
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/files/{{otherCompanyFileId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for cross-company file deletion", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("File not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/files/{id} - Invalid UUID
+  type: http
+  seq: 236
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/files/invalid-uuid
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 400 for invalid UUID", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error", function() {
+    expect(res.getBody().message).to.include("Invalid UUID");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/files/{id} - No Token
+  type: http
+  seq: 237
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/files/{{fileId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

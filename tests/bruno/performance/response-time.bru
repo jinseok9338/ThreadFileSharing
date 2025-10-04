@@ -1,0 +1,236 @@
+meta {
+  name: GET /api/v1/auth/me - Response Time Test
+  type: http
+  seq: 277
+}
+
+get {
+  url: {{baseUrl}}/api/v1/auth/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for user profile", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 200ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(200);
+  });
+  
+  test("Response has user object", function() {
+    expect(res.getBody().user).to.be.an('object');
+  });
+  
+  test("User has required fields", function() {
+    expect(res.getBody().user.id).to.be.a('string');
+    expect(res.getBody().user.email).to.be.a('string');
+    expect(res.getBody().user.username).to.be.a('string');
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/companies/{id} - Response Time Test
+  type: http
+  seq: 278
+}
+
+get {
+  url: {{baseUrl}}/api/v1/companies/{{companyId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for company details", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 300ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(300);
+  });
+  
+  test("Response has company object", function() {
+    expect(res.getBody().company).to.be.an('object');
+  });
+  
+  test("Company has required fields", function() {
+    expect(res.getBody().company.id).to.be.a('string');
+    expect(res.getBody().company.name).to.be.a('string');
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms/{id} - Response Time Test
+  type: http
+  seq: 279
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms/{{chatroomId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for chatroom details", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 300ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(300);
+  });
+  
+  test("Response has chatroom object", function() {
+    expect(res.getBody().chatroom).to.be.an('object');
+  });
+  
+  test("Chatroom has required fields", function() {
+    expect(res.getBody().chatroom.id).to.be.a('string');
+    expect(res.getBody().chatroom.name).to.be.a('string');
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads/{id} - Response Time Test
+  type: http
+  seq: 280
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for thread details", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 300ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(300);
+  });
+  
+  test("Response has thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread has required fields", function() {
+    expect(res.getBody().thread.id).to.be.a('string');
+    expect(res.getBody().thread.title).to.be.a('string');
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/messages - Response Time Test
+  type: http
+  seq: 281
+}
+
+post {
+  url: {{baseUrl}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "content": "Performance test message",
+    "chatroomId": "{{chatroomId}}",
+    "threadId": "{{threadId}}"
+  }
+}
+
+tests {
+  test("Status code is 201 for message creation", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+  
+  test("Response has message object", function() {
+    expect(res.getBody().message).to.be.an('object');
+  });
+  
+  test("Message has required fields", function() {
+    expect(res.getBody().message.id).to.be.a('string');
+    expect(res.getBody().message.content).to.equal("Performance test message");
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/files - Response Time Test
+  type: http
+  seq: 282
+}
+
+get {
+  url: {{baseUrl}}/api/v1/files
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+}
+
+tests {
+  test("Status code is 200 for file list", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time is under 400ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(400);
+  });
+  
+  test("Response has files array", function() {
+    expect(res.getBody().files).to.be.an('array');
+  });
+  
+  test("Response has pagination", function() {
+    expect(res.getBody().pagination).to.be.an('object');
+  });
+}

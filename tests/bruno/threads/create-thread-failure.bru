@@ -1,0 +1,316 @@
+meta {
+  name: POST /api/v1/threads - Invalid Data
+  type: http
+  seq: 117
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "",
+    "description": "",
+    "chatroomId": "invalid-uuid"
+  }
+}
+
+tests {
+  test("Status code is 400 for invalid data", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation errors", function() {
+    expect(res.getBody().errors).to.be.an('array');
+    expect(res.getBody().errors).to.have.length.greaterThan(0);
+  });
+  
+  test("Title validation error present", function() {
+    const errors = res.getBody().errors;
+    const titleError = errors.find(error => error.field === 'title');
+    expect(titleError).to.exist;
+  });
+  
+  test("ChatroomId validation error present", function() {
+    const errors = res.getBody().errors;
+    const chatroomError = errors.find(error => error.field === 'chatroomId');
+    expect(chatroomError).to.exist;
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/threads - Non-existent Chatroom
+  type: http
+  seq: 118
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Thread in Non-existent Chatroom",
+    "description": "Thread in chatroom that doesn't exist",
+    "chatroomId": "00000000-0000-0000-0000-000000000000"
+  }
+}
+
+tests {
+  test("Status code is 404 for non-existent chatroom", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("Chatroom not found");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/threads - Cross-Company Chatroom
+  type: http
+  seq: 119
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Cross-Company Thread",
+    "description": "Thread in other company's chatroom",
+    "chatroomId": "{{otherCompanyChatroomId}}"
+  }
+}
+
+tests {
+  test("Status code is 404 for cross-company chatroom", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("Chatroom not found");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/threads - Unauthorized Access (Guest)
+  type: http
+  seq: 120
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Guest Thread",
+    "description": "Thread created by guest",
+    "chatroomId": "{{chatroomId}}"
+  }
+}
+
+tests {
+  test("Status code is 403 for guest access", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/threads - Invalid Participant IDs
+  type: http
+  seq: 121
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Thread with Invalid Participants",
+    "description": "Thread with invalid participant IDs",
+    "chatroomId": "{{chatroomId}}",
+    "participantIds": ["invalid-uuid", "{{otherCompanyUserId}}"]
+  }
+}
+
+tests {
+  test("Status code is 400 for invalid participant IDs", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation errors", function() {
+    expect(res.getBody().errors).to.be.an('array');
+    expect(res.getBody().errors).to.have.length.greaterThan(0);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/threads - Duplicate Title in Chatroom
+  type: http
+  seq: 122
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "{{testThreadTitle}}",
+    "description": "Duplicate thread title",
+    "chatroomId": "{{chatroomId}}"
+  }
+}
+
+tests {
+  test("Status code is 409 for duplicate title", function() {
+    expect(res.getStatus()).to.equal(409);
+  });
+  
+  test("Response has conflict error message", function() {
+    expect(res.getBody().message).to.include("already exists");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/threads - No Token
+  type: http
+  seq: 123
+}
+
+post {
+  url: {{baseUrl}}/api/v1/threads
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Unauthorized Thread",
+    "description": "Thread without token",
+    "chatroomId": "{{chatroomId}}"
+  }
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

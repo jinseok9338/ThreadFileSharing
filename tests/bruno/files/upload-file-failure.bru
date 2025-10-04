@@ -1,0 +1,312 @@
+meta {
+  name: POST /api/v1/files/upload - No File
+  type: http
+  seq: 194
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+body:multipart-form {
+  description: Upload without file
+  chatroomId: {{chatroomId}}
+  threadId: {{threadId}}
+  createThread: false
+}
+
+tests {
+  test("Status code is 400 for no file", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error", function() {
+    expect(res.getBody().message).to.include("File is required");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/files/upload - Invalid Chatroom
+  type: http
+  seq: 195
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+body:multipart-form {
+  file: @sample-document.pdf
+  description: Upload to invalid chatroom
+  chatroomId: 00000000-0000-0000-0000-000000000000
+  threadId: {{threadId}}
+  createThread: false
+}
+
+tests {
+  test("Status code is 404 for invalid chatroom", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("Chatroom not found");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/files/upload - Invalid Thread
+  type: http
+  seq: 196
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+body:multipart-form {
+  file: @sample-document.pdf
+  description: Upload to invalid thread
+  chatroomId: {{chatroomId}}
+  threadId: 00000000-0000-0000-0000-000000000000
+  createThread: false
+}
+
+tests {
+  test("Status code is 404 for invalid thread", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("Thread not found");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/files/upload - Unauthorized Access
+  type: http
+  seq: 197
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+body:multipart-form {
+  file: @sample-document.pdf
+  description: Upload by guest user
+  chatroomId: {{chatroomId}}
+  threadId: {{threadId}}
+  createThread: false
+}
+
+tests {
+  test("Status code is 403 for guest access", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/files/upload - Cross-Company Chatroom
+  type: http
+  seq: 198
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+body:multipart-form {
+  file: @sample-document.pdf
+  description: Upload to other company's chatroom
+  chatroomId: {{otherCompanyChatroomId}}
+  threadId: {{threadId}}
+  createThread: false
+}
+
+tests {
+  test("Status code is 404 for cross-company chatroom", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error", function() {
+    expect(res.getBody().message).to.include("Chatroom not found");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/files/upload - File Too Large
+  type: http
+  seq: 199
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+body:multipart-form {
+  file: @huge-file.zip
+  description: File exceeds size limit
+  chatroomId: {{chatroomId}}
+  threadId: {{threadId}}
+  createThread: false
+}
+
+tests {
+  test("Status code is 413 for file too large", function() {
+    expect(res.getStatus()).to.equal(413);
+  });
+  
+  test("Response has file too large error", function() {
+    expect(res.getBody().message).to.include("File too large");
+  });
+  
+  test("Response time is under 2 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(2000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/files/upload - Unsupported File Type
+  type: http
+  seq: 200
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+body:multipart-form {
+  file: @malicious-script.exe
+  description: Unsupported file type
+  chatroomId: {{chatroomId}}
+  threadId: {{threadId}}
+  createThread: false
+}
+
+tests {
+  test("Status code is 415 for unsupported file type", function() {
+    expect(res.getStatus()).to.equal(415);
+  });
+  
+  test("Response has unsupported media type error", function() {
+    expect(res.getBody().message).to.include("Unsupported file type");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/files/upload - No Token
+  type: http
+  seq: 201
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @sample-document.pdf
+  description: Upload without authentication
+  chatroomId: {{chatroomId}}
+  threadId: {{threadId}}
+  createThread: false
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

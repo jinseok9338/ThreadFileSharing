@@ -1,0 +1,261 @@
+meta {
+  name: GET /api/v1/chatrooms - List Chatrooms Access (Owner)
+  type: http
+  seq: 84
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+}
+
+tests {
+  test("Status code is 200 for owner access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has chatrooms array", function() {
+    expect(res.getBody().chatrooms).to.be.an('array');
+  });
+  
+  test("Response has pagination info", function() {
+    expect(res.getBody().pagination).to.be.an('object');
+  });
+  
+  test("Pagination has correct structure", function() {
+    expect(res.getBody().pagination.page).to.be.a('number');
+    expect(res.getBody().pagination.limit).to.be.a('number');
+    expect(res.getBody().pagination.total).to.be.a('number');
+    expect(res.getBody().pagination.totalPages).to.be.a('number');
+  });
+  
+  test("Each chatroom has required fields", function() {
+    const chatrooms = res.getBody().chatrooms;
+    if (chatrooms.length > 0) {
+      const chatroom = chatrooms[0];
+      expect(chatroom.id).to.be.a('string');
+      expect(chatroom.name).to.be.a('string');
+      expect(chatroom.description).to.be.a('string');
+      expect(chatroom.isPublic).to.be.a('boolean');
+      expect(chatroom.createdAt).to.be.a('string');
+      expect(chatroom.updatedAt).to.be.a('string');
+    }
+  });
+  
+  test("All chatrooms belong to same company", function() {
+    const chatrooms = res.getBody().chatrooms;
+    chatrooms.forEach(chatroom => {
+      expect(chatroom.company.id).to.equal("{{companyId}}");
+    });
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms - List Chatrooms Access (Admin)
+  type: http
+  seq: 85
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 5
+}
+
+tests {
+  test("Status code is 200 for admin access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has chatrooms array", function() {
+    expect(res.getBody().chatrooms).to.be.an('array');
+  });
+  
+  test("Response has pagination info", function() {
+    expect(res.getBody().pagination).to.be.an('object');
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms - List Chatrooms Access (Member)
+  type: http
+  seq: 86
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 3
+}
+
+tests {
+  test("Status code is 200 for member access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has chatrooms array", function() {
+    expect(res.getBody().chatrooms).to.be.an('array');
+  });
+  
+  test("Limited results for member access", function() {
+    expect(res.getBody().chatrooms.length).to.be.lessThanOrEqual(3);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms - List Chatrooms Access (Guest)
+  type: http
+  seq: 87
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 2
+}
+
+tests {
+  test("Status code is 200 for guest access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has chatrooms array", function() {
+    expect(res.getBody().chatrooms).to.be.an('array');
+  });
+  
+  test("Limited results for guest access", function() {
+    expect(res.getBody().chatrooms.length).to.be.lessThanOrEqual(2);
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms - Filter by Public Status
+  type: http
+  seq: 88
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+query:params {
+  page: 1
+  limit: 10
+  isPublic: true
+}
+
+tests {
+  test("Status code is 200 for public filter", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has chatrooms array", function() {
+    expect(res.getBody().chatrooms).to.be.an('array');
+  });
+  
+  test("All returned chatrooms are public", function() {
+    const chatrooms = res.getBody().chatrooms;
+    chatrooms.forEach(chatroom => {
+      expect(chatroom.isPublic).to.equal(true);
+    });
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/chatrooms - No Token
+  type: http
+  seq: 89
+}
+
+get {
+  url: {{baseUrl}}/api/v1/chatrooms
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

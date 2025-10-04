@@ -1,0 +1,202 @@
+meta {
+  name: POST /api/v1/users - Invalid Data
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "invalid-email",
+    "username": "",
+    "password": "123",
+    "fullName": "",
+    "role": "INVALID_ROLE"
+  }
+}
+
+tests {
+  test("Status code is 400 for invalid data", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation errors", function() {
+    expect(res.getBody().errors).to.be.an('array');
+    expect(res.getBody().errors).to.have.length.greaterThan(0);
+  });
+  
+  test("Email validation error present", function() {
+    const errors = res.getBody().errors;
+    const emailError = errors.find(error => error.field === 'email');
+    expect(emailError).to.exist;
+  });
+  
+  test("Username validation error present", function() {
+    const errors = res.getBody().errors;
+    const usernameError = errors.find(error => error.field === 'username');
+    expect(usernameError).to.exist;
+  });
+  
+  test("Password validation error present", function() {
+    const errors = res.getBody().errors;
+    const passwordError = errors.find(error => error.field === 'password');
+    expect(passwordError).to.exist;
+  });
+  
+  test("Role validation error present", function() {
+    const errors = res.getBody().errors;
+    const roleError = errors.find(error => error.field === 'role');
+    expect(roleError).to.exist;
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/users - Duplicate Email
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{testAdminEmail}}",
+    "username": "different_username",
+    "password": "{{testAdminPassword}}",
+    "fullName": "Different User",
+    "role": "MEMBER"
+  }
+}
+
+tests {
+  test("Status code is 409 for duplicate email", function() {
+    expect(res.getStatus()).to.equal(409);
+  });
+  
+  test("Response has conflict error message", function() {
+    expect(res.getBody().message).to.include("already exists");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/users - Unauthorized Access
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "newuser@example.com",
+    "username": "newuser",
+    "password": "NewPassword123!",
+    "fullName": "New User",
+    "role": "MEMBER"
+  }
+}
+
+tests {
+  test("Status code is 403 for unauthorized access", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/users - No Token
+  type: http
+  seq: 23
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "newuser@example.com",
+    "username": "newuser",
+    "password": "NewPassword123!",
+    "fullName": "New User",
+    "role": "MEMBER"
+  }
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

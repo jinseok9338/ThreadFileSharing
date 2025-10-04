@@ -1,0 +1,318 @@
+meta {
+  name: GET /api/v1/threads/{id} - Get Thread by ID (Owner)
+  type: http
+  seq: 132
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for valid thread ID", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread ID matches request", function() {
+    expect(res.getBody().thread.id).to.equal("{{threadId}}");
+  });
+  
+  test("Thread has all required fields", function() {
+    const thread = res.getBody().thread;
+    expect(thread.title).to.be.a('string');
+    expect(thread.description).to.be.a('string');
+    expect(thread.createdAt).to.be.a('string');
+    expect(thread.updatedAt).to.be.a('string');
+  });
+  
+  test("Thread belongs to same company", function() {
+    expect(res.getBody().thread.chatroom.company.id).to.equal("{{companyId}}");
+  });
+  
+  test("Thread has creator information", function() {
+    expect(res.getBody().thread.createdBy).to.be.an('object');
+    expect(res.getBody().thread.createdBy.id).to.be.a('string');
+  });
+  
+  test("Thread has participants array", function() {
+    expect(res.getBody().thread.participants).to.be.an('array');
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads/{id} - Get Thread by ID (Admin)
+  type: http
+  seq: 133
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for admin access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread ID matches request", function() {
+    expect(res.getBody().thread.id).to.equal("{{threadId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads/{id} - Get Thread by ID (Member)
+  type: http
+  seq: 134
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for member access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread ID matches request", function() {
+    expect(res.getBody().thread.id).to.equal("{{threadId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads/{id} - Get Thread by ID (Guest)
+  type: http
+  seq: 135
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for guest access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread ID matches request", function() {
+    expect(res.getBody().thread.id).to.equal("{{threadId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads/{id} - Get Private Thread (Non-participant)
+  type: http
+  seq: 136
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/{{privateThreadId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+tests {
+  test("Status code is 403 for non-participant accessing private thread", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads/{id} - Non-existent Thread
+  type: http
+  seq: 137
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/00000000-0000-0000-0000-000000000000
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for non-existent thread", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads/{id} - Invalid UUID
+  type: http
+  seq: 138
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/invalid-uuid
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 400 for invalid UUID", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error message", function() {
+    expect(res.getBody().message).to.include("Invalid UUID");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads/{id} - Cross-Company Thread
+  type: http
+  seq: 139
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/{{otherCompanyThreadId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for cross-company thread", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/threads/{id} - No Token
+  type: http
+  seq: 140
+}
+
+get {
+  url: {{baseUrl}}/api/v1/threads/{{threadId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

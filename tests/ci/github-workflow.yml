@@ -1,0 +1,206 @@
+name: Comprehensive API Testing Suite
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: "0 2 * * *" # Daily at 2 AM
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        test-phase:
+          [
+            setup,
+            auth,
+            users,
+            companies,
+            chatrooms,
+            threads,
+            messages,
+            files,
+            security,
+            performance,
+          ]
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: threadfilesharing_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:6-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+      minio:
+        image: minio/minio:latest
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin123
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 9000:9000
+          - 9001:9001
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          cd packages/backend
+          npm ci
+
+      - name: Run database migrations
+        run: |
+          cd packages/backend
+          npm run migration:run
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/threadfilesharing_test
+
+      - name: Start backend server
+        run: |
+          cd packages/backend
+          npm run start:dev &
+          sleep 30
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/threadfilesharing_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-key
+          MINIO_ENDPOINT: localhost
+          MINIO_PORT: 9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin123
+          MINIO_USE_SSL: false
+
+      - name: Wait for server
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000/health; do sleep 2; done'
+
+      - name: Install Bruno
+        run: |
+          npm install -g @usebruno/cli
+
+      - name: Run Bruno tests
+        run: |
+          cd tests/bruno
+          bruno test --env local
+        env:
+          BRUNO_ENV: local
+
+      - name: Generate test reports
+        run: |
+          cd tests/automation
+          npm run test:analyze
+          npm run test:docs:generate
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.test-phase }}
+          path: |
+            tests/reports/
+            tests/logs/
+
+      - name: Comment PR with test results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'tests/reports/test-summary.md';
+            if (fs.existsSync(path)) {
+              const summary = fs.readFileSync(path, 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## API Test Results\n\n${summary}`
+              });
+            }
+
+  security-tests:
+    runs-on: ubuntu-latest
+    needs: api-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run security tests
+        run: |
+          cd tests/bruno/security
+          bruno test --env test
+
+      - name: Generate security report
+        run: |
+          cd tests/automation
+          npm run test:security:report
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    needs: api-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run performance tests
+        run: |
+          cd tests/bruno/performance
+          bruno test --env test
+
+      - name: Generate performance report
+        run: |
+          cd tests/automation
+          npm run test:performance:report
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [api-tests, security-tests, performance-tests]
+    if: always()
+
+    steps:
+      - name: Notify on success
+        if: needs.api-tests.result == 'success' && needs.security-tests.result == 'success' && needs.performance-tests.result == 'success'
+        run: |
+          echo "All API tests passed successfully!"
+
+      - name: Notify on failure
+        if: needs.api-tests.result == 'failure' || needs.security-tests.result == 'failure' || needs.performance-tests.result == 'failure'
+        run: |
+          echo "Some API tests failed. Check the logs for details."
+          exit 1

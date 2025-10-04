@@ -1,0 +1,184 @@
+meta {
+  name: POST /api/v1/files/upload - Upload File Success
+  type: http
+  seq: 191
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+body:multipart-form {
+  file: @sample-document.pdf
+  description: Sample PDF document for testing
+  chatroomId: {{chatroomId}}
+  threadId: {{threadId}}
+  createThread: false
+}
+
+tests {
+  test("Status code is 201 for successful file upload", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has file object", function() {
+    expect(res.getBody().file).to.be.an('object');
+  });
+  
+  test("File has valid ID", function() {
+    expect(res.getBody().file.id).to.be.a('string');
+    expect(res.getBody().file.id).to.have.length.greaterThan(0);
+  });
+  
+  test("File has correct metadata", function() {
+    const file = res.getBody().file;
+    expect(file.originalName).to.equal("sample-document.pdf");
+    expect(file.mimeType).to.equal("application/pdf");
+    expect(file.size).to.be.a('number');
+    expect(file.size).to.be.greaterThan(0);
+  });
+  
+  test("File belongs to specified chatroom", function() {
+    expect(res.getBody().file.chatroom.id).to.equal("{{chatroomId}}");
+  });
+  
+  test("File belongs to specified thread", function() {
+    expect(res.getBody().file.thread.id).to.equal("{{threadId}}");
+  });
+  
+  test("File has uploader information", function() {
+    expect(res.getBody().file.uploadedBy.id).to.equal("{{ownerUserId}}");
+  });
+  
+  test("File has storage information", function() {
+    const file = res.getBody().file;
+    expect(file.storageKey).to.be.a('string');
+    expect(file.storageUrl).to.be.a('string');
+  });
+  
+  test("Response time is under 5 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(5000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/files/upload - Upload File with Thread Creation
+  type: http
+  seq: 192
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+body:multipart-form {
+  file: @sample-image.jpg
+  description: Sample image for new thread
+  chatroomId: {{chatroomId}}
+  createThread: true
+  threadTitle: New Thread from File Upload
+  threadDescription: Thread created automatically from file upload
+}
+
+tests {
+  test("Status code is 201 for file upload with thread creation", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has file object", function() {
+    expect(res.getBody().file).to.be.an('object');
+  });
+  
+  test("Response has thread object", function() {
+    expect(res.getBody().thread).to.be.an('object');
+  });
+  
+  test("Thread has correct title", function() {
+    expect(res.getBody().thread.title).to.equal("New Thread from File Upload");
+  });
+  
+  test("Thread has correct description", function() {
+    expect(res.getBody().thread.description).to.equal("Thread created automatically from file upload");
+  });
+  
+  test("File belongs to created thread", function() {
+    expect(res.getBody().file.thread.id).to.equal(res.getBody().thread.id);
+  });
+  
+  test("File has correct metadata", function() {
+    const file = res.getBody().file;
+    expect(file.originalName).to.equal("sample-image.jpg");
+    expect(file.mimeType).to.equal("image/jpeg");
+  });
+  
+  test("Response time is under 5 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(5000);
+  });
+}
+
+---
+
+meta {
+  name: POST /api/v1/files/upload - Upload Large File
+  type: http
+  seq: 193
+}
+
+post {
+  url: {{baseUrl}}/api/v1/files/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+body:multipart-form {
+  file: @large-video.mp4
+  description: Large video file for testing
+  chatroomId: {{chatroomId}}
+  threadId: {{threadId}}
+  createThread: false
+}
+
+tests {
+  test("Status code is 201 for large file upload", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has file object", function() {
+    expect(res.getBody().file).to.be.an('object');
+  });
+  
+  test("Large file has correct metadata", function() {
+    const file = res.getBody().file;
+    expect(file.originalName).to.equal("large-video.mp4");
+    expect(file.mimeType).to.equal("video/mp4");
+    expect(file.size).to.be.greaterThan(1000000); // > 1MB
+  });
+  
+  test("Large file has storage information", function() {
+    const file = res.getBody().file;
+    expect(file.storageKey).to.be.a('string');
+    expect(file.storageUrl).to.be.a('string');
+  });
+  
+  test("Response time is under 30 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(30000);
+  });
+}

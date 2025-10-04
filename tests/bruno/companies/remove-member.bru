@@ -1,0 +1,281 @@
+meta {
+  name: DELETE /api/v1/companies/members/{userId} - Remove Member (Owner)
+  type: http
+  seq: 66
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/companies/members/{{memberUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 204 for successful member removal", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+  
+  test("Response body is empty", function() {
+    expect(res.getBody()).to.be.empty;
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/companies/members/{userId} - Remove Member (Admin)
+  type: http
+  seq: 67
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/companies/members/{{guestUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 204 for admin member removal", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+  
+  test("Response body is empty", function() {
+    expect(res.getBody()).to.be.empty;
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/companies/members/{userId} - Remove Non-existent Member
+  type: http
+  seq: 68
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/companies/members/00000000-0000-0000-0000-000000000000
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for non-existent member", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/companies/members/{userId} - Remove Owner (Denied)
+  type: http
+  seq: 69
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/companies/members/{{ownerUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 403 for removing owner", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Cannot remove owner");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/companies/members/{userId} - Remove Admin by Member (Denied)
+  type: http
+  seq: 70
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/companies/members/{{adminUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 403 for member removing admin", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/companies/members/{userId} - Remove Cross-Company Member (Denied)
+  type: http
+  seq: 71
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/companies/members/{{otherCompanyUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for cross-company member", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/companies/members/{userId} - Remove Self (Denied)
+  type: http
+  seq: 72
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/companies/members/{{adminUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 403 for self removal", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Cannot remove yourself");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/companies/members/{userId} - Invalid UUID
+  type: http
+  seq: 73
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/companies/members/invalid-uuid
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 400 for invalid UUID", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error message", function() {
+    expect(res.getBody().message).to.include("Invalid UUID");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: DELETE /api/v1/companies/members/{userId} - No Token
+  type: http
+  seq: 74
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/companies/members/{{memberUserId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

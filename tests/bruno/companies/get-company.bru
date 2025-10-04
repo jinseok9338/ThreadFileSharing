@@ -1,0 +1,186 @@
+meta {
+  name: GET /api/v1/companies/me - Company Information Access
+  type: http
+  seq: 49
+}
+
+get {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for valid company access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has company object", function() {
+    expect(res.getBody().company).to.be.an('object');
+  });
+  
+  test("Company has required fields", function() {
+    const company = res.getBody().company;
+    expect(company.id).to.be.a('string');
+    expect(company.name).to.be.a('string');
+    expect(company.domain).to.be.a('string');
+    expect(company.maxStorageBytes).to.be.a('number');
+    expect(company.createdAt).to.be.a('string');
+    expect(company.updatedAt).to.be.a('string');
+  });
+  
+  test("Company ID matches user's company", function() {
+    expect(res.getBody().company.id).to.equal("{{companyId}}");
+  });
+  
+  test("Company has owner information", function() {
+    const company = res.getBody().company;
+    expect(company.owner).to.be.an('object');
+    expect(company.owner.id).to.be.a('string');
+    expect(company.owner.email).to.be.a('string');
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/companies/me - Admin Access
+  type: http
+  seq: 50
+}
+
+get {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for admin access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has company object", function() {
+    expect(res.getBody().company).to.be.an('object');
+  });
+  
+  test("Company ID matches user's company", function() {
+    expect(res.getBody().company.id).to.equal("{{companyId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/companies/me - Member Access
+  type: http
+  seq: 51
+}
+
+get {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for member access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has company object", function() {
+    expect(res.getBody().company).to.be.an('object');
+  });
+  
+  test("Company ID matches user's company", function() {
+    expect(res.getBody().company.id).to.equal("{{companyId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/companies/me - Guest Access
+  type: http
+  seq: 52
+}
+
+get {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for guest access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has company object", function() {
+    expect(res.getBody().company).to.be.an('object');
+  });
+  
+  test("Company ID matches user's company", function() {
+    expect(res.getBody().company.id).to.equal("{{companyId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/companies/me - No Token
+  type: http
+  seq: 53
+}
+
+get {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

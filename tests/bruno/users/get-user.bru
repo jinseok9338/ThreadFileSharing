@@ -1,0 +1,240 @@
+meta {
+  name: GET /api/v1/users/{id} - Get User by ID
+  type: http
+  seq: 28
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/{{adminUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for valid user ID", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has user object", function() {
+    expect(res.getBody().user).to.be.an('object');
+  });
+  
+  test("User ID matches request", function() {
+    expect(res.getBody().user.id).to.equal("{{adminUserId}}");
+  });
+  
+  test("User has all required fields", function() {
+    const user = res.getBody().user;
+    expect(user.email).to.be.a('string');
+    expect(user.username).to.be.a('string');
+    expect(user.fullName).to.be.a('string');
+    expect(user.role).to.be.oneOf(["OWNER", "ADMIN", "MEMBER", "GUEST"]);
+    expect(user.isActive).to.be.a('boolean');
+    expect(user.createdAt).to.be.a('string');
+    expect(user.updatedAt).to.be.a('string');
+  });
+  
+  test("User belongs to same company", function() {
+    expect(res.getBody().user.company.id).to.equal("{{companyId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users/{id} - Non-existent User
+  type: http
+  seq: 29
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/00000000-0000-0000-0000-000000000000
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for non-existent user", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users/{id} - Invalid UUID
+  type: http
+  seq: 30
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/invalid-uuid
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 400 for invalid UUID", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation error message", function() {
+    expect(res.getBody().message).to.include("Invalid UUID");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users/{id} - Cross-Company Access (Denied)
+  type: http
+  seq: 31
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/{{otherCompanyUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("Status code is 404 for cross-company access", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response has not found error message", function() {
+    expect(res.getBody().message).to.include("not found");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users/{id} - Member Access (Own Profile)
+  type: http
+  seq: 32
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/{{memberUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 200 for own profile access", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has user object", function() {
+    expect(res.getBody().user).to.be.an('object');
+  });
+  
+  test("User ID matches request", function() {
+    expect(res.getBody().user.id).to.equal("{{memberUserId}}");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users/{id} - Member Access (Other User - Denied)
+  type: http
+  seq: 33
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/{{adminUserId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+tests {
+  test("Status code is 403 for member accessing other user", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: GET /api/v1/users/{id} - No Token
+  type: http
+  seq: 34
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/{{adminUserId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}

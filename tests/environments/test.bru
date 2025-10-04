@@ -1,0 +1,59 @@
+vars {
+  baseUrl: http://localhost:3001
+  apiVersion: v1
+  
+  # Test Database Configuration
+  testDbHost: localhost
+  testDbPort: 5433
+  testDbName: threadfilesharing_test
+  testDbUser: postgres
+  testDbPassword: password
+  
+  # Redis Configuration
+  redisHost: localhost
+  redisPort: 6380
+  
+  # Test User Credentials (Different from local)
+  testOwnerEmail: test-owner-test@example.com
+  testOwnerPassword: TestPassword123!
+  testOwnerUsername: test_owner_test_1
+  
+  testAdminEmail: test-admin-test@example.com
+  testAdminPassword: TestPassword123!
+  testAdminUsername: test_admin_test_1
+  
+  testMemberEmail: test-member-test@example.com
+  testMemberPassword: TestPassword123!
+  testMemberUsername: test_member_test_1
+  
+  testGuestEmail: test-guest-test@example.com
+  testGuestPassword: TestPassword123!
+  testGuestUsername: test_guest_test_1
+  
+  # Test Company
+  testCompanyName: TestCompany_Test_1
+  testCompanyDomain: testcompany-test-1.com
+  
+  # Test Chatroom
+  testChatroomName: TestChatroom_Test_1
+  testChatroomDescription: Test chatroom for test environment
+  
+  # Test Thread
+  testThreadTitle: TestThread_Test_1
+  testThreadDescription: Test thread for test environment
+  
+  # File Upload Test
+  testFileName: test-file-test.txt
+  testFileContent: This is test file content for test environment
+  testFileSize: 1024
+  
+  # Performance Testing
+  concurrentUsers: 50
+  testDuration: 15000
+  requestTimeout: 15000
+  
+  # Security Testing
+  sqlInjectionPayload: '; DROP TABLE users; --
+  xssPayload: <script>alert('XSS')</script>
+  csrfToken: test-csrf-token-test
+}

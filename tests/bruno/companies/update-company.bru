@@ -1,0 +1,293 @@
+meta {
+  name: PUT /api/v1/companies/me - Owner Update Permissions
+  type: http
+  seq: 54
+}
+
+put {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Updated Company Name",
+    "domain": "updated-company.com",
+    "maxStorageBytes": 10737418240
+  }
+}
+
+tests {
+  test("Status code is 200 for owner update", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has updated company object", function() {
+    expect(res.getBody().company).to.be.an('object');
+  });
+  
+  test("Company name is updated", function() {
+    expect(res.getBody().company.name).to.equal("Updated Company Name");
+  });
+  
+  test("Company domain is updated", function() {
+    expect(res.getBody().company.domain).to.equal("updated-company.com");
+  });
+  
+  test("Company storage limit is updated", function() {
+    expect(res.getBody().company.maxStorageBytes).to.equal(10737418240);
+  });
+  
+  test("Company ID remains the same", function() {
+    expect(res.getBody().company.id).to.equal("{{companyId}}");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/companies/me - Admin Update Permissions
+  type: http
+  seq: 55
+}
+
+put {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Admin Updated Company Name",
+    "domain": "admin-updated-company.com"
+  }
+}
+
+tests {
+  test("Status code is 200 for admin update", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has updated company object", function() {
+    expect(res.getBody().company).to.be.an('object');
+  });
+  
+  test("Company name is updated", function() {
+    expect(res.getBody().company.name).to.equal("Admin Updated Company Name");
+  });
+  
+  test("Company domain is updated", function() {
+    expect(res.getBody().company.domain).to.equal("admin-updated-company.com");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/companies/me - Invalid Data
+  type: http
+  seq: 56
+}
+
+put {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "",
+    "domain": "invalid-domain",
+    "maxStorageBytes": -1
+  }
+}
+
+tests {
+  test("Status code is 400 for invalid data", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has validation errors", function() {
+    expect(res.getBody().errors).to.be.an('array');
+    expect(res.getBody().errors).to.have.length.greaterThan(0);
+  });
+  
+  test("Name validation error present", function() {
+    const errors = res.getBody().errors;
+    const nameError = errors.find(error => error.field === 'name');
+    expect(nameError).to.exist;
+  });
+  
+  test("Domain validation error present", function() {
+    const errors = res.getBody().errors;
+    const domainError = errors.find(error => error.field === 'domain');
+    expect(domainError).to.exist;
+  });
+  
+  test("Storage validation error present", function() {
+    const errors = res.getBody().errors;
+    const storageError = errors.find(error => error.field === 'maxStorageBytes');
+    expect(storageError).to.exist;
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/companies/me - Member Access (Denied)
+  type: http
+  seq: 57
+}
+
+put {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{memberAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Member Updated Company"
+  }
+}
+
+tests {
+  test("Status code is 403 for member access", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/companies/me - Guest Access (Denied)
+  type: http
+  seq: 58
+}
+
+put {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{guestAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Guest Updated Company"
+  }
+}
+
+tests {
+  test("Status code is 403 for guest access", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+  
+  test("Response has forbidden error message", function() {
+    expect(res.getBody().message).to.include("Forbidden");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
+
+---
+
+meta {
+  name: PUT /api/v1/companies/me - No Token
+  type: http
+  seq: 59
+}
+
+put {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Unauthorized Update"
+  }
+}
+
+tests {
+  test("Status code is 401 for no token", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response has unauthorized error message", function() {
+    expect(res.getBody().message).to.include("Unauthorized");
+  });
+  
+  test("Response time is under 500ms", function() {
+    expect(res.getResponseTime()).to.be.lessThan(500);
+  });
+}
