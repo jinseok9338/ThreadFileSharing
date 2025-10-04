@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { MessageType } from '../entities/message.entity';
 
 export class UserInfoDto {
   @ApiProperty({
@@ -25,60 +26,75 @@ export class UserInfoDto {
   avatarUrl?: string;
 }
 
-export class ChatroomResponseDto {
+export class ReplyToDto {
   @ApiProperty({
-    description: 'Chatroom ID',
+    description: 'Original message ID',
+    example: '123e4567-e89b-12d3-a456-426614174001',
+  })
+  messageId: string;
+
+  @ApiProperty({
+    description: 'Original message content',
+    example: 'Original message',
+  })
+  content: string;
+
+  @ApiProperty({ description: 'Original sender name', example: 'Jane Doe' })
+  senderName: string;
+}
+
+export class MessageResponseDto {
+  @ApiProperty({
+    description: 'Message ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   id: string;
 
   @ApiProperty({
-    description: 'Company ID',
+    description: 'Chatroom ID',
     example: '123e4567-e89b-12d3-a456-426614174001',
   })
-  companyId: string;
+  chatroomId: string;
 
-  @ApiProperty({ description: 'Chatroom name', example: 'General Discussion' })
-  name: string;
+  @ApiProperty({ description: 'Message sender information', type: UserInfoDto })
+  sender: UserInfoDto;
+
+  @ApiProperty({ description: 'Message content', example: 'Hello everyone!' })
+  content: string;
 
   @ApiProperty({
-    description: 'Chatroom description',
-    example: 'General discussion channel for all team members',
-    required: false,
+    description: 'Message type',
+    enum: MessageType,
+    example: MessageType.TEXT,
   })
-  description?: string;
+  messageType: MessageType;
 
   @ApiProperty({
-    description: 'Chatroom avatar URL',
-    example: 'https://example.com/chatroom-avatar.jpg',
-    required: false,
-  })
-  avatarUrl?: string;
-
-  @ApiProperty({
-    description: 'Whether the chatroom is private',
+    description: 'Whether the message has been edited',
     example: false,
   })
-  isPrivate: boolean;
+  isEdited: boolean;
 
   @ApiProperty({
-    description: 'ID of the user who created the chatroom',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  createdBy: string;
-
-  @ApiProperty({
-    description: 'User who created the chatroom',
-    type: UserInfoDto,
+    description: 'Edit timestamp',
+    example: '2023-12-01T10:00:00.000Z',
     required: false,
   })
-  creator?: UserInfoDto;
+  editedAt?: Date;
 
   @ApiProperty({
-    description: 'Number of members in the chatroom',
-    example: 25,
+    description: 'Reply information',
+    type: ReplyToDto,
+    required: false,
   })
-  memberCount: number;
+  replyTo?: ReplyToDto;
+
+  @ApiProperty({
+    description: 'Thread ID if message belongs to a thread',
+    example: '123e4567-e89b-12d3-a456-426614174002',
+    required: false,
+  })
+  threadId?: string;
 
   @ApiProperty({
     description: 'Creation timestamp',
@@ -93,18 +109,15 @@ export class ChatroomResponseDto {
   updatedAt: Date;
 }
 
-export class ChatroomListResponseDto {
-  @ApiProperty({
-    description: 'List of chatrooms',
-    type: [ChatroomResponseDto],
-  })
-  chatrooms: ChatroomResponseDto[];
+export class MessageListResponseDto {
+  @ApiProperty({ description: 'List of messages', type: [MessageResponseDto] })
+  messages: MessageResponseDto[];
 
-  @ApiProperty({ description: 'Total number of chatrooms', example: 50 })
+  @ApiProperty({ description: 'Total number of messages', example: 150 })
   total: number;
 
   @ApiProperty({
-    description: 'Number of chatrooms in current page',
+    description: 'Number of messages in current page',
     example: 20,
   })
   count: number;
@@ -126,7 +139,7 @@ export class ChatroomListResponseDto {
   previousCursor?: string;
 
   @ApiProperty({
-    description: 'Whether there are more chatrooms',
+    description: 'Whether there are more messages',
     example: true,
   })
   hasMore: boolean;

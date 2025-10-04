@@ -1,0 +1,296 @@
+import {
+  Controller,
+  Post,
+  Get,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { ChatRoomService } from '../chatroom.service';
+import { CreateChatroomDto } from '../dto/create-chatroom.dto';
+import { UpdateChatroomDto } from '../dto/update-chatroom.dto';
+import {
+  ChatroomResponseDto,
+  ChatroomListResponseDto,
+} from '../dto/chatroom-response.dto';
+import { CursorPaginationQueryDto } from '../../common/dto';
+import { ApiResponse as SwaggerApiResponse } from '@nestjs/swagger';
+
+@ApiTags('Chatrooms')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('chatrooms')
+export class ChatroomController {
+  constructor(private readonly chatRoomService: ChatRoomService) {}
+
+  @Post()
+  @ApiOperation({
+    summary: 'Create a chatroom',
+    description: 'Create a new chatroom',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Chatroom created successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid chatroom data',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async createChatroom(
+    @Body() createChatroomDto: CreateChatroomDto,
+    @Request() req: any,
+  ): Promise<any> {
+    const chatroom = await this.chatRoomService.createChatRoom(
+      createChatroomDto,
+      req.user.id,
+      req.user.companyId,
+    );
+
+    return {
+      success: true,
+      message: 'Chatroom created successfully',
+      data: chatroom,
+    };
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: 'Get chatrooms',
+    description: 'Get list of chatrooms with pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Number of chatrooms to return',
+    example: 20,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'cursor',
+    description: 'Cursor for pagination',
+    example:
+      'eyJjcmVhdGVkQXQiOiIyMDIzLTEyLTAxVDEwOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9',
+    required: false,
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Chatrooms retrieved successfully',
+  })
+  async getChatrooms(
+    @Query() query: CursorPaginationQueryDto,
+    @Request() req: any,
+  ): Promise<any> {
+    const chatrooms = await this.chatRoomService.getChatRoomsByCompany(
+      req.user.companyId,
+      query,
+    );
+
+    return {
+      success: true,
+      message: 'Chatrooms retrieved successfully',
+      data: chatrooms,
+    };
+  }
+
+  @Get(':chatroomId')
+  @ApiOperation({
+    summary: 'Get a specific chatroom',
+    description: 'Get a chatroom by its ID',
+  })
+  @ApiParam({
+    name: 'chatroomId',
+    description: 'Chatroom ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Chatroom retrieved successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Chatroom not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Access denied to chatroom',
+  })
+  async getChatroom(
+    @Param('chatroomId') chatroomId: string,
+    @Request() req: any,
+  ): Promise<any> {
+    const chatroom = await this.chatRoomService.getChatRoomById(
+      chatroomId,
+      req.user.id,
+    );
+
+    return {
+      success: true,
+      message: 'Chatroom retrieved successfully',
+      data: chatroom,
+    };
+  }
+
+  @Put(':chatroomId')
+  @ApiOperation({
+    summary: 'Update a chatroom',
+    description: 'Update an existing chatroom',
+  })
+  @ApiParam({
+    name: 'chatroomId',
+    description: 'Chatroom ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Chatroom updated successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Chatroom not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'You can only update chatrooms you have permission for',
+  })
+  @HttpCode(HttpStatus.OK)
+  async updateChatroom(
+    @Param('chatroomId') chatroomId: string,
+    @Body() updateChatroomDto: UpdateChatroomDto,
+    @Request() req: any,
+  ): Promise<any> {
+    const chatroom = await this.chatRoomService.updateChatRoom(
+      chatroomId,
+      updateChatroomDto,
+      req.user.id,
+    );
+
+    return {
+      success: true,
+      message: 'Chatroom updated successfully',
+      data: chatroom,
+    };
+  }
+
+  @Delete(':chatroomId')
+  @ApiOperation({
+    summary: 'Delete a chatroom',
+    description: 'Delete a chatroom (soft delete)',
+  })
+  @ApiParam({
+    name: 'chatroomId',
+    description: 'Chatroom ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Chatroom deleted successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Chatroom not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'You can only delete chatrooms you have permission for',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteChatroom(
+    @Param('chatroomId') chatroomId: string,
+    @Request() req: any,
+  ): Promise<void> {
+    await this.chatRoomService.deleteChatRoom(chatroomId, req.user.id);
+  }
+
+  @Post(':chatroomId/members/:userId')
+  @ApiOperation({
+    summary: 'Add member to chatroom',
+    description: 'Add a user to a chatroom',
+  })
+  @ApiParam({
+    name: 'chatroomId',
+    description: 'Chatroom ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'User ID to add',
+    example: '123e4567-e89b-12d3-a456-426614174001',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Member added successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Chatroom or user not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description:
+      'You can only add members to chatrooms you have permission for',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async addMember(
+    @Param('chatroomId') chatroomId: string,
+    @Param('userId') userId: string,
+    @Request() req: any,
+  ): Promise<any> {
+    await this.chatRoomService.addMember(chatroomId, userId, req.user.id);
+
+    return {
+      success: true,
+      message: 'Member added successfully',
+    };
+  }
+
+  @Delete(':chatroomId/members/:userId')
+  @ApiOperation({
+    summary: 'Remove member from chatroom',
+    description: 'Remove a user from a chatroom',
+  })
+  @ApiParam({
+    name: 'chatroomId',
+    description: 'Chatroom ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'User ID to remove',
+    example: '123e4567-e89b-12d3-a456-426614174001',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Member removed successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Chatroom or user not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description:
+      'You can only remove members from chatrooms you have permission for',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeMember(
+    @Param('chatroomId') chatroomId: string,
+    @Param('userId') userId: string,
+    @Request() req: any,
+  ): Promise<void> {
+    await this.chatRoomService.removeMember(chatroomId, userId, req.user.id);
+  }
+}

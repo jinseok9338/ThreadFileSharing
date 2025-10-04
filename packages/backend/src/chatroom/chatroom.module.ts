@@ -1,12 +1,13 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ChatRoomController } from './chatroom.controller';
+import { ChatroomController } from './controllers/chatroom.controller';
 import { ChatRoomService } from './chatroom.service';
 import { ChatRoom } from './entities/chatroom.entity';
 import { ChatRoomMember } from './entities/chatroom-member.entity';
-import { PermissionService } from '../permission/permission.service';
+
 import { User } from '../user/entities/user.entity';
 import { ThreadParticipant } from '../thread/entities/thread-participant.entity';
+import { PermissionModule } from 'src/permission/permission.module';
 
 @Module({
   imports: [
@@ -16,9 +17,10 @@ import { ThreadParticipant } from '../thread/entities/thread-participant.entity'
       User,
       ThreadParticipant,
     ]),
+    PermissionModule,
   ],
-  controllers: [ChatRoomController],
-  providers: [ChatRoomService, PermissionService],
+  controllers: [ChatroomController],
+  providers: [ChatRoomService],
   exports: [ChatRoomService],
 })
 export class ChatRoomModule {}

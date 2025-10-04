@@ -11,6 +11,7 @@ import { CursorBasedData } from '../common/dto/api-response.dto';
 import { Thread } from './entities/thread.entity';
 import { ThreadParticipant } from './entities/thread-participant.entity';
 import { CreateThreadDto } from './dto/create-thread.dto';
+import { UpdateThreadDto } from './dto/update-thread.dto';
 import { ThreadResponseDto } from './dto/thread-response.dto';
 import { ChatRoomService } from '../chatroom/chatroom.service';
 import { PermissionService } from '../permission/permission.service';
@@ -68,7 +69,7 @@ export class ThreadService {
 
     await this.threadParticipantRepository.save(threadParticipant);
 
-    return ThreadResponseDto.fromEntity(savedThread);
+    return this.toThreadResponseDto(savedThread);
   }
 
   /**
@@ -81,7 +82,9 @@ export class ThreadService {
     const { limit = 20, lastIndex } = query;
 
     // Build where condition for cursor-based pagination
-    const whereCondition: any = { chatroomId };
+    const whereCondition: { chatroomId: string; createdAt?: any } = {
+      chatroomId,
+    };
     if (lastIndex) {
       // Parse lastIndex as ISO date string and use it for cursor
       const lastDate = new Date(lastIndex);
@@ -99,9 +102,7 @@ export class ThreadService {
     const items = hasNext ? threads.slice(0, limit) : threads;
 
     // Convert to DTOs
-    const threadDtos = items.map((thread) =>
-      ThreadResponseDto.fromEntity(thread),
-    );
+    const threadDtos = items.map((thread) => this.toThreadResponseDto(thread));
 
     // Get nextIndex from the last item's createdAt if there's a next page
     const nextIndex =
@@ -115,12 +116,27 @@ export class ThreadService {
   /**
    * Get thread by ID
    */
-  async getThreadById(id: string): Promise<ThreadResponseDto | null> {
+  async getThreadById(
+    id: string,
+    userId?: string,
+  ): Promise<ThreadResponseDto | null> {
     const thread = await this.threadRepository.findOne({
       where: { id },
     });
 
-    return thread ? ThreadResponseDto.fromEntity(thread) : null;
+    if (!thread) {
+      return null;
+    }
+
+    // If userId is provided, check participation
+    if (userId) {
+      const isParticipant = await this.isUserParticipantInThread(userId, id);
+      if (!isParticipant) {
+        throw new ForbiddenException('Access denied to thread');
+      }
+    }
+
+    return this.toThreadResponseDto(thread);
   }
 
   /**
@@ -131,6 +147,138 @@ export class ThreadService {
     threadId: string,
   ): Promise<boolean> {
     return this.permissionService.canAccessThread(userId, threadId);
+  }
+
+  /**
+   * Check if user is participant in thread
+   */
+  async isUserParticipantInThread(
+    userId: string,
+    threadId: string,
+  ): Promise<boolean> {
+    const participant = await this.threadParticipantRepository.findOne({
+      where: { userId, threadId },
+    });
+    return !!participant;
+  }
+
+  /**
+   * Delete thread (soft delete)
+   */
+  async deleteThread(threadId: string, userId: string): Promise<void> {
+    const thread = await this.getThreadById(threadId);
+
+    if (!thread) {
+      throw new NotFoundException('Thread not found');
+    }
+
+    // Validate ownership or admin permissions
+    const hasPermission =
+      thread.createdBy === userId ||
+      (await this.permissionService.hasThreadPermission(
+        userId,
+        threadId,
+        'DELETE_THREAD',
+      ));
+
+    if (!hasPermission) {
+      throw new ForbiddenException(
+        'You can only delete threads you created or have admin permissions',
+      );
+    }
+
+    await this.threadRepository.softDelete(threadId);
+  }
+
+  /**
+   * Add participant to thread
+   */
+  async addParticipant(
+    threadId: string,
+    userId: string,
+    requesterId: string,
+  ): Promise<void> {
+    // Validate access
+    await this.getThreadById(threadId, requesterId);
+
+    // Check if participant already exists
+    const existingParticipant = await this.threadParticipantRepository.findOne({
+      where: { threadId, userId },
+    });
+
+    if (existingParticipant) {
+      throw new BadRequestException(
+        'User is already a participant of this thread',
+      );
+    }
+
+    // Add participant
+    const participant = this.threadParticipantRepository.create({
+      threadId,
+      userId,
+      threadRole: ThreadRole.MEMBER,
+    });
+
+    await this.threadParticipantRepository.save(participant);
+
+    // Update participant count
+    await this.threadRepository.increment(
+      { id: threadId },
+      'participantCount',
+      1,
+    );
+  }
+
+  /**
+   * Remove participant from thread
+   */
+  async removeParticipant(
+    threadId: string,
+    userId: string,
+    requesterId: string,
+  ): Promise<void> {
+    // Validate access
+    await this.getThreadById(threadId, requesterId);
+
+    // Remove participant
+    await this.threadParticipantRepository.delete({
+      threadId,
+      userId,
+    });
+
+    // Update participant count
+    await this.threadRepository.decrement(
+      { id: threadId },
+      'participantCount',
+      1,
+    );
+  }
+
+  /**
+   * Convert Thread entity to ThreadResponseDto
+   */
+  private toThreadResponseDto(thread: Thread): ThreadResponseDto {
+    return {
+      id: thread.id,
+      chatroomId: thread.chatroomId,
+      title: thread.title,
+      description: thread.description,
+      createdBy: thread.createdBy,
+      creator: thread.creator
+        ? {
+            id: thread.creator.id,
+            username: thread.creator.username,
+            fullName: thread.creator.fullName,
+            avatarUrl: thread.creator.avatarUrl,
+          }
+        : undefined,
+      isArchived: thread.isArchived,
+      participantCount: thread.participantCount,
+      fileCount: thread.fileCount,
+      lastMessageAt: thread.lastMessageAt,
+      createdAt: thread.createdAt,
+      updatedAt: thread.updatedAt,
+    };
   }
 
   /**
@@ -201,7 +349,7 @@ export class ThreadService {
    */
   async updateThread(
     threadId: string,
-    updateData: Partial<CreateThreadDto>,
+    updateData: UpdateThreadDto,
     userId: string,
   ): Promise<ThreadResponseDto> {
     const thread = await this.threadRepository.findOne({
@@ -227,7 +375,7 @@ export class ThreadService {
     Object.assign(thread, updateData);
     const updatedThread = await this.threadRepository.save(thread);
 
-    return ThreadResponseDto.fromEntity(updatedThread);
+    return this.toThreadResponseDto(updatedThread);
   }
 
   /**
@@ -259,6 +407,22 @@ export class ThreadService {
   }
 
   /**
+   * Get threads for a user with cursor-based pagination
+   */
+  async getThreads(
+    userId: string,
+    query: CursorPaginationQueryDto & { chatroomId?: string },
+  ): Promise<CursorBasedData<ThreadResponseDto>> {
+    // If chatroomId is provided, get threads for that specific chatroom
+    if (query.chatroomId) {
+      return this.getThreadsByChatRoom(query.chatroomId, query);
+    }
+
+    // Otherwise, get all threads for the user
+    return this.getAllThreads(userId, query);
+  }
+
+  /**
    * Get all threads for a user with cursor-based pagination
    */
   async getAllThreads(
@@ -282,7 +446,7 @@ export class ThreadService {
     }
 
     // Get threads with pagination using IN query
-    const whereCondition: any = {
+    const whereCondition: { id: any; createdAt?: any } = {
       id: In(threadIds),
     };
 
@@ -302,9 +466,7 @@ export class ThreadService {
     const items = hasNext ? threads.slice(0, limit) : threads;
 
     // Convert to DTOs
-    const threadDtos = items.map((thread) =>
-      ThreadResponseDto.fromEntity(thread),
-    );
+    const threadDtos = items.map((thread) => this.toThreadResponseDto(thread));
 
     // Get nextIndex from the last item's createdAt if there's a next page
     const nextIndex =

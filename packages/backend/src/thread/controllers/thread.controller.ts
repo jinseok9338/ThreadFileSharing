@@ -1,0 +1,304 @@
+import {
+  Controller,
+  Post,
+  Get,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from '../../common/types/request.types';
+import { ThreadService } from '../thread.service';
+import { CreateThreadDto } from '../dto/create-thread.dto';
+import { UpdateThreadDto } from '../dto/update-thread.dto';
+import {
+  ThreadResponseDto,
+  ThreadDetailResponseDto,
+  ThreadListResponseDto,
+} from '../dto/thread-response.dto';
+import { CursorPaginationQueryDto } from '../../common/dto';
+import { ApiResponse as SwaggerApiResponse } from '@nestjs/swagger';
+
+@ApiTags('Threads')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('threads')
+export class ThreadController {
+  constructor(private readonly threadService: ThreadService) {}
+
+  @Post()
+  @ApiOperation({
+    summary: 'Create a thread',
+    description: 'Create a new thread in a chatroom',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Thread created successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid thread data',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Access denied to chatroom',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async createThread(
+    @Body() createThreadDto: CreateThreadDto,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<any> {
+    const thread = await this.threadService.createThread(
+      createThreadDto,
+      req.user.id,
+    );
+
+    return {
+      success: true,
+      message: 'Thread created successfully',
+      data: thread,
+    };
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: 'Get threads',
+    description: 'Get list of threads with pagination',
+  })
+  @ApiQuery({
+    name: 'chatroomId',
+    description: 'Filter by chatroom ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Number of threads to return',
+    example: 20,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'cursor',
+    description: 'Cursor for pagination',
+    example:
+      'eyJjcmVhdGVkQXQiOiIyMDIzLTEyLTAxVDEwOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9',
+    required: false,
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Threads retrieved successfully',
+  })
+  async getThreads(
+    @Query() query: CursorPaginationQueryDto & { chatroomId?: string },
+    @Request() req: AuthenticatedRequest,
+  ): Promise<any> {
+    const threads = await this.threadService.getThreads(req.user.id, query);
+
+    return {
+      success: true,
+      message: 'Threads retrieved successfully',
+      data: threads,
+    };
+  }
+
+  @Get(':threadId')
+  @ApiOperation({
+    summary: 'Get a specific thread',
+    description: 'Get a thread by its ID with participants',
+  })
+  @ApiParam({
+    name: 'threadId',
+    description: 'Thread ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Thread retrieved successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Thread not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Access denied to thread',
+  })
+  async getThread(
+    @Param('threadId') threadId: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<any> {
+    const thread = await this.threadService.getThreadById(
+      threadId,
+      req.user.id,
+    );
+
+    return {
+      success: true,
+      message: 'Thread retrieved successfully',
+      data: thread,
+    };
+  }
+
+  @Put(':threadId')
+  @ApiOperation({
+    summary: 'Update a thread',
+    description: 'Update an existing thread',
+  })
+  @ApiParam({
+    name: 'threadId',
+    description: 'Thread ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Thread updated successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Thread not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'You can only update threads you have permission for',
+  })
+  @HttpCode(HttpStatus.OK)
+  async updateThread(
+    @Param('threadId') threadId: string,
+    @Body() updateThreadDto: UpdateThreadDto,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<any> {
+    const thread = await this.threadService.updateThread(
+      threadId,
+      updateThreadDto,
+      req.user.id,
+    );
+
+    return {
+      success: true,
+      message: 'Thread updated successfully',
+      data: thread,
+    };
+  }
+
+  @Delete(':threadId')
+  @ApiOperation({
+    summary: 'Delete a thread',
+    description: 'Delete a thread (soft delete)',
+  })
+  @ApiParam({
+    name: 'threadId',
+    description: 'Thread ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Thread deleted successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Thread not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'You can only delete threads you have permission for',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteThread(
+    @Param('threadId') threadId: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<void> {
+    await this.threadService.deleteThread(threadId, req.user.id);
+  }
+
+  @Post(':threadId/participants/:userId')
+  @ApiOperation({
+    summary: 'Add participant to thread',
+    description: 'Add a user to a thread',
+  })
+  @ApiParam({
+    name: 'threadId',
+    description: 'Thread ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'User ID to add',
+    example: '123e4567-e89b-12d3-a456-426614174001',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Participant added successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Thread or user not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description:
+      'You can only add participants to threads you have permission for',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async addParticipant(
+    @Param('threadId') threadId: string,
+    @Param('userId') userId: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<any> {
+    await this.threadService.addParticipant(threadId, userId, req.user.id);
+
+    return {
+      success: true,
+      message: 'Participant added successfully',
+    };
+  }
+
+  @Delete(':threadId/participants/:userId')
+  @ApiOperation({
+    summary: 'Remove participant from thread',
+    description: 'Remove a user from a thread',
+  })
+  @ApiParam({
+    name: 'threadId',
+    description: 'Thread ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'User ID to remove',
+    example: '123e4567-e89b-12d3-a456-426614174001',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Participant removed successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Thread or user not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description:
+      'You can only remove participants from threads you have permission for',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeParticipant(
+    @Param('threadId') threadId: string,
+    @Param('userId') userId: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<void> {
+    await this.threadService.removeParticipant(threadId, userId, req.user.id);
+  }
+}

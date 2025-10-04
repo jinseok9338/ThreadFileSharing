@@ -460,10 +460,10 @@
 
 **Acceptance Criteria**:
 
-- [ ] `CreateChatroomDto` with validation
-- [ ] `UpdateChatroomDto` with validation
-- [ ] `ChatroomResponseDto` for API responses
-- [ ] Proper class-validator decorators
+- [x] `CreateChatroomDto` with validation
+- [x] `UpdateChatroomDto` with validation
+- [x] `ChatroomResponseDto` for API responses
+- [x] Proper class-validator decorators
 
 **Files to Create**:
 
@@ -484,10 +484,10 @@
 
 **Acceptance Criteria**:
 
-- [ ] `SendMessageDto` with validation
-- [ ] `EditMessageDto` with validation
-- [ ] `MessageResponseDto` for API responses
-- [ ] Proper class-validator decorators
+- [x] `SendMessageDto` with validation
+- [x] `EditMessageDto` with validation
+- [x] `MessageResponseDto` for API responses
+- [x] Proper class-validator decorators
 
 **Files to Create**:
 
@@ -508,10 +508,10 @@
 
 **Acceptance Criteria**:
 
-- [ ] `CreateThreadDto` with validation
-- [ ] `UpdateThreadDto` with validation
-- [ ] `ThreadResponseDto` for API responses
-- [ ] Proper class-validator decorators
+- [x] `CreateThreadDto` with validation
+- [x] `UpdateThreadDto` with validation
+- [x] `ThreadResponseDto` for API responses
+- [x] Proper class-validator decorators
 
 **Files to Create**:
 
@@ -555,11 +555,11 @@
 
 **Acceptance Criteria**:
 
-- [ ] Message sending and editing
-- [ ] Message deletion and reactions
-- [ ] Message listing with pagination
-- [ ] Permission validation
-- [ ] Integration with chatroom system
+- [x] Message sending and editing
+- [x] Message deletion and reactions
+- [x] Message listing with pagination
+- [x] Permission validation
+- [x] Integration with chatroom system
 
 **Files to Create**:
 
@@ -603,12 +603,12 @@
 
 **Acceptance Criteria**:
 
-- [ ] `POST /api/v1/chatrooms` endpoint
-- [ ] `GET /api/v1/chatrooms` endpoint
-- [ ] `PUT /api/v1/chatrooms/:id` endpoint
-- [ ] `DELETE /api/v1/chatrooms/:id` endpoint
-- [ ] Proper error handling and HTTP status codes
-- [ ] Swagger documentation
+- [x] `POST /api/v1/chatrooms` endpoint
+- [x] `GET /api/v1/chatrooms` endpoint
+- [x] `PUT /api/v1/chatrooms/:id` endpoint
+- [x] `DELETE /api/v1/chatrooms/:id` endpoint
+- [x] Proper error handling and HTTP status codes
+- [x] Swagger documentation
 
 **Files to Create**:
 
@@ -627,12 +627,12 @@
 
 **Acceptance Criteria**:
 
-- [ ] `POST /api/v1/messages` endpoint
-- [ ] `GET /api/v1/messages` endpoint
-- [ ] `PUT /api/v1/messages/:id` endpoint
-- [ ] `DELETE /api/v1/messages/:id` endpoint
-- [ ] Proper error handling and HTTP status codes
-- [ ] Swagger documentation
+- [x] `POST /api/v1/messages` endpoint
+- [x] `GET /api/v1/messages` endpoint
+- [x] `PUT /api/v1/messages/:id` endpoint
+- [x] `DELETE /api/v1/messages/:id` endpoint
+- [x] Proper error handling and HTTP status codes
+- [x] Swagger documentation
 
 **Files to Create**:
 
@@ -651,12 +651,12 @@
 
 **Acceptance Criteria**:
 
-- [ ] `POST /api/v1/threads` endpoint
-- [ ] `GET /api/v1/threads` endpoint
-- [ ] `PUT /api/v1/threads/:id` endpoint
-- [ ] `DELETE /api/v1/threads/:id` endpoint
-- [ ] Proper error handling and HTTP status codes
-- [ ] Swagger documentation
+- [x] `POST /api/v1/threads` endpoint
+- [x] `GET /api/v1/threads` endpoint
+- [x] `PUT /api/v1/threads/:id` endpoint
+- [x] `DELETE /api/v1/threads/:id` endpoint
+- [x] Proper error handling and HTTP status codes
+- [x] Swagger documentation
 
 **Files to Create**:
 
@@ -677,11 +677,11 @@
 
 **Acceptance Criteria**:
 
-- [ ] `ChatroomModule` with proper imports and exports
-- [ ] `MessageModule` with proper imports and exports
-- [ ] `ThreadModule` with proper imports and exports
-- [ ] `WebSocketModule` with proper imports and exports
-- [ ] Integration with existing `AppModule`
+- [x] `ChatroomModule` with proper imports and exports
+- [x] `MessageModule` with proper imports and exports
+- [x] `ThreadModule` with proper imports and exports
+- [x] `WebSocketModule` with proper imports and exports
+- [x] Integration with existing `AppModule`
 
 **Files to Create**:
 
@@ -703,14 +703,14 @@
 
 **Acceptance Criteria**:
 
-- [ ] Migration for `file_upload_sessions` table
-- [ ] Migration for `chatrooms` table
-- [ ] Migration for `chatroom_members` table
-- [ ] Migration for `messages` table
-- [ ] Migration for `message_reactions` table
-- [ ] Migration for `threads` table
-- [ ] Migration for `thread_members` table
-- [ ] Proper indexes and constraints
+- [x] Migration for `file_upload_sessions` table
+- [x] Migration for `chatrooms` table
+- [x] Migration for `chatroom_members` table
+- [x] Migration for `messages` table
+- [x] Migration for `message_reactions` table
+- [x] Migration for `threads` table
+- [x] Migration for `thread_members` table
+- [x] Proper indexes and constraints
 
 **Files to Create**:
 

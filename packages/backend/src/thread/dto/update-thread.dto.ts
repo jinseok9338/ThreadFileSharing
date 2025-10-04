@@ -1,22 +1,43 @@
-import { IsString, IsOptional } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class UpdateThreadDto {
-  @ApiPropertyOptional({
-    description: 'Thread title',
-    example: '프로젝트 기획서 검토 - 업데이트',
+  @ApiProperty({
+    description: 'Updated thread title',
+    example: 'Updated discussion about new features',
+    minLength: 1,
+    maxLength: 255,
+    required: false,
   })
+  @IsString({ message: 'Title must be a string' })
   @IsOptional()
-  @IsString()
+  @MinLength(1, { message: 'Title must be at least 1 character long' })
+  @MaxLength(255, { message: 'Title cannot exceed 255 characters' })
   title?: string;
 
-  @ApiPropertyOptional({
-    description: 'Thread description',
-    example:
-      '프로젝트 기획서에 대한 피드백과 논의를 위한 스레드입니다. 업데이트됨.',
+  @ApiProperty({
+    description: 'Updated thread description',
+    example: 'Updated thread description for discussing new features',
+    maxLength: 1000,
+    required: false,
   })
+  @IsString({ message: 'Description must be a string' })
   @IsOptional()
-  @IsString()
+  @MaxLength(1000, { message: 'Description cannot exceed 1000 characters' })
   description?: string;
-}
 
+  @ApiProperty({
+    description: 'Whether the thread is archived',
+    example: false,
+    required: false,
+  })
+  @IsBoolean({ message: 'isArchived must be a boolean' })
+  @IsOptional()
+  isArchived?: boolean;
+}

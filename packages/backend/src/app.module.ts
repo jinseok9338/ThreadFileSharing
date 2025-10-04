@@ -12,6 +12,7 @@ import { UserModule } from './user/user.module';
 import { InvitationModule } from './invitation/invitation.module';
 import { ChatRoomModule } from './chatroom/chatroom.module';
 import { ThreadModule } from './thread/thread.module';
+import { MessageModule } from './message/message.module';
 import { FileModule } from './file/file.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import * as path from 'path';
@@ -45,6 +46,7 @@ import * as path from 'path';
     InvitationModule,
     ChatRoomModule,
     ThreadModule,
+    MessageModule,
     FileModule,
     WebSocketModule,
   ],

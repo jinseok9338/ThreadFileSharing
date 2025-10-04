@@ -26,14 +26,15 @@ import {
 import { CursorPaginationQueryDto } from '../common/dto';
 import { CursorBasedData } from '../common/dto/api-response.dto';
 import { ChatRoomService } from './chatroom.service';
-import { CreateChatRoomDto } from './dto/create-chatroom.dto';
-import { ChatRoomResponseDto } from './dto/chatroom-response.dto';
+import { CreateChatroomDto } from './dto/create-chatroom.dto';
+import { ChatroomResponseDto } from './dto/chatroom-response.dto';
+import type { AuthenticatedRequest } from '../common/types/request.types';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CompanyRoleGuard } from '../auth/guards/company-role.guard';
 import { RequireAdmin } from '../auth/decorators/permissions.decorator';
 
 @ApiTags('ChatRooms')
-@ApiExtraModels(ChatRoomResponseDto)
+@ApiExtraModels(ChatroomResponseDto)
 @Controller('chatrooms')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
@@ -45,7 +46,7 @@ export class ChatRoomController {
   @RequireAdmin()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new chatroom' })
-  @ApiSuccessResponse(ChatRoomResponseDto, {
+  @ApiSuccessResponse(ChatroomResponseDto, {
     status: 201,
     description: 'Chatroom created successfully',
   })
@@ -62,14 +63,14 @@ export class ChatRoomController {
     description: 'Forbidden - insufficient permissions',
   })
   async createChatRoom(
-    @Body() createChatRoomDto: CreateChatRoomDto,
-    @Request() req: any,
-  ): Promise<ChatRoomResponseDto> {
+    @Body() createChatroomDto: CreateChatroomDto,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<ChatroomResponseDto> {
     const userId = req.user.id;
     const companyId = req.user.companyId;
 
     return this.chatRoomService.createChatRoom(
-      createChatRoomDto,
+      createChatroomDto,
       userId,
       companyId,
     );
@@ -77,7 +78,7 @@ export class ChatRoomController {
 
   @Get()
   @ApiOperation({ summary: 'Get all chatrooms for the company' })
-  @ApiSuccessCursorResponse(ChatRoomResponseDto, {
+  @ApiSuccessCursorResponse(ChatroomResponseDto, {
     status: 200,
     description: 'Chatrooms retrieved successfully',
   })
@@ -86,9 +87,9 @@ export class ChatRoomController {
     description: 'Unauthorized - invalid or missing token',
   })
   async getChatRooms(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query() query: CursorPaginationQueryDto,
-  ): Promise<CursorBasedData<ChatRoomResponseDto>> {
+  ): Promise<CursorBasedData<ChatroomResponseDto>> {
     const companyId = req.user.companyId;
     return this.chatRoomService.getChatRoomsByCompany(companyId, query);
   }
@@ -100,7 +101,7 @@ export class ChatRoomController {
     description: 'Chatroom ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiSuccessResponse(ChatRoomResponseDto, {
+  @ApiSuccessResponse(ChatroomResponseDto, {
     status: 200,
     description: 'Chatroom retrieved successfully',
   })
@@ -114,7 +115,7 @@ export class ChatRoomController {
   })
   async getChatRoomById(
     @Param('id') id: string,
-  ): Promise<ChatRoomResponseDto | null> {
+  ): Promise<ChatroomResponseDto | null> {
     return this.chatRoomService.getChatRoomById(id);
   }
 }

@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
@@ -9,8 +10,9 @@ import { CursorPaginationQueryDto } from '../common/dto';
 import { CursorBasedData } from '../common/dto/api-response.dto';
 import { ChatRoom } from './entities/chatroom.entity';
 import { ChatRoomMember } from './entities/chatroom-member.entity';
-import { CreateChatRoomDto } from './dto/create-chatroom.dto';
-import { ChatRoomResponseDto } from './dto/chatroom-response.dto';
+import { CreateChatroomDto } from './dto/create-chatroom.dto';
+import { UpdateChatroomDto } from './dto/update-chatroom.dto';
+import { ChatroomResponseDto } from './dto/chatroom-response.dto';
 import { PermissionService } from '../permission/permission.service';
 import { CompanyRole } from '../constants/permissions';
 
@@ -28,10 +30,10 @@ export class ChatRoomService {
    * Create a new chatroom
    */
   async createChatRoom(
-    createChatRoomDto: CreateChatRoomDto,
+    createChatRoomDto: CreateChatroomDto,
     userId: string,
     companyId: string,
-  ): Promise<ChatRoomResponseDto> {
+  ): Promise<ChatroomResponseDto> {
     // Check if user has permission to create chatrooms
     const hasPermission = await this.permissionService.hasCompanyPermission(
       userId,
@@ -68,7 +70,7 @@ export class ChatRoomService {
 
     await this.chatRoomMemberRepository.save(chatRoomMember);
 
-    return ChatRoomResponseDto.fromEntity(savedChatRoom);
+    return this.toChatRoomResponseDto(savedChatRoom);
   }
 
   /**
@@ -77,11 +79,13 @@ export class ChatRoomService {
   async getChatRoomsByCompany(
     companyId: string,
     query: CursorPaginationQueryDto,
-  ): Promise<CursorBasedData<ChatRoomResponseDto>> {
+  ): Promise<CursorBasedData<ChatroomResponseDto>> {
     const { limit = 20, lastIndex } = query;
 
     // Build where condition for cursor-based pagination
-    const whereCondition: any = { companyId };
+    const whereCondition: { companyId: string; createdAt?: any } = {
+      companyId,
+    };
     if (lastIndex) {
       // Parse lastIndex as ISO date string and use it for cursor
       const lastDate = new Date(lastIndex);
@@ -100,7 +104,7 @@ export class ChatRoomService {
 
     // Convert to DTOs
     const chatRoomDtos = items.map((chatRoom) =>
-      ChatRoomResponseDto.fromEntity(chatRoom),
+      this.toChatRoomResponseDto(chatRoom),
     );
 
     // Get nextIndex from the last item's createdAt if there's a next page
@@ -115,12 +119,27 @@ export class ChatRoomService {
   /**
    * Get chatroom by ID
    */
-  async getChatRoomById(id: string): Promise<ChatRoomResponseDto | null> {
+  async getChatRoomById(
+    id: string,
+    userId?: string,
+  ): Promise<ChatroomResponseDto | null> {
     const chatRoom = await this.chatRoomRepository.findOne({
       where: { id },
     });
 
-    return chatRoom ? ChatRoomResponseDto.fromEntity(chatRoom) : null;
+    if (!chatRoom) {
+      return null;
+    }
+
+    // If userId is provided, check membership
+    if (userId) {
+      const isMember = await this.isUserMemberOfChatRoom(userId, id);
+      if (!isMember) {
+        throw new ForbiddenException('Access denied to chatroom');
+      }
+    }
+
+    return this.toChatRoomResponseDto(chatRoom);
   }
 
   /**
@@ -193,5 +212,131 @@ export class ChatRoomService {
       'memberCount',
       1,
     );
+  }
+
+  /**
+   * Update a chatroom
+   */
+  async updateChatRoom(
+    chatroomId: string,
+    updateDto: UpdateChatroomDto,
+    userId: string,
+  ): Promise<ChatroomResponseDto> {
+    const chatroom = await this.chatRoomRepository.findOne({
+      where: { id: chatroomId },
+    });
+
+    if (!chatroom) {
+      throw new NotFoundException('Chatroom not found');
+    }
+
+    // Update fields
+    if (updateDto.name !== undefined) chatroom.name = updateDto.name;
+    if (updateDto.description !== undefined)
+      chatroom.description = updateDto.description;
+    if (updateDto.avatarUrl !== undefined)
+      chatroom.avatarUrl = updateDto.avatarUrl;
+    if (updateDto.isPrivate !== undefined)
+      chatroom.isPrivate = updateDto.isPrivate;
+
+    const updatedChatroom = await this.chatRoomRepository.save(chatroom);
+    return this.toChatRoomResponseDto(updatedChatroom);
+  }
+
+  /**
+   * Delete a chatroom (soft delete)
+   */
+  async deleteChatRoom(chatroomId: string, userId: string): Promise<void> {
+    await this.getChatRoomById(chatroomId, userId);
+    await this.chatRoomRepository.softDelete(chatroomId);
+  }
+
+  /**
+   * Add member to chatroom
+   */
+  async addMember(
+    chatroomId: string,
+    userId: string,
+    requesterId: string,
+  ): Promise<void> {
+    // Validate access
+    await this.getChatRoomById(chatroomId, requesterId);
+
+    // Check if member already exists
+    const existingMember = await this.chatRoomMemberRepository.findOne({
+      where: { chatroomId: chatroomId, userId: userId },
+    });
+
+    if (existingMember) {
+      throw new BadRequestException(
+        'User is already a member of this chatroom',
+      );
+    }
+
+    // Add member
+    const member = this.chatRoomMemberRepository.create({
+      chatroomId: chatroomId,
+      userId: userId,
+    });
+
+    await this.chatRoomMemberRepository.save(member);
+
+    // Update member count
+    await this.chatRoomRepository.increment(
+      { id: chatroomId },
+      'memberCount',
+      1,
+    );
+  }
+
+  /**
+   * Remove member from chatroom
+   */
+  async removeMember(
+    chatroomId: string,
+    userId: string,
+    requesterId: string,
+  ): Promise<void> {
+    // Validate access
+    await this.getChatRoomById(chatroomId, requesterId);
+
+    // Remove member
+    await this.chatRoomMemberRepository.delete({
+      chatroomId: chatroomId,
+      userId: userId,
+    });
+
+    // Update member count
+    await this.chatRoomRepository.decrement(
+      { id: chatroomId },
+      'memberCount',
+      1,
+    );
+  }
+
+  /**
+   * Convert ChatRoom entity to ChatroomResponseDto
+   */
+  private toChatRoomResponseDto(chatroom: ChatRoom): ChatroomResponseDto {
+    return {
+      id: chatroom.id,
+      companyId: chatroom.companyId,
+      name: chatroom.name,
+      description: chatroom.description,
+      avatarUrl: chatroom.avatarUrl,
+      isPrivate: chatroom.isPrivate,
+      createdBy: chatroom.createdBy,
+      creator: chatroom.creator
+        ? {
+            id: chatroom.creator.id,
+            username: chatroom.creator.username,
+            fullName: chatroom.creator.fullName,
+            avatarUrl: chatroom.creator.avatarUrl,
+          }
+        : undefined,
+      memberCount: chatroom.memberCount,
+      createdAt: chatroom.createdAt,
+      updatedAt: chatroom.updatedAt,
+    };
   }
 }

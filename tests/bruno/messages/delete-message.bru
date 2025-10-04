@@ -1,0 +1,25 @@
+meta {
+  name: Delete Message
+  type: http
+  seq: 4
+}
+
+del {
+  url: {{base_url}}/api/v1/messages/{{message_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+tests {
+  test("Status code is 204", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+  
+  test("Response body is empty", function() {
+    expect(res.getBody()).to.be.empty;
+  });
+}

@@ -44,6 +44,12 @@ export class Message {
   @Column({ type: 'timestamp', nullable: true })
   editedAt: Date;
 
+  @Column({ type: 'uuid', nullable: true })
+  replyToId: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  threadId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -59,4 +65,3 @@ export class Message {
   @JoinColumn({ name: 'senderId' })
   sender: any;
 }
-

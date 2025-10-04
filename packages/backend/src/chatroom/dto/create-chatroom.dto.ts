@@ -1,49 +1,53 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
+  IsNotEmpty,
   IsOptional,
   IsBoolean,
-  IsNotEmpty,
   MaxLength,
+  MinLength,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateChatRoomDto {
+export class CreateChatroomDto {
   @ApiProperty({
     description: 'Chatroom name',
-    example: 'Project Discussion',
-    maxLength: 100,
+    example: 'General Discussion',
+    minLength: 1,
+    maxLength: 255,
   })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
+  @IsString({ message: 'Name must be a string' })
+  @IsNotEmpty({ message: 'Name is required' })
+  @MinLength(1, { message: 'Name must be at least 1 character long' })
+  @MaxLength(255, { message: 'Name cannot exceed 255 characters' })
   name: string;
 
   @ApiProperty({
     description: 'Chatroom description',
-    example: 'Discussion about the new project features',
-    required: false,
+    example: 'General discussion channel for all team members',
     maxLength: 500,
+    required: false,
   })
-  @IsString()
+  @IsString({ message: 'Description must be a string' })
   @IsOptional()
-  @MaxLength(500)
+  @MaxLength(500, { message: 'Description cannot exceed 500 characters' })
   description?: string;
+
+  @ApiProperty({
+    description: 'Chatroom avatar URL',
+    example: 'https://example.com/chatroom-avatar.jpg',
+    required: false,
+  })
+  @IsString({ message: 'Avatar URL must be a string' })
+  @IsOptional()
+  avatarUrl?: string;
 
   @ApiProperty({
     description: 'Whether the chatroom is private',
     example: false,
+    default: false,
     required: false,
   })
-  @IsBoolean()
+  @IsBoolean({ message: 'isPrivate must be a boolean' })
   @IsOptional()
-  isPrivate?: boolean;
-
-  @ApiProperty({
-    description: 'Chatroom avatar URL',
-    example: 'https://example.com/avatar.jpg',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  avatarUrl?: string;
+  isPrivate?: boolean = false;
 }
