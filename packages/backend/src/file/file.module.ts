@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { File } from './entities/file.entity';
 import { UploadProgress } from './entities/upload-progress.entity';
 import { UploadSession } from './entities/upload-session.entity';
+import { FileUploadSession } from './entities/file-upload-session.entity';
 import { FileAssociation } from './entities/file-association.entity';
 import { StorageQuota } from './entities/storage-quota.entity';
 import { DownloadToken } from './entities/download-token.entity';
@@ -17,6 +18,8 @@ import { Company } from '../company/entities/company.entity';
 import { S3ClientService } from './services/s3-client.service';
 import { FileUploadService } from './services/file-upload.service';
 import { UploadProgressService } from './services/upload-progress.service';
+import { ChunkedUploadService } from './services/chunked-upload.service';
+import { StreamingUploadService } from './services/streaming-upload.service';
 import { FileManagementService } from './services/file-management.service';
 import { StorageModule } from '../storage/storage.module';
 
@@ -37,6 +40,7 @@ import { WebSocketModule } from '../websocket/websocket.module';
       File,
       UploadProgress,
       UploadSession,
+      FileUploadSession,
       FileAssociation,
       StorageQuota,
       DownloadToken,
@@ -57,12 +61,16 @@ import { WebSocketModule } from '../websocket/websocket.module';
     S3ClientService,
     FileUploadService,
     UploadProgressService,
+    ChunkedUploadService,
+    StreamingUploadService,
     FileManagementService,
   ],
   exports: [
     S3ClientService,
     FileUploadService,
     UploadProgressService,
+    ChunkedUploadService,
+    StreamingUploadService,
     FileManagementService,
   ],
 })

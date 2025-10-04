@@ -1,4 +1,13 @@
-import { IsString, IsInt, Min, Max, IsUUID, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsUUID,
+  IsEnum,
+  IsBoolean,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 
@@ -8,7 +17,6 @@ export class UploadChunkDto {
     example: 'upload_session_123e4567-e89b-12d3-a456-426614174000',
   })
   @IsString()
-  @IsUUID()
   sessionId: string;
 
   @ApiProperty({
@@ -50,6 +58,10 @@ export class UploadChunkDto {
   @ApiProperty({
     description: 'Whether this is the final chunk',
     example: false,
+    required: false,
   })
-  isFinalChunk: boolean;
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  isFinalChunk?: boolean;
 }

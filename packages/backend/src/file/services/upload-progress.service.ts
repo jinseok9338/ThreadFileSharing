@@ -24,7 +24,7 @@ export class UploadProgressService {
       });
 
       this.logger.debug(
-        `Progress updated for session ${uploadSession.sessionId}: ${uploadSession.progressPercentage}%`,
+        `Progress updated for session ${uploadSession.sessionId}: ${uploadSession.uploadedChunks}/${uploadSession.totalChunks} chunks`,
       );
     } catch (error) {
       this.logger.error(

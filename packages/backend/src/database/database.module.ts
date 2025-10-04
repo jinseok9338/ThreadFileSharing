@@ -15,6 +15,7 @@ import { Thread } from '../thread/entities/thread.entity';
 import { File } from '../file/entities/file.entity';
 import { UploadProgress } from '../file/entities/upload-progress.entity';
 import { UploadSession } from '../file/entities/upload-session.entity';
+import { FileUploadSession } from '../file/entities/file-upload-session.entity';
 import { FileAssociation } from '../file/entities/file-association.entity';
 import { StorageQuota } from '../file/entities/storage-quota.entity';
 import { DownloadToken } from '../file/entities/download-token.entity';
@@ -50,6 +51,7 @@ import { ThreadMessage } from '../thread-message/entities/thread-message.entity'
           File,
           UploadProgress,
           UploadSession,
+          FileUploadSession,
           FileAssociation,
           StorageQuota,
           DownloadToken,

@@ -126,8 +126,12 @@ export class ChunkedUploadService {
       ...uploadSession.chunkMetadata,
       chunkMetadata,
     ];
+    // Calculate actual uploaded data size from base64 chunk data
+    const actualChunkSize = Buffer.from(chunkDto.chunkData, 'base64').length;
+
+    // Calculate new uploaded bytes
     const newUploadedBytes =
-      uploadSession.uploadedBytes + BigInt(chunkDto.chunkSizeBytes);
+      BigInt(uploadSession.uploadedBytes) + BigInt(actualChunkSize);
     const newUploadedChunks = uploadSession.uploadedChunks + 1;
 
     // Determine new status
