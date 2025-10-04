@@ -1,0 +1,365 @@
+meta {
+  name: Thread Reference Test
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "admin",
+    "password": "password123"
+  }
+}
+
+tests {
+  test("Login successful", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.success).to.be.true;
+    expect(res.body.data.accessToken).to.be.a('string');
+    
+    bru.setVar("authToken", res.body.data.accessToken);
+    bru.setVar("userId", res.body.data.user.id);
+    bru.setVar("companyId", res.body.data.user.companyId);
+  });
+}
+
+---
+
+meta {
+  name: Create Chatroom for Thread Reference Test
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/chatrooms
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "name": "Thread Reference Test Chatroom",
+    "description": "Chatroom for testing thread references"
+  }
+}
+
+tests {
+  test("Chatroom created successfully", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.id).to.be.a('string');
+    
+    bru.setVar("chatroomId", res.body.id);
+  });
+}
+
+---
+
+meta {
+  name: Create Thread for Reference
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "chatroomId": "{{chatroomId}}",
+    "title": "Feature Discussion",
+    "description": "Discussion about new features"
+  }
+}
+
+tests {
+  test("Thread created successfully", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.id).to.be.a('string');
+    expect(res.body.title).to.equal("Feature Discussion");
+    
+    bru.setVar("threadId", res.body.id);
+  });
+}
+
+---
+
+meta {
+  name: Create Another Thread for Multiple References
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "chatroomId": "{{chatroomId}}",
+    "title": "Bug Reports",
+    "description": "Collection of bug reports"
+  }
+}
+
+tests {
+  test("Second thread created successfully", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.id).to.be.a('string');
+    expect(res.body.title).to.equal("Bug Reports");
+    
+    bru.setVar("threadId2", res.body.id);
+  });
+}
+
+---
+
+meta {
+  name: Send Message with Single Thread Reference
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "chatroomId": "{{chatroomId}}",
+    "content": "Please check #Feature Discussion for more details",
+    "messageType": "TEXT"
+  }
+}
+
+tests {
+  test("Message with thread reference sent successfully", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.success).to.be.true;
+    expect(res.body.data.content).to.equal("Please check #Feature Discussion for more details");
+    expect(res.body.data.threadReferences).to.be.an('array');
+    expect(res.body.data.threadReferences.length).to.equal(1);
+    expect(res.body.data.threadReferences[0].threadName).to.equal("Feature Discussion");
+    expect(res.body.data.threadReferences[0].originalText).to.equal("#Feature Discussion");
+    expect(res.body.data.threadReferences[0].threadId).to.equal("{{threadId}}");
+    
+    bru.setVar("messageId1", res.body.data.id);
+  });
+}
+
+---
+
+meta {
+  name: Send Message with Multiple Thread References
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "chatroomId": "{{chatroomId}}",
+    "content": "Related to #Feature Discussion and #Bug Reports. Please review both threads.",
+    "messageType": "TEXT"
+  }
+}
+
+tests {
+  test("Message with multiple thread references sent successfully", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.success).to.be.true;
+    expect(res.body.data.content).to.equal("Related to #Feature Discussion and #Bug Reports. Please review both threads.");
+    expect(res.body.data.threadReferences).to.be.an('array');
+    expect(res.body.data.threadReferences.length).to.equal(2);
+    
+    // Check both references are present
+    const threadNames = res.body.data.threadReferences.map(ref => ref.threadName);
+    expect(threadNames).to.include("Feature Discussion");
+    expect(threadNames).to.include("Bug Reports");
+    
+    // Check original texts are preserved
+    const originalTexts = res.body.data.threadReferences.map(ref => ref.originalText);
+    expect(originalTexts).to.include("#Feature Discussion");
+    expect(originalTexts).to.include("#Bug Reports");
+    
+    bru.setVar("messageId2", res.body.data.id);
+  });
+}
+
+---
+
+meta {
+  name: Send Message with Non-existent Thread Reference
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "chatroomId": "{{chatroomId}}",
+    "content": "This references #NonExistentThread which doesn't exist",
+    "messageType": "TEXT"
+  }
+}
+
+tests {
+  test("Message with non-existent thread reference sent successfully", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.success).to.be.true;
+    expect(res.body.data.content).to.equal("This references #NonExistentThread which doesn't exist");
+    expect(res.body.data.threadReferences).to.be.an('array');
+    expect(res.body.data.threadReferences.length).to.equal(0);
+    
+    bru.setVar("messageId3", res.body.data.id);
+  });
+}
+
+---
+
+meta {
+  name: Send Message with Mixed Valid and Invalid References
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{base_url}}/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "chatroomId": "{{chatroomId}}",
+    "content": "Check #Feature Discussion and #InvalidThread for details",
+    "messageType": "TEXT"
+  }
+}
+
+tests {
+  test("Message with mixed references sent successfully", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.success).to.be.true;
+    expect(res.body.data.content).to.equal("Check #Feature Discussion and #InvalidThread for details");
+    expect(res.body.data.threadReferences).to.be.an('array');
+    expect(res.body.data.threadReferences.length).to.equal(1);
+    expect(res.body.data.threadReferences[0].threadName).to.equal("Feature Discussion");
+    expect(res.body.data.threadReferences[0].originalText).to.equal("#Feature Discussion");
+  });
+}
+
+---
+
+meta {
+  name: Get Messages to Verify Thread References
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{base_url}}/messages/chatroom/{{chatroomId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+tests {
+  test("Messages retrieved with thread references", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.success).to.be.true;
+    expect(res.body.data.messages).to.be.an('array');
+    
+    // Find messages with thread references
+    const messagesWithReferences = res.body.data.messages.filter(msg => 
+      msg.threadReferences && msg.threadReferences.length > 0
+    );
+    
+    expect(messagesWithReferences.length).to.be.greaterThan(0);
+    
+    // Verify the first message with single reference
+    const singleRefMessage = messagesWithReferences.find(msg => 
+      msg.content.includes("#Feature Discussion") && 
+      msg.threadReferences.length === 1
+    );
+    
+    expect(singleRefMessage).to.exist;
+    expect(singleRefMessage.threadReferences[0].threadName).to.equal("Feature Discussion");
+  });
+}
+
+---
+
+meta {
+  name: Cleanup - Delete Test Chatroom
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{base_url}}/chatrooms/{{chatroomId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+tests {
+  test("Test chatroom deleted successfully", function() {
+    expect(res.status).to.equal(204);
+  });
+}

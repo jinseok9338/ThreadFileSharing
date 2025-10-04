@@ -14,8 +14,10 @@ import { EditMessageDto } from '../dto/edit-message.dto';
 import {
   MessageResponseDto,
   MessageListResponseDto,
+  ThreadReferenceDto,
 } from '../dto/message-response.dto';
 import { ChatRoomService } from '../../chatroom/chatroom.service';
+import { ThreadService } from '../../thread/thread.service';
 import { PermissionService } from '../../permission/permission.service';
 import { AccessType } from '../../constants/permissions';
 import { User } from '../../user/entities/user.entity';
@@ -28,6 +30,7 @@ export class MessageService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly chatRoomService: ChatRoomService,
+    private readonly threadService: ThreadService,
     private readonly permissionService: PermissionService,
   ) {}
 
@@ -62,8 +65,25 @@ export class MessageService {
       throw new NotFoundException('Message not found after creation');
     }
 
+    // Get chatroom info for company ID
+    const chatroom = await this.chatRoomService.getChatRoomById(
+      sendMessageDto.chatroomId,
+      userId,
+    );
+
+    // Parse thread references
+    const threadReferences = chatroom
+      ? await this.parseThreadReferences(
+          sendMessageDto.content,
+          chatroom.companyId,
+        )
+      : [];
+
     // Convert to response DTO
-    return this.toMessageResponseDto(messageWithRelations);
+    const responseDto = this.toMessageResponseDto(messageWithRelations);
+    responseDto.threadReferences = threadReferences;
+
+    return responseDto;
   }
 
   /**
@@ -303,5 +323,49 @@ export class MessageService {
       id: message.id,
     };
     return Buffer.from(JSON.stringify(data)).toString('base64');
+  }
+
+  /**
+   * Parse thread references from message content
+   */
+  async parseThreadReferences(
+    content: string,
+    companyId: string,
+  ): Promise<ThreadReferenceDto[]> {
+    // Extract thread names from #threadname patterns
+    const threadNamePattern = /#([^\s#]+)/g;
+    const matches = [...content.matchAll(threadNamePattern)];
+
+    if (matches.length === 0) {
+      return [];
+    }
+
+    // Extract unique thread names
+    const threadNames = [...new Set(matches.map((match) => match[1].trim()))];
+
+    // Find threads by name
+    const threadMap = await this.threadService.findThreadsByName(
+      threadNames,
+      companyId,
+    );
+
+    // Build thread references
+    const threadReferences: ThreadReferenceDto[] = [];
+
+    for (const match of matches) {
+      const originalText = match[0]; // e.g., "#Feature Discussion"
+      const threadName = match[1].trim().toLowerCase();
+
+      const threadInfo = threadMap.get(threadName);
+      if (threadInfo) {
+        threadReferences.push({
+          threadId: threadInfo.id,
+          threadName: threadInfo.title,
+          originalText,
+        });
+      }
+    }
+
+    return threadReferences;
   }
 }

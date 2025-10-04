@@ -43,6 +43,26 @@ export class ReplyToDto {
   senderName: string;
 }
 
+export class ThreadReferenceDto {
+  @ApiProperty({
+    description: 'Thread ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  threadId: string;
+
+  @ApiProperty({
+    description: 'Thread name/title',
+    example: 'Feature Discussion',
+  })
+  threadName: string;
+
+  @ApiProperty({
+    description: 'Original reference text in message',
+    example: '#Feature Discussion',
+  })
+  originalText: string;
+}
+
 export class MessageResponseDto {
   @ApiProperty({
     description: 'Message ID',
@@ -95,6 +115,13 @@ export class MessageResponseDto {
     required: false,
   })
   threadId?: string;
+
+  @ApiProperty({
+    description: 'Thread references found in message content',
+    type: [ThreadReferenceDto],
+    required: false,
+  })
+  threadReferences?: ThreadReferenceDto[];
 
   @ApiProperty({
     description: 'Creation timestamp',

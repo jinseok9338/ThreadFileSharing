@@ -476,4 +476,41 @@ export class ThreadService {
 
     return new CursorBasedData(threadDtos, hasNext, limit, nextIndex);
   }
+
+  /**
+   * Find threads by name/title for thread reference parsing
+   */
+  async findThreadsByName(
+    threadNames: string[],
+    companyId: string,
+  ): Promise<Map<string, { id: string; title: string }>> {
+    if (threadNames.length === 0) {
+      return new Map();
+    }
+
+    const threads = await this.threadRepository
+      .createQueryBuilder('thread')
+      .leftJoin('thread.chatRoom', 'chatRoom')
+      .where('chatRoom.companyId = :companyId', { companyId })
+      .select(['thread.id', 'thread.title'])
+      .getMany();
+
+    const result = new Map<string, { id: string; title: string }>();
+
+    for (const thread of threads) {
+      // Find the best matching thread name from the input
+      const matchedName = threadNames.find((name) =>
+        thread.title.toLowerCase().includes(name.toLowerCase()),
+      );
+
+      if (matchedName) {
+        result.set(matchedName.toLowerCase(), {
+          id: thread.id,
+          title: thread.title,
+        });
+      }
+    }
+
+    return result;
+  }
 }
