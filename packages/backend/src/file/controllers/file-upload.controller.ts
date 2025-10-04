@@ -13,7 +13,7 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
+  ApiResponse as SwaggerApiResponse,
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
@@ -24,7 +24,7 @@ import { UploadProgressService } from '../services/upload-progress.service';
 import { InitiateUploadDto } from '../dto/initiate-upload.dto';
 import { UploadChunkDto } from '../dto/upload-chunk.dto';
 import { UploadSessionResponseDto } from '../dto/upload-session-response.dto';
-import { CommonResponseDto } from '../../common/dto/common-response.dto';
+import { ApiResponse as ApiResponseClass } from '../../common/dto/api-response.dto';
 
 @ApiTags('File Upload')
 @ApiBearerAuth()
@@ -42,23 +42,23 @@ export class FileUploadController {
     summary: 'Initiate large file upload session',
     description: 'Creates a new upload session for chunked file upload',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.CREATED,
     description: 'Upload session created successfully',
-    type: CommonResponseDto<UploadSessionResponseDto>,
+    type: ApiResponseClass<UploadSessionResponseDto>,
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid request parameters',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'Authentication required',
   })
   async initiateUpload(
     @Body() initiateDto: InitiateUploadDto,
     @Request() req: any,
-  ): Promise<CommonResponseDto<UploadSessionResponseDto>> {
+  ): Promise<any> {
     const uploadSession = await this.chunkedUploadService.initiateUpload(
       initiateDto,
       req.user.id,
@@ -93,23 +93,21 @@ export class FileUploadController {
     summary: 'Upload file chunk',
     description: 'Uploads a single chunk of the file',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.OK,
     description: 'Chunk uploaded successfully',
-    type: CommonResponseDto<UploadSessionResponseDto>,
+    type: ApiResponseClass<UploadSessionResponseDto>,
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid chunk data or sequence',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Upload session not found',
   })
   @HttpCode(HttpStatus.OK)
-  async uploadChunk(
-    @Body() chunkDto: UploadChunkDto,
-  ): Promise<CommonResponseDto<UploadSessionResponseDto>> {
+  async uploadChunk(@Body() chunkDto: UploadChunkDto): Promise<any> {
     const uploadSession = await this.chunkedUploadService.uploadChunk(chunkDto);
 
     const response: UploadSessionResponseDto = {
@@ -147,18 +145,16 @@ export class FileUploadController {
     description: 'Upload session ID',
     example: 'upload_session_123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.OK,
     description: 'Upload session status retrieved successfully',
-    type: CommonResponseDto<UploadSessionResponseDto>,
+    type: ApiResponseClass<UploadSessionResponseDto>,
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Upload session not found',
   })
-  async getUploadSession(
-    @Param('sessionId') sessionId: string,
-  ): Promise<CommonResponseDto<UploadSessionResponseDto>> {
+  async getUploadSession(@Param('sessionId') sessionId: string): Promise<any> {
     const uploadSession =
       await this.chunkedUploadService.getUploadSession(sessionId);
 
@@ -196,22 +192,20 @@ export class FileUploadController {
     description: 'Upload session ID',
     example: 'upload_session_123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.OK,
     description: 'Upload session cancelled successfully',
-    type: CommonResponseDto<UploadSessionResponseDto>,
+    type: ApiResponseClass<UploadSessionResponseDto>,
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Cannot cancel completed upload session',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Upload session not found',
   })
-  async cancelUpload(
-    @Param('sessionId') sessionId: string,
-  ): Promise<CommonResponseDto<UploadSessionResponseDto>> {
+  async cancelUpload(@Param('sessionId') sessionId: string): Promise<any> {
     const uploadSession =
       await this.chunkedUploadService.cancelUpload(sessionId);
 
@@ -249,11 +243,11 @@ export class FileUploadController {
     description: 'Upload session ID',
     example: 'upload_session_123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.OK,
     description: 'Streaming statistics retrieved successfully',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Upload session not found',
   })
@@ -278,15 +272,15 @@ export class FileUploadController {
     description: 'Upload session ID',
     example: 'upload_session_123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.OK,
     description: 'Upload session resume information retrieved',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Cannot resume completed upload session',
   })
-  @ApiResponse({
+  @SwaggerApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Upload session not found',
   })

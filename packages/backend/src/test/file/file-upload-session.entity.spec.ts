@@ -15,7 +15,13 @@ describe('FileUploadSession Entity', () => {
     uploadSession.uploadedBytes = BigInt(0);
     uploadSession.status = UploadStatus.PENDING;
     uploadSession.chunkMetadata = [];
-    uploadSession.metadata = {};
+    uploadSession.metadata = {
+      mimeType: 'text/plain',
+      originalSize: BigInt(1000000),
+      chunkSize: 1048576,
+      checksum: 'sha256:test',
+      uploadStartedAt: new Date(),
+    };
     uploadSession.uploadedById = 'user-id';
     uploadSession.createdAt = new Date();
     uploadSession.updatedAt = new Date();
@@ -136,7 +142,7 @@ describe('FileUploadSession Entity', () => {
     });
 
     it('should return false when expiresAt is null', () => {
-      uploadSession.expiresAt = null;
+      uploadSession.expiresAt = null as any;
 
       expect(uploadSession.isExpired).toBe(false);
     });
@@ -145,7 +151,7 @@ describe('FileUploadSession Entity', () => {
   describe('BigInt serialization', () => {
     it('should serialize BigInt values correctly', () => {
       // Set up BigInt serialization for this test
-      const originalToJSON = BigInt.prototype.toJSON;
+      const originalToJSON = (BigInt.prototype as any).toJSON;
       (BigInt.prototype as any).toJSON = function () {
         return this.toString();
       };
@@ -160,7 +166,7 @@ describe('FileUploadSession Entity', () => {
         expect(serialized).toContain('"uploadedBytes":"536870912"');
       } finally {
         // Restore original toJSON
-        BigInt.prototype.toJSON = originalToJSON;
+        (BigInt.prototype as any).toJSON = originalToJSON;
       }
     });
 
