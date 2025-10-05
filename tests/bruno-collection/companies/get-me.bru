@@ -1,0 +1,41 @@
+meta {
+  name: Get current user's company
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/v1/companies/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isDefined
+  res.body.slug: eq anchors
+  res.body.plan: eq enterprise
+}
+
+tests {
+  test("Should return company info", function() {
+    expect(res.body).to.be.an("object");
+    expect(res.body.name).to.equal("Anchors");
+    expect(res.body.slug).to.equal("anchors");
+  });
+  
+  test("Should include plan and limits", function() {
+    expect(res.body.plan).to.equal("enterprise");
+    expect(res.body.maxUsers).to.be.a("number");
+    expect(res.body.maxStorageBytes).to.be.a("string"); // bigint as string
+  });
+  
+  test("Should not expose sensitive data", function() {
+    expect(res.body.deletedAt).to.be.undefined;
+  });
+}
+

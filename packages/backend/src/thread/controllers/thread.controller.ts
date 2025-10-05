@@ -18,8 +18,11 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { ThreadRoleGuard } from '../../auth/guards/thread-role.guard';
+import { RequireThreadMember } from '../../auth/decorators/permissions.decorator';
 import type { AuthenticatedRequest } from '../../common/types/request.types';
 import { ThreadService } from '../thread.service';
 import { CreateThreadDto } from '../dto/create-thread.dto';
@@ -31,6 +34,8 @@ import {
 } from '../dto/thread-response.dto';
 import { CursorPaginationQueryDto } from '../../common/dto';
 import { ApiResponse as SwaggerApiResponse } from '@nestjs/swagger';
+import { FileResponseDto } from '../../file/dto/file-response.dto';
+import { ThreadFileAssociationResponseDto } from '../dto/thread-file-association-response.dto';
 
 @ApiTags('Threads')
 @ApiBearerAuth()
@@ -300,5 +305,111 @@ export class ThreadController {
     @Request() req: AuthenticatedRequest,
   ): Promise<void> {
     await this.threadService.removeParticipant(threadId, userId, req.user.id);
+  }
+
+  @Get(':id/files')
+  @ApiOperation({ summary: 'Get files associated with thread' })
+  @ApiParam({
+    name: 'id',
+    description: 'Thread ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Thread files retrieved successfully',
+    type: [FileResponseDto],
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing token',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Thread not found',
+  })
+  async getThreadFiles(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<FileResponseDto[]> {
+    const userId = req.user.id;
+    return this.threadService.getThreadFiles(id, userId);
+  }
+
+  @Post(':id/files')
+  @ApiOperation({ summary: 'Associate file with thread' })
+  @ApiParam({
+    name: 'id',
+    description: 'Thread ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'File associated with thread successfully',
+    type: ThreadFileAssociationResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation failed',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing token',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Thread or file not found',
+  })
+  async associateFileWithThread(
+    @Param('id') id: string,
+    @Body() body: { fileId: string },
+    @Request() req: AuthenticatedRequest,
+  ): Promise<ThreadFileAssociationResponseDto> {
+    const userId = req.user.id;
+    return this.threadService.associateFileWithThread(id, body.fileId, userId);
+  }
+
+  @Delete(':id/files/:fileId')
+  @ApiOperation({ summary: 'Remove file association from thread' })
+  @ApiParam({
+    name: 'id',
+    description: 'Thread ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiParam({
+    name: 'fileId',
+    description: 'File ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'File association removed successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing token',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Thread or file not found',
+  })
+  async removeFileFromThread(
+    @Param('id') id: string,
+    @Param('fileId') fileId: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<void> {
+    const userId = req.user.id;
+    return this.threadService.removeFileFromThread(id, fileId, userId);
   }
 }

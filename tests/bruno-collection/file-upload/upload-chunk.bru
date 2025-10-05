@@ -1,0 +1,47 @@
+meta {
+  name: Upload Chunk
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/api/v1/files/upload/chunk
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+body:json {
+  {
+    "sessionId": "{{upload_session_id}}",
+    "chunkIndex": 0,
+    "chunkSizeBytes": 5242880,
+    "chunkChecksum": "sha256:chunk_abc123",
+    "chunkData": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "isFinalChunk": false
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has session info", function() {
+    expect(res.getBody().data.sessionId).to.equal({{upload_session_id}});
+    expect(res.getBody().data.uploadedChunks).to.be.a('number');
+    expect(res.getBody().data.progressPercentage).to.be.a('number');
+  });
+
+  test("Progress is updated", function() {
+    expect(res.getBody().data.uploadedChunks).to.be.at.least(1);
+    expect(res.getBody().data.progressPercentage).to.be.at.least(0);
+  });
+
+  test("Status is in progress", function() {
+    expect(res.getBody().data.status).to.equal('in_progress');
+  });
+}

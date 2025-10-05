@@ -1,0 +1,55 @@
+meta {
+  name: Get File by ID Test
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/api/v1/files/{{file_id}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has success status", function() {
+    expect(res.body.success).to.be.true;
+  });
+  
+  test("Response contains file data", function() {
+    expect(res.body.data).to.have.property('file');
+    expect(res.body.data.file).to.have.property('id');
+    expect(res.body.data.file).to.have.property('originalName');
+    expect(res.body.data.file).to.have.property('sizeBytes');
+    expect(res.body.data.file).to.have.property('createdAt');
+    expect(res.body.data.file).to.have.property('companyId');
+    expect(res.body.data.file).to.have.property('uploadedBy');
+  });
+  
+  test("File ID matches request", function() {
+    expect(res.body.data.file.id).to.equal(file_id);
+  });
+  
+  test("File has metadata", function() {
+    expect(res.body.data.file.originalName).to.be.a('string');
+    expect(res.body.data.file.sizeBytes).to.be.a('number');
+    expect(res.body.data.file.sizeBytes).to.be.greaterThan(0);
+    expect(res.body.data.file.createdAt).to.be.a('string');
+  });
+  
+  test("File has access control info", function() {
+    expect(res.body.data.file.accessType).to.be.a('string');
+    expect(['PUBLIC', 'PRIVATE', 'COMPANY_ONLY']).to.include(res.body.data.file.accessType);
+  });
+}
+
+vars:pre-request {
+  auth_token: "{{jwt_token}}"
+  file_id: "{{uploaded_file_id}}"
+}

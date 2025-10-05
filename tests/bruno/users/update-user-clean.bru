@@ -1,0 +1,36 @@
+meta {
+  name: PUT /api/v1/users/me - Clean User Update Test
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/api/v1/users/me
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "full_name": "Updated Test User",
+    "username": "test_user_updated"
+  }
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has success status", function() {
+    expect(res.getBody().status).to.equal("success");
+  });
+  
+  test("User name is updated", function() {
+    expect(res.getBody().data.user.fullName).to.equal("Updated Test User");
+  });
+}

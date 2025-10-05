@@ -58,8 +58,13 @@ import { ThreadMessage } from '../thread-message/entities/thread-message.entity'
           Message,
           ThreadMessage,
         ],
-        synchronize: false,
-        logging: configService.get<string>('NODE_ENV') === 'local',
+        // Environment-based synchronization
+        synchronize: ['development', 'test', 'local'].includes(
+          configService.get<string>('NODE_ENV') || '',
+        ),
+        logging: ['development', 'test', 'local'].includes(
+          configService.get<string>('NODE_ENV') || '',
+        ),
       }),
       inject: [ConfigService],
     }),

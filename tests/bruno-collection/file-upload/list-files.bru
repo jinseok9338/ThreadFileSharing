@@ -1,0 +1,57 @@
+meta {
+  name: List Files Test
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/v1/files?limit=10&lastIndex=0
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has success status", function() {
+    expect(res.body.success).to.be.true;
+  });
+  
+  test("Response contains data array", function() {
+    expect(res.body.data).to.be.an('array');
+  });
+  
+  test("Response has pagination info", function() {
+    expect(res.body.data).to.have.property('items');
+    expect(res.body.data).to.have.property('hasNext');
+    expect(res.body.data).to.have.property('nextIndex');
+    expect(res.body.data).to.have.property('total');
+  });
+  
+  test("Each file has required properties", function() {
+    if (res.body.data.items && res.body.data.items.length > 0) {
+      const file = res.body.data.items[0];
+      expect(file).to.have.property('id');
+      expect(file).to.have.property('originalName');
+      expect(file).to.have.property('sizeBytes');
+      expect(file).to.have.property('createdAt');
+      expect(file).to.have.property('companyId');
+      expect(file).to.have.property('uploadedBy');
+    }
+  });
+  
+  test("Pagination properties are correct types", function() {
+    expect(res.body.data.hasNext).to.be.a('boolean');
+    expect(res.body.data.nextIndex).to.be.a('number');
+    expect(res.body.data.total).to.be.a('number');
+  });
+}
+
+vars:pre-request {
+  auth_token: "{{jwt_token}}"
+}

@@ -1,0 +1,62 @@
+meta {
+  name: Create Chatroom
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/chatrooms
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Test Chatroom",
+    "description": "A test chatroom for API testing",
+    "isPrivate": false
+  }
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has success field", function() {
+    expect(res.getBody().success).to.equal(true);
+  });
+  
+  test("Response has message field", function() {
+    expect(res.getBody().message).to.equal("Chatroom created successfully");
+  });
+  
+  test("Response has data field", function() {
+    expect(res.getBody().data).to.be.an('object');
+  });
+  
+  test("Chatroom has required fields", function() {
+    const chatroom = res.getBody().data;
+    expect(chatroom).to.have.property('id');
+    expect(chatroom).to.have.property('companyId');
+    expect(chatroom).to.have.property('name');
+    expect(chatroom).to.have.property('description');
+    expect(chatroom).to.have.property('isPrivate');
+    expect(chatroom).to.have.property('creator');
+    expect(chatroom).to.have.property('memberCount');
+    expect(chatroom).to.have.property('createdAt');
+  });
+  
+  test("Chatroom name matches request", function() {
+    const chatroom = res.getBody().data;
+    expect(chatroom.name).to.equal("Test Chatroom");
+  });
+}

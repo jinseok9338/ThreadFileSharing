@@ -1,59 +1,26 @@
 vars {
-  baseUrl: http://localhost:3000
-  apiVersion: v1
-  
-  # Test Database Configuration
-  testDbHost: localhost
-  testDbPort: 5432
-  testDbName: threadfilesharing_test
-  testDbUser: postgres
-  testDbPassword: password
-  
-  # Redis Configuration
-  redisHost: localhost
-  redisPort: 6379
-  
-  # Test User Credentials
+  baseUrl: http://localhost:3001
   testOwnerEmail: test-owner@example.com
   testOwnerPassword: TestPassword123!
-  testOwnerUsername: test_owner_1
-  
+  testOwnerFullName: Test Owner User
   testAdminEmail: test-admin@example.com
   testAdminPassword: TestPassword123!
-  testAdminUsername: test_admin_1
-  
+  testAdminFullName: Test Admin User
   testMemberEmail: test-member@example.com
   testMemberPassword: TestPassword123!
-  testMemberUsername: test_member_1
-  
+  testMemberFullName: Test Member User
   testGuestEmail: test-guest@example.com
   testGuestPassword: TestPassword123!
-  testGuestUsername: test_guest_1
-  
-  # Test Company
+  testGuestFullName: Test Guest User
   testCompanyName: TestCompany_1
   testCompanyDomain: testcompany1.com
-  
-  # Test Chatroom
   testChatroomName: TestChatroom_1
   testChatroomDescription: Test chatroom for API testing
-  
-  # Test Thread
   testThreadTitle: TestThread_1
   testThreadDescription: Test thread for API testing
-  
-  # File Upload Test
-  testFileName: test-file.txt
-  testFileContent: This is test file content for API testing
-  testFileSize: 1024
-  
-  # Performance Testing
-  concurrentUsers: 100
-  testDuration: 30000
-  requestTimeout: 30000
-  
-  # Security Testing
-  sqlInjectionPayload: '; DROP TABLE users; --
-  xssPayload: <script>alert('XSS')</script>
-  csrfToken: test-csrf-token
+  # 토큰 변수들 (런타임에 설정됨)
+  accessToken: ""
+  refreshToken: ""
+  ownerAccessToken: ""
+  adminAccessToken: ""
 }

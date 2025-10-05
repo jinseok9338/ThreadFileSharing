@@ -1,0 +1,56 @@
+meta {
+  name: Create company invitation
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/v1/invitations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "email": "newmember@anchors-biz.com",
+    "role": "member"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.email: eq newmember@anchors-biz.com
+  res.body.role: eq member
+  res.body.status: eq pending
+  res.body.token: isDefined
+}
+
+tests {
+  test("Should create invitation", function() {
+    expect(res.body).to.be.an("object");
+    expect(res.body.email).to.equal("newmember@anchors-biz.com");
+    expect(res.body.role).to.equal("member");
+  });
+  
+  test("Should generate invitation token", function() {
+    expect(res.body.token).to.be.a("string");
+    expect(res.body.token.length).to.be.greaterThan(20);
+  });
+  
+  test("Should set expiration", function() {
+    expect(res.body.expiresAt).to.be.a("string");
+    const expiresAt = new Date(res.body.expiresAt);
+    const now = new Date();
+    expect(expiresAt.getTime()).to.be.greaterThan(now.getTime());
+  });
+}
+
+script:post-response {
+  // Save invitation token for acceptance test
+  bru.setEnvVar("invitationToken", res.body.token);
+}
+

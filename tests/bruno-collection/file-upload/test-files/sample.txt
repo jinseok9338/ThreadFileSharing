@@ -1,0 +1,11 @@
+This is a test file for Bruno API testing.
+It contains sample content to test file upload functionality.
+File size: approximately 150 bytes.
+
+Bruno Test Content:
+- Line 1: Testing file upload
+- Line 2: Testing file metadata
+- Line 3: Testing file validation
+- Line 4: Testing response format
+
+End of test file.

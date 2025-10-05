@@ -1,0 +1,68 @@
+meta {
+  name: POST /api/v1/users - Create User Success
+  type: http
+  seq: 19
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ownerAccessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{testAdminEmail}}",
+    "username": "{{testAdminUsername}}",
+    "password": "{{testAdminPassword}}",
+    "fullName": "Test Admin User",
+    "role": "ADMIN"
+  }
+}
+
+tests {
+  test("Status code is 201 for successful user creation", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has user object", function() {
+    expect(res.getBody().user).to.be.an('object');
+  });
+  
+  test("User email matches request", function() {
+    expect(res.getBody().user.email).to.equal("{{testAdminEmail}}");
+  });
+  
+  test("User username matches request", function() {
+    expect(res.getBody().user.username).to.equal("{{testAdminUsername}}");
+  });
+  
+  test("User role matches request", function() {
+    expect(res.getBody().user.role).to.equal("ADMIN");
+  });
+  
+  test("User is active by default", function() {
+    expect(res.getBody().user.isActive).to.equal(true);
+  });
+  
+  test("User has valid ID", function() {
+    expect(res.getBody().user.id).to.be.a('string');
+    expect(res.getBody().user.id).to.have.length.greaterThan(0);
+  });
+  
+  test("User belongs to same company", function() {
+    expect(res.getBody().user.company.id).to.equal("{{companyId}}");
+  });
+  
+  test("Response time is under 1 second", function() {
+    expect(res.getResponseTime()).to.be.lessThan(1000);
+  });
+}

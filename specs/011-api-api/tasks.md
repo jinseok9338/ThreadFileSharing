@@ -138,92 +138,168 @@
 - [x] T056 [P] Bruno API test concurrent request handling in tests/bruno/performance/concurrent-requests.bru
 - [x] T057 [P] Bruno API test memory usage optimization in tests/bruno/performance/memory-usage.bru
 
-## Phase 3.3: Core Implementation (ONLY after tests are failing)
+## Phase 3.3: Scenario API Testing (API Only)
+
+- [ ] T058 [P] Complete user registration and login flow test in tests/scenarios/api/user-registration-flow.test.js
+- [ ] T059 [P] Company creation and member invitation flow test in tests/scenarios/api/company-setup-flow.test.js
+- [ ] T060 [P] Chatroom creation and message sending flow test in tests/scenarios/api/chatroom-messaging-flow.test.js
+- [ ] T061 [P] Thread creation and file sharing flow test in tests/scenarios/api/thread-file-sharing-flow.test.js
+- [ ] T062 [P] File upload with thread auto-creation flow test in tests/scenarios/api/file-upload-auto-thread.test.js
+- [ ] T063 [P] User role management and permission flow test in tests/scenarios/api/role-permission-flow.test.js
+- [ ] T064 [P] Storage quota management flow test in tests/scenarios/api/storage-quota-flow.test.js
+- [ ] T065 [P] Multi-user collaboration scenario test in tests/scenarios/api/multi-user-collaboration.test.js
+- [ ] T066 [P] Error recovery and retry scenario test in tests/scenarios/api/error-recovery-flow.test.js
+- [ ] T067 [P] Performance under load scenario test in tests/scenarios/api/performance-load.test.js
+
+## Phase 3.4: Unit WebSocket Testing (WebSocket Only)
+
+- [ ] T068 [P] WebSocket connection authentication test in tests/websocket/unit/connection-auth.test.js
+- [ ] T069 [P] WebSocket file upload progress events test in tests/websocket/unit/file-upload-progress.test.js
+- [ ] T070 [P] WebSocket file upload completion events test in tests/websocket/unit/file-upload-completion.test.js
+- [ ] T071 [P] WebSocket file upload failure events test in tests/websocket/unit/file-upload-failure.test.js
+- [ ] T072 [P] WebSocket real-time messaging test in tests/websocket/unit/realtime-messaging.test.js
+- [ ] T073 [P] WebSocket room management test in tests/websocket/unit/room-management.test.js
+- [ ] T074 [P] WebSocket error handling test in tests/websocket/unit/error-handling.test.js
+- [ ] T075 [P] WebSocket reconnection logic test in tests/websocket/unit/reconnection.test.js
+
+## Phase 3.5: Integration API + WebSocket Testing
+
+- [ ] T076 [P] Complete user registration with WebSocket connection test in tests/scenarios/integration/user-registration-websocket.test.js
+- [ ] T077 [P] Company setup with real-time notifications test in tests/scenarios/integration/company-setup-websocket.test.js
+- [ ] T078 [P] Chatroom messaging with real-time updates test in tests/scenarios/integration/chatroom-messaging-websocket.test.js
+- [ ] T079 [P] Thread creation with file upload and real-time progress test in tests/scenarios/integration/thread-file-upload-websocket.test.js
+- [ ] T080 [P] Multi-user collaboration with real-time synchronization test in tests/scenarios/integration/multi-user-collaboration-websocket.test.js
+- [ ] T081 [P] File upload with progress tracking and completion notification test in tests/scenarios/integration/file-upload-progress-websocket.test.js
+- [ ] T082 [P] Real-time permission changes and user updates test in tests/scenarios/integration/permission-changes-websocket.test.js
+- [ ] T083 [P] Error handling and recovery with WebSocket reconnection test in tests/scenarios/integration/error-recovery-websocket.test.js
+- [ ] T084 [P] Performance testing with concurrent WebSocket connections test in tests/scenarios/integration/performance-websocket.test.js
+- [ ] T085 [P] End-to-end user journey with API and WebSocket integration test in tests/scenarios/integration/e2e-user-journey.test.js
+
+## Phase 3.6: Core Implementation (ONLY after tests are failing)
 
 ### Test Data Models
 
-- [ ] T058 [P] Create TestUser entity and data generation in tests/fixtures/test-users.json
-- [ ] T059 [P] Create TestCompany entity and data generation in tests/fixtures/test-companies.json
-- [ ] T060 [P] Create TestChatroom entity and data generation in tests/fixtures/test-chatrooms.json
-- [ ] T061 [P] Create TestThread entity and data generation in tests/fixtures/test-threads.json
-- [ ] T062 [P] Create TestMessage entity and data generation in tests/fixtures/test-messages.json
-- [ ] T063 [P] Create TestFile entity and data generation in tests/fixtures/test-files/
-- [ ] T064 [P] Create TestScenario entity and scenario definitions in tests/fixtures/test-scenarios.json
-- [ ] T065 [P] Create TestExecution entity and execution tracking in tests/fixtures/test-executions.json
-- [ ] T066 [P] Create TestRun entity and run management in tests/fixtures/test-runs.json
-- [ ] T067 [P] Create RolePermission entity and permission matrix in tests/fixtures/role-permissions.json
-- [ ] T068 [P] Create AccessControl entity and access rules in tests/fixtures/access-control.json
+- [ ] T086 [P] Create TestUser entity and data generation in tests/fixtures/test-users.json
+- [ ] T087 [P] Create TestCompany entity and data generation in tests/fixtures/test-companies.json
+- [ ] T088 [P] Create TestChatroom entity and data generation in tests/fixtures/test-chatrooms.json
+- [ ] T089 [P] Create TestThread entity and data generation in tests/fixtures/test-threads.json
+- [ ] T090 [P] Create TestMessage entity and data generation in tests/fixtures/test-messages.json
+- [ ] T091 [P] Create TestFile entity and data generation in tests/fixtures/test-files.json
+- [ ] T092 [P] Create TestScenario entity and scenario definitions in tests/fixtures/test-scenarios.json
+- [ ] T093 [P] Create TestExecution entity and execution tracking in tests/fixtures/test-executions.json
+- [ ] T094 [P] Create TestRun entity and run management in tests/fixtures/test-runs.json
+- [ ] T095 [P] Create RolePermission entity and permission matrix in tests/fixtures/role-permissions.json
+- [ ] T096 [P] Create AccessControl entity and access rules in tests/fixtures/access-control.json
 
 ### Test Automation Scripts
 
-- [ ] T069 [P] Create test data generator script in tests/automation/test-data-generator.ts
-- [ ] T070 [P] Create test environment setup script in tests/automation/test-environment-setup.ts
-- [ ] T071 [P] Create test execution runner script in tests/automation/test-runner.ts
-- [ ] T072 [P] Create test result analyzer script in tests/automation/test-result-analyzer.ts
-- [ ] T073 [P] Create test script generator for documentation in tests/automation/script-generator.ts
-- [ ] T074 [P] Create test report generator in tests/automation/report-generator.ts
-- [ ] T075 [P] Create test documentation generator in tests/automation/documentation-generator.ts
-- [ ] T076 [P] Create test data cleanup script in tests/automation/test-cleanup.ts
+- [ ] T097 [P] Create test data generator script in tests/automation/test-data-generator.ts
+- [ ] T098 [P] Create test environment setup script in tests/automation/test-environment-setup.ts
+- [ ] T099 [P] Create test execution runner script in tests/automation/test-runner.ts
+- [ ] T100 [P] Create test result analyzer script in tests/automation/test-result-analyzer.ts
+- [ ] T101 [P] Create test script generator for documentation in tests/automation/script-generator.ts
+- [ ] T102 [P] Create test report generator in tests/automation/report-generator.ts
+- [ ] T103 [P] Create test documentation generator in tests/automation/documentation-generator.ts
+- [ ] T104 [P] Create test data cleanup script in tests/automation/test-cleanup.ts
 
 ### Test Utilities and Helpers
 
-- [ ] T077 [P] Create test authentication helper functions in tests/automation/auth-helpers.ts
-- [ ] T078 [P] Create test data validation utilities in tests/automation/validation-utils.ts
-- [ ] T079 [P] Create test assertion helpers in tests/automation/assertion-helpers.ts
-- [ ] T080 [P] Create test environment configuration in tests/automation/test-config.ts
-- [ ] T081 [P] Create test logging and monitoring utilities in tests/automation/test-logger.ts
+- [ ] T105 [P] Create test authentication helper functions in tests/automation/auth-helpers.ts
+- [ ] T106 [P] Create test data validation utilities in tests/automation/validation-utils.ts
+- [ ] T107 [P] Create test assertion helpers in tests/automation/assertion-helpers.ts
+- [ ] T108 [P] Create test environment configuration in tests/automation/test-config.ts
+- [ ] T109 [P] Create test logging and monitoring utilities in tests/automation/test-logger.ts
 
-## Phase 3.4: Integration
+## Phase 3.7: Integration
 
-- [ ] T082 Configure test database setup and teardown procedures
-- [ ] T083 Configure test Redis setup and cleanup procedures
-- [ ] T084 Configure test file storage setup and cleanup procedures
-- [ ] T085 Integrate Bruno tests with test data generation system
-- [ ] T086 Integrate test execution with CI/CD pipeline
-- [ ] T087 Configure test result aggregation and reporting
-- [ ] T088 Configure test environment isolation and cleanup
-- [ ] T089 Configure test performance monitoring and metrics collection
-- [ ] T090 Configure test security validation and compliance checking
+- [ ] T110 Configure test database setup and teardown procedures
+- [ ] T111 Configure test Redis setup and cleanup procedures
+- [ ] T112 Configure test file storage setup and cleanup procedures
+- [ ] T113 Integrate Bruno tests with test data generation system
+- [ ] T114 Integrate test execution with CI/CD pipeline
+- [ ] T115 Configure test result aggregation and reporting
+- [ ] T116 Configure test environment isolation and cleanup
+- [ ] T117 Configure test performance monitoring and metrics collection
+- [ ] T118 Configure test security validation and compliance checking
 
-## Phase 3.5: Polish
+## Phase 3.8: Polish
 
 ### Documentation and Reporting
 
-- [ ] T091 [P] Generate comprehensive test documentation from Bruno test results
-- [ ] T092 [P] Create test execution guides and best practices documentation
-- [ ] T093 [P] Generate API testing strategy documentation with examples
-- [ ] T094 [P] Create test data management documentation and procedures
-- [ ] T095 [P] Generate security testing documentation and compliance reports
-- [ ] T096 [P] Create performance testing documentation and benchmarks
+- [ ] T119 [P] Generate comprehensive test documentation from Bruno test results
+- [ ] T120 [P] Create test execution guides and best practices documentation
+- [ ] T121 [P] Generate API testing strategy documentation with examples
+- [ ] T122 [P] Create test data management documentation and procedures
+- [ ] T123 [P] Generate security testing documentation and compliance reports
+- [ ] T124 [P] Create performance testing documentation and benchmarks
 
 ### Test Coverage and Validation
 
-- [ ] T097 [P] Validate complete API endpoint coverage across all test scenarios
-- [ ] T098 [P] Validate permission matrix testing coverage for all user roles
-- [ ] T099 [P] Validate security testing coverage for all vulnerability types
-- [ ] T100 [P] Validate performance testing coverage for all load scenarios
-- [ ] T101 [P] Validate test automation coverage for all test execution phases
-- [ ] T102 [P] Validate test documentation coverage for all test scenarios
+- [ ] T125 [P] Validate complete API endpoint coverage across all test scenarios
+- [ ] T126 [P] Validate permission matrix testing coverage for all user roles
+- [ ] T127 [P] Validate security testing coverage for all vulnerability types
+- [ ] T128 [P] Validate performance testing coverage for all load scenarios
+- [ ] T129 [P] Validate test automation coverage for all test execution phases
+- [ ] T130 [P] Validate test documentation coverage for all test scenarios
 
 ### Quality Assurance and Optimization
 
-- [ ] T103 [P] Optimize test execution time and resource usage
-- [ ] T104 [P] Validate test reliability and eliminate flaky tests
-- [ ] T105 [P] Optimize test data generation and cleanup procedures
-- [ ] T106 [P] Validate test environment consistency and reproducibility
-- [ ] T107 [P] Optimize test reporting and documentation generation
-- [ ] T108 [P] Validate test automation reliability and error handling
+- [ ] T131 [P] Optimize test execution time and resource usage
+- [ ] T132 [P] Validate test reliability and eliminate flaky tests
+- [ ] T133 [P] Optimize test data generation and cleanup procedures
+- [ ] T134 [P] Validate test environment consistency and reproducibility
+- [ ] T135 [P] Optimize test reporting and documentation generation
+- [ ] T136 [P] Validate test automation reliability and error handling
 
 ## Dependencies
 
-- Tests (T009-T057) before implementation (T058-T081)
+- Tests (T009-T057) before scenario API tests (T058-T067)
+- Scenario API tests (T058-T067) before unit WebSocket tests (T068-T075)
+- Unit WebSocket tests (T068-T075) before integration tests (T076-T085)
+- Integration tests (T076-T085) before implementation (T086-T109)
 - T001 blocks T002-T008
-- T058-T068 blocks T069-T081
-- T082-T090 blocks T091-T108
+- T058-T067 blocks T068-T075
+- T068-T075 blocks T076-T085
+- T076-T085 blocks T086-T109
+- T110-T118 blocks T119-T136
 
 ## Parallel Execution Examples
 
 ```
+# Launch scenario API tests together (T058-T067):
+Task: "Complete user registration and login flow test in tests/scenarios/api/user-registration-flow.test.js"
+Task: "Company creation and member invitation flow test in tests/scenarios/api/company-setup-flow.test.js"
+Task: "Chatroom creation and message sending flow test in tests/scenarios/api/chatroom-messaging-flow.test.js"
+Task: "Thread creation and file sharing flow test in tests/scenarios/api/thread-file-sharing-flow.test.js"
+Task: "File upload with thread auto-creation flow test in tests/scenarios/api/file-upload-auto-thread.test.js"
+Task: "User role management and permission flow test in tests/scenarios/api/role-permission-flow.test.js"
+Task: "Storage quota management flow test in tests/scenarios/api/storage-quota-flow.test.js"
+Task: "Multi-user collaboration scenario test in tests/scenarios/api/multi-user-collaboration.test.js"
+Task: "Error recovery and retry scenario test in tests/scenarios/api/error-recovery-flow.test.js"
+Task: "Performance under load scenario test in tests/scenarios/api/performance-load.test.js"
+
+# Launch unit WebSocket tests together (T068-T075):
+Task: "WebSocket connection authentication test in tests/websocket/unit/connection-auth.test.js"
+Task: "WebSocket file upload progress events test in tests/websocket/unit/file-upload-progress.test.js"
+Task: "WebSocket file upload completion events test in tests/websocket/unit/file-upload-completion.test.js"
+Task: "WebSocket file upload failure events test in tests/websocket/unit/file-upload-failure.test.js"
+Task: "WebSocket real-time messaging test in tests/websocket/unit/realtime-messaging.test.js"
+Task: "WebSocket room management test in tests/websocket/unit/room-management.test.js"
+Task: "WebSocket error handling test in tests/websocket/unit/error-handling.test.js"
+Task: "WebSocket reconnection logic test in tests/websocket/unit/reconnection.test.js"
+
+# Launch integration API + WebSocket tests together (T076-T085):
+Task: "Complete user registration with WebSocket connection test in tests/scenarios/integration/user-registration-websocket.test.js"
+Task: "Company setup with real-time notifications test in tests/scenarios/integration/company-setup-websocket.test.js"
+Task: "Chatroom messaging with real-time updates test in tests/scenarios/integration/chatroom-messaging-websocket.test.js"
+Task: "Thread creation with file upload and real-time progress test in tests/scenarios/integration/thread-file-upload-websocket.test.js"
+Task: "Multi-user collaboration with real-time synchronization test in tests/scenarios/integration/multi-user-collaboration-websocket.test.js"
+Task: "File upload with progress tracking and completion notification test in tests/scenarios/integration/file-upload-progress-websocket.test.js"
+Task: "Real-time permission changes and user updates test in tests/scenarios/integration/permission-changes-websocket.test.js"
+Task: "Error handling and recovery with WebSocket reconnection test in tests/scenarios/integration/error-recovery-websocket.test.js"
+Task: "Performance testing with concurrent WebSocket connections test in tests/scenarios/integration/performance-websocket.test.js"
+Task: "End-to-end user journey with API and WebSocket integration test in tests/scenarios/integration/e2e-user-journey.test.js"
+
 # Launch authentication tests together (T009-T015):
 Task: "Bruno API test POST /api/v1/auth/register success scenario in tests/bruno/auth/register-success.bru"
 Task: "Bruno API test POST /api/v1/auth/register failure scenarios in tests/bruno/auth/register-failure.bru"

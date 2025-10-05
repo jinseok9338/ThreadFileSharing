@@ -16,6 +16,9 @@ import { ThreadResponseDto } from './dto/thread-response.dto';
 import { ChatRoomService } from '../chatroom/chatroom.service';
 import { PermissionService } from '../permission/permission.service';
 import { AccessType, ThreadRole } from '../constants/permissions';
+import { FileResponseDto } from '../file/dto/file-response.dto';
+import { File } from '../file/entities/file.entity';
+import { ThreadFileAssociationResponseDto } from './dto/thread-file-association-response.dto';
 
 @Injectable()
 export class ThreadService {
@@ -512,5 +515,72 @@ export class ThreadService {
     }
 
     return result;
+  }
+
+  /**
+   * Get files associated with thread
+   */
+  async getThreadFiles(
+    threadId: string,
+    userId: string,
+  ): Promise<FileResponseDto[]> {
+    // Validate access
+    await this.getThreadById(threadId, userId);
+
+    // TODO: Implement actual file-thread association query
+    // This would typically:
+    // 1. Query files table with threadId filter
+    // 2. Join with thread_files junction table
+    // 3. Return files associated with this thread
+
+    // For now, return empty array since file-thread association is not fully implemented
+    return [];
+  }
+
+  /**
+   * Associate file with thread
+   */
+  async associateFileWithThread(
+    threadId: string,
+    fileId: string,
+    userId: string,
+  ): Promise<ThreadFileAssociationResponseDto> {
+    // Validate access
+    await this.getThreadById(threadId, userId);
+
+    // TODO: Implement actual file-thread association
+    // This would typically:
+    // 1. Validate that the file exists and user has access to it
+    // 2. Create a record in a thread_files junction table
+    // 3. Update thread file count
+
+    // For now, return success response
+    const response = new ThreadFileAssociationResponseDto();
+    response.threadId = threadId;
+    response.fileId = fileId;
+    response.associatedBy = userId;
+    response.associatedAt = new Date();
+
+    return response;
+  }
+
+  /**
+   * Remove file association from thread
+   */
+  async removeFileFromThread(
+    threadId: string,
+    fileId: string,
+    userId: string,
+  ): Promise<void> {
+    // Validate access
+    await this.getThreadById(threadId, userId);
+
+    // TODO: Implement actual file-thread association removal
+    // This would typically:
+    // 1. Validate that the file-thread association exists
+    // 2. Remove the record from a thread_files junction table
+    // 3. Update thread file count
+
+    // For now, just return success
   }
 }

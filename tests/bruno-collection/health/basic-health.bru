@@ -1,0 +1,37 @@
+meta {
+  name: Basic Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq success
+  res.body.timestamp: isDefined
+  res.body.data.status: eq ok
+  res.body.data.uptime: isNumber
+  res.body.data.version: isDefined
+}
+
+tests {
+  test("Response should have correct structure", function() {
+    expect(res.body).to.have.property('status', 'success');
+    expect(res.body).to.have.property('timestamp');
+    expect(res.body.data).to.have.property('status', 'ok');
+    expect(res.body.data).to.have.property('uptime');
+    expect(res.body.data).to.have.property('version');
+  });
+  
+  test("Response time should be less than 100ms", function() {
+    expect(res.responseTime).to.be.below(100);
+  });
+  
+  test("Uptime should be a positive number", function() {
+    expect(res.body.data.uptime).to.be.a('number');
+    expect(res.body.data.uptime).to.be.at.least(0);
+  });
+}

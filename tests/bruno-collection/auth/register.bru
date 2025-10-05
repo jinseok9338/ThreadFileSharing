@@ -1,0 +1,45 @@
+meta {
+  name: Register new user
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "newuser@example.com",
+    "password": "Password123!",
+    "fullName": "New User",
+    "companyName": "New Company"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.user.email: eq newuser@example.com
+  res.body.user.company_role: eq owner
+  res.body.company.name: eq New Company
+  res.body.accessToken: isDefined
+  res.body.refreshToken: isDefined
+}
+
+tests {
+  test("Should create user as company owner", function() {
+    expect(res.body.user.company_role).to.equal("owner");
+  });
+  
+  test("Should create company with slug", function() {
+    expect(res.body.company.slug).to.match(/^[a-z0-9-]+$/);
+  });
+  
+  test("Should return JWT tokens", function() {
+    expect(res.body.accessToken).to.be.a("string");
+    expect(res.body.refreshToken).to.be.a("string");
+  });
+}
+

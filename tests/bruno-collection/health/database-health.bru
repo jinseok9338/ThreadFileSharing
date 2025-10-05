@@ -1,0 +1,39 @@
+meta {
+  name: Database Health Check
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health/database
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq ok
+  res.body.connection.connected: eq true
+  res.body.connection.database: isDefined
+  res.body.connection.host: isDefined
+  res.body.migrations: isDefined
+}
+
+tests {
+  test("Database connection should be healthy", function() {
+    expect(res.body.status).to.equal('ok');
+    expect(res.body.connection.connected).to.be.true;
+    expect(res.body.connection.database).to.be.a('string');
+    expect(res.body.connection.host).to.be.a('string');
+  });
+  
+  test("Migration info should be present", function() {
+    expect(res.body.migrations).to.have.property('pending');
+    expect(res.body.migrations).to.have.property('executed');
+    expect(res.body.migrations.pending).to.be.a('number');
+    expect(res.body.migrations.executed).to.be.a('number');
+  });
+  
+  test("Response time should be reasonable", function() {
+    expect(res.responseTime).to.be.below(200);
+  });
+}
+

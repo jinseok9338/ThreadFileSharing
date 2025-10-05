@@ -1,5 +1,5 @@
 # Multi-stage build for NestJS backend
-FROM node:20.19.2-alpine AS builder
+FROM node:20.19.2-alpine AS base
 
 # Set working directory
 WORKDIR /app
@@ -10,6 +10,16 @@ COPY pnpm-lock.yaml ./
 
 # Install pnpm
 RUN npm install -g pnpm
+
+# Development stage
+FROM base AS development
+RUN pnpm install --frozen-lockfile
+COPY . .
+EXPOSE 3000
+CMD ["pnpm", "run", "start:dev"]
+
+# Builder stage
+FROM base AS builder
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile

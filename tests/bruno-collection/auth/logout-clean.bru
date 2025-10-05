@@ -1,0 +1,31 @@
+meta {
+  name: POST /api/v1/auth/logout - Clean Logout Test
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/logout
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "refreshToken": "{{refreshToken}}"
+  }
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has success status", function() {
+    expect(res.getBody().status).to.equal("success");
+  });
+}

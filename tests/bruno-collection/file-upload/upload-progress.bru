@@ -1,0 +1,64 @@
+meta {
+  name: Upload Progress Test
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{base_url}}/api/v1/files/upload/progress/{{file_id}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has success status", function() {
+    expect(res.body.success).to.be.true;
+  });
+  
+  test("Response contains progress data", function() {
+    expect(res.body.data).to.have.property('progress');
+    expect(res.body.data.progress).to.have.property('fileId');
+    expect(res.body.data.progress).to.have.property('status');
+    expect(res.body.data.progress).to.have.property('progressPercent');
+    expect(res.body.data.progress).to.have.property('bytesUploaded');
+    expect(res.body.data.progress).to.have.property('totalBytes');
+  });
+  
+  test("Progress data has correct types", function() {
+    const progress = res.body.data.progress;
+    expect(progress.fileId).to.be.a('string');
+    expect(progress.status).to.be.a('string');
+    expect(progress.progressPercent).to.be.a('number');
+    expect(progress.bytesUploaded).to.be.a('number');
+    expect(progress.totalBytes).to.be.a('number');
+  });
+  
+  test("Progress values are valid", function() {
+    const progress = res.body.data.progress;
+    expect(progress.progressPercent).to.be.at.least(0);
+    expect(progress.progressPercent).to.be.at.most(100);
+    expect(progress.bytesUploaded).to.be.at.least(0);
+    expect(progress.totalBytes).to.be.at.least(progress.bytesUploaded);
+  });
+  
+  test("Status is valid enum value", function() {
+    const validStatuses = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'CANCELLED'];
+    expect(validStatuses).to.include(res.body.data.progress.status);
+  });
+  
+  test("File ID matches request", function() {
+    expect(res.body.data.progress.fileId).to.equal(file_id);
+  });
+}
+
+vars:pre-request {
+  auth_token: "{{jwt_token}}"
+  file_id: "{{uploaded_file_id}}"
+}

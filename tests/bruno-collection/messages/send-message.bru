@@ -1,0 +1,60 @@
+meta {
+  name: Send Message
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "chatroomId": "{{chatroom_id}}",
+    "content": "Hello everyone! This is a test message.",
+    "messageType": "TEXT"
+  }
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has success field", function() {
+    expect(res.getBody().success).to.equal(true);
+  });
+  
+  test("Response has message field", function() {
+    expect(res.getBody().message).to.equal("Message sent successfully");
+  });
+  
+  test("Response has data field", function() {
+    expect(res.getBody().data).to.be.an('object');
+  });
+  
+  test("Message has required fields", function() {
+    const message = res.getBody().data;
+    expect(message).to.have.property('id');
+    expect(message).to.have.property('chatroomId');
+    expect(message).to.have.property('sender');
+    expect(message).to.have.property('content');
+    expect(message).to.have.property('messageType');
+    expect(message).to.have.property('createdAt');
+  });
+  
+  test("Message content matches request", function() {
+    const message = res.getBody().data;
+    expect(message.content).to.equal("Hello everyone! This is a test message.");
+  });
+}

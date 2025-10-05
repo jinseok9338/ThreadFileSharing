@@ -1,0 +1,57 @@
+meta {
+  name: Single File Upload Test
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/files/upload/single
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+body:multipartForm {
+  file: @file(./test-files/sample.txt)
+  displayName: Test File Upload
+  accessType: PRIVATE
+  sessionName: Bruno Test Session
+  createThread: false
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response has success status", function() {
+    expect(res.body.success).to.be.true;
+  });
+  
+  test("Response contains file data", function() {
+    expect(res.body.data).to.have.property('file');
+    expect(res.body.data.file).to.have.property('id');
+    expect(res.body.data.file).to.have.property('originalName');
+    expect(res.body.data.file).to.have.property('sizeBytes');
+    expect(res.body.data.file).to.have.property('downloadUrl');
+  });
+  
+  test("File has correct metadata", function() {
+    expect(res.body.data.file.originalName).to.equal('sample.txt');
+    expect(res.body.data.file.accessType).to.equal('PRIVATE');
+    expect(res.body.data.file.sizeBytes).to.be.a('number');
+    expect(res.body.data.file.sizeBytes).to.be.greaterThan(0);
+  });
+  
+  test("Response includes message", function() {
+    expect(res.body.message).to.be.a('string');
+    expect(res.body.message.length).to.be.greaterThan(0);
+  });
+}
+
+vars:pre-request {
+  auth_token: "{{jwt_token}}"
+}

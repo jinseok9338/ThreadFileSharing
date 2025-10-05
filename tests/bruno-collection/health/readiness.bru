@@ -1,0 +1,32 @@
+meta {
+  name: Readiness Probe
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/health/ready
+}
+
+assert {
+  res.status: eq 200
+  res.body.ready: eq true
+  res.body.checks.database: eq true
+  res.body.checks.migrations: eq true
+}
+
+tests {
+  test("Application should be ready", function() {
+    expect(res.body.ready).to.be.true;
+  });
+  
+  test("All checks should pass", function() {
+    expect(res.body.checks.database).to.be.true;
+    expect(res.body.checks.migrations).to.be.true;
+  });
+  
+  test("Response should be fast for readiness probe", function() {
+    expect(res.responseTime).to.be.below(50);
+  });
+}
+

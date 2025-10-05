@@ -1,0 +1,64 @@
+meta {
+  name: Create Thread
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/threads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "chatroomId": "{{chatroom_id}}",
+    "title": "Test Thread",
+    "description": "A test thread for API testing",
+    "participantIds": []
+  }
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has success field", function() {
+    expect(res.getBody().success).to.equal(true);
+  });
+  
+  test("Response has message field", function() {
+    expect(res.getBody().message).to.equal("Thread created successfully");
+  });
+  
+  test("Response has data field", function() {
+    expect(res.getBody().data).to.be.an('object');
+  });
+  
+  test("Thread has required fields", function() {
+    const thread = res.getBody().data;
+    expect(thread).to.have.property('id');
+    expect(thread).to.have.property('chatroomId');
+    expect(thread).to.have.property('title');
+    expect(thread).to.have.property('description');
+    expect(thread).to.have.property('creator');
+    expect(thread).to.have.property('isArchived');
+    expect(thread).to.have.property('participantCount');
+    expect(thread).to.have.property('fileCount');
+    expect(thread).to.have.property('createdAt');
+  });
+  
+  test("Thread title matches request", function() {
+    const thread = res.getBody().data;
+    expect(thread.title).to.equal("Test Thread");
+  });
+}
