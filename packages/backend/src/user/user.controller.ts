@@ -43,6 +43,9 @@ export class UserController {
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiSuccessResponse(UserResponseDto, { description: 'User profile' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   async getMe(@CurrentUser() user: User) {
     const fullUser = await this.userService.findById(user.id);
     return UserResponseDto.fromEntity(fullUser);

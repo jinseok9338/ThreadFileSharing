@@ -18,6 +18,8 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiResponse,
+  ApiExtraModels,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../../common/types/request.types';
@@ -29,11 +31,16 @@ import {
   MessageListResponseDto,
 } from '../dto/message-response.dto';
 import { CursorPaginationQueryDto } from '../../common/dto';
-import { ApiResponse as SwaggerApiResponse } from '@nestjs/swagger';
+import {
+  ApiSuccessResponse,
+  ApiSuccessArrayResponse,
+  ApiSuccessCursorResponse,
+} from '../../common/decorators';
 
 @ApiTags('Messages')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@ApiExtraModels(MessageResponseDto, MessageListResponseDto)
 @Controller('messages')
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
@@ -43,17 +50,25 @@ export class MessageController {
     summary: 'Send a message',
     description: 'Send a new message to a chatroom',
   })
-  @SwaggerApiResponse({
+  @ApiSuccessResponse(MessageResponseDto, {
     status: HttpStatus.CREATED,
     description: 'Message sent successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid message data',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Access denied to chatroom',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error',
   })
   @HttpCode(HttpStatus.CREATED)
   async sendMessage(
@@ -91,17 +106,25 @@ export class MessageController {
   @ApiQuery({
     name: 'lastIndex',
     description:
-      'Cursor for pagination - last item identifier from previous response',
-    example: '2025-10-01T12:00:00.000Z',
+      'Cursor for pagination - Base64 encoded JSON containing createdAt and id',
+    example:
+      'eyJjcmVhdGVkQXQiOiIyMDIzLTEyLTAxVDEwOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9',
     required: false,
   })
-  @SwaggerApiResponse({
-    status: HttpStatus.OK,
+  @ApiSuccessCursorResponse(MessageResponseDto, {
     description: 'Messages retrieved successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Access denied to chatroom',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error',
   })
   async getChatroomMessages(
     @Param('chatroomId') chatroomId: string,
@@ -131,17 +154,24 @@ export class MessageController {
     description: 'Message ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @SwaggerApiResponse({
-    status: HttpStatus.OK,
+  @ApiSuccessResponse(MessageResponseDto, {
     description: 'Message retrieved successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Message not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Access denied to message',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error',
   })
   async getMessage(
     @Param('messageId') messageId: string,
@@ -169,15 +199,15 @@ export class MessageController {
     description: 'Message ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.OK,
     description: 'Message edited successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Message not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'You can only edit your own messages',
   })
@@ -210,15 +240,15 @@ export class MessageController {
     description: 'Message ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Message deleted successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Message not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description:
       'You can only delete your own messages or need admin permissions',
@@ -248,17 +278,18 @@ export class MessageController {
     required: false,
   })
   @ApiQuery({
-    name: 'cursor',
-    description: 'Cursor for pagination',
+    name: 'lastIndex',
+    description:
+      'Cursor for pagination - Base64 encoded JSON containing createdAt and id',
     example:
       'eyJjcmVhdGVkQXQiOiIyMDIzLTEyLTAxVDEwOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9',
     required: false,
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.OK,
     description: 'Thread messages retrieved successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Access denied to thread',
   })

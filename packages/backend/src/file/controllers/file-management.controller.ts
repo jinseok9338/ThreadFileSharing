@@ -19,6 +19,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiQuery,
+  ApiExtraModels,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { FileManagementService } from '../services/file-management.service';
@@ -31,16 +32,17 @@ import {
   DownloadTokenResponseDto,
   StorageQuotaResponseDto,
 } from '../dto';
-// import {
-//   ApiSuccessResponse,
-//   ApiSuccessArrayResponse,
-//   ApiSuccessCursorResponse,
-// } from '../../common/decorators/api-response.decorator';
+import {
+  ApiSuccessResponse,
+  ApiSuccessArrayResponse,
+  ApiSuccessCursorResponse,
+} from '../../common/decorators';
 
 @ApiTags('File Management')
 @Controller('files')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
+@ApiExtraModels(FileResponseDto, FileListResponseDto, StorageQuotaResponseDto)
 export class FileManagementController {
   private readonly logger = new Logger(FileManagementController.name);
 
@@ -89,14 +91,22 @@ export class FileManagementController {
   @ApiQuery({
     name: 'lastIndex',
     required: false,
-    description: 'Cursor for pagination',
+    description:
+      'Cursor for pagination - Base64 encoded JSON containing createdAt and id',
+    example:
+      'eyJjcmVhdGVkQXQiOiIyMDIzLTEyLTAxVDEwOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9',
   })
   @ApiQuery({
     name: 'includeDeleted',
     required: false,
     description: 'Include deleted files',
   })
-  // @ApiSuccessCursorResponse(FileResponseDto, 'Files retrieved successfully')
+  @ApiSuccessCursorResponse(FileResponseDto, {
+    description: 'Files retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Insufficient permissions' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   @HttpCode(HttpStatus.OK)
   async getFiles(
     @Query() query: FileQueryDto,

@@ -1,0 +1,456 @@
+openapi: 3.0.3
+info:
+  title: Thread File Sharing API Documentation Standards
+  description: |
+    OpenAPI 3.0 specification defining documentation standards for all API endpoints.
+    This contract ensures consistent documentation patterns across all controllers.
+  version: 1.0.0
+  contact:
+    name: API Documentation Team
+    email: api-docs@threadsharing.com
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server
+  - url: https://api.threadsharing.com/api/v1
+    description: Production server
+
+paths:
+  # Documentation Standards - Not actual endpoints
+  /docs/standards/response-schema:
+    get:
+      summary: Response Schema Documentation Standard
+      description: |
+        All API endpoints MUST follow this response schema documentation pattern.
+        Every endpoint must have complete @ApiResponse decorators with proper schemas.
+      responses:
+        "200":
+          description: Standard success response format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+              examples:
+                success:
+                  summary: Standard success response
+                  value:
+                    success: true
+                    message: "Operation completed successfully"
+                    data:
+                      id: "123e4567-e89b-12d3-a456-426614174000"
+                      name: "Example Resource"
+                      createdAt: "2025-10-06T12:00:00.000Z"
+                    meta:
+                      pagination:
+                        nextCursor: "eyJjcmVhdGVkQXQiOiIyMDI1LTEwLTA2VDEyOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9"
+                        hasMore: true
+                        total: 100
+
+  /docs/standards/error-responses:
+    get:
+      summary: Error Response Documentation Standard
+      description: |
+        All API endpoints MUST document major error cases with consistent formats.
+        Error responses must include proper status codes and message formats.
+      responses:
+        "400":
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                validation_error:
+                  summary: Validation error example
+                  value:
+                    success: false
+                    message: "Validation failed"
+                    error:
+                      {
+                        code: "VALIDATION_ERROR",
+                        details:
+                          [{ field: "email", message: "Invalid email format" }],
+                      }
+        "401":
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: Unauthorized access example
+                  value:
+                    success: false
+                    message: "Authentication required"
+                    error:
+                      {
+                        code: "UNAUTHORIZED",
+                        details: "Valid JWT token required",
+                      }
+        "403":
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  summary: Insufficient permissions example
+                  value:
+                    success: false
+                    message: "Insufficient permissions"
+                    error:
+                      {
+                        code: "FORBIDDEN",
+                        details: "User does not have required permissions",
+                      }
+        "404":
+          description: Not Found - Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                not_found:
+                  summary: Resource not found example
+                  value:
+                    success: false
+                    message: "Resource not found"
+                    error:
+                      {
+                        code: "NOT_FOUND",
+                        details: "The requested resource does not exist",
+                      }
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal_error:
+                  summary: Internal server error example
+                  value:
+                    success: false
+                    message: "Internal server error"
+                    error:
+                      {
+                        code: "INTERNAL_ERROR",
+                        details: "An unexpected error occurred",
+                      }
+
+  /docs/standards/pagination:
+    get:
+      summary: Cursor Pagination Documentation Standard
+      description: |
+        All pagination endpoints MUST use 'lastIndex' parameter consistently.
+        Cursor format must be Base64 encoded JSON with createdAt and id fields.
+      parameters:
+        - name: lastIndex
+          in: query
+          description: |
+            Cursor for pagination - Base64 encoded JSON containing createdAt (ISO date) and id (UUID).
+            Use the nextCursor value from previous response for next page.
+          required: false
+          schema:
+            type: string
+            example: "eyJjcmVhdGVkQXQiOiIyMDI1LTEwLTA2VDEyOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9"
+        - name: limit
+          in: query
+          description: Number of items to return per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+      responses:
+        "200":
+          description: Paginated response with cursor information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponse"
+              examples:
+                paginated_list:
+                  summary: Paginated list example
+                  value:
+                    success: true
+                    message: "Items retrieved successfully"
+                    data:
+                      [
+                        {
+                          id: "123e4567-e89b-12d3-a456-426614174000",
+                          name: "Item 1",
+                          createdAt: "2025-10-06T12:00:00.000Z",
+                        },
+                        {
+                          id: "456e7890-e89b-12d3-a456-426614174001",
+                          name: "Item 2",
+                          createdAt: "2025-10-06T11:00:00.000Z",
+                        },
+                      ]
+                    meta:
+                      pagination:
+                        nextCursor: "eyJjcmVhdGVkQXQiOiIyMDI1LTEwLTA2VDExOjAwOjAwLjAwMFoiLCJpZCI6IjQ1NmU3ODkwLWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMSJ9"
+                        hasMore: true
+                        total: 100
+
+components:
+  schemas:
+    StandardResponse:
+      type: object
+      required:
+        - success
+        - message
+        - data
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the operation was successful
+          example: true
+        message:
+          type: string
+          description: Human-readable message describing the result
+          example: "Operation completed successfully"
+        data:
+          oneOf:
+            - type: object
+            - type: array
+            - type: string
+            - type: number
+            - type: boolean
+          description: Response data (structure varies by endpoint)
+        meta:
+          type: object
+          description: Additional metadata (pagination, etc.)
+          properties:
+            pagination:
+              $ref: "#/components/schemas/PaginationMeta"
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+        - error
+      properties:
+        success:
+          type: boolean
+          description: Always false for error responses
+          example: false
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Validation failed"
+        error:
+          type: object
+          description: Detailed error information
+          required:
+            - code
+          properties:
+            code:
+              type: string
+              description: Error code for programmatic handling
+              example: "VALIDATION_ERROR"
+            details:
+              oneOf:
+                - type: string
+                - type: array
+                - type: object
+              description: Additional error details
+
+    PaginatedResponse:
+      allOf:
+        - $ref: "#/components/schemas/StandardResponse"
+        - type: object
+          properties:
+            meta:
+              type: object
+              required:
+                - pagination
+              properties:
+                pagination:
+                  $ref: "#/components/schemas/PaginationMeta"
+
+    PaginationMeta:
+      type: object
+      required:
+        - hasMore
+      properties:
+        nextCursor:
+          type: string
+          description: |
+            Base64 encoded JSON cursor for next page.
+            Contains createdAt (ISO date) and id (UUID) of last item.
+          example: "eyJjcmVhdGVkQXQiOiIyMDI1LTEwLTA2VDEyOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9"
+        hasMore:
+          type: boolean
+          description: Indicates if more items are available
+          example: true
+        total:
+          type: integer
+          description: Total number of items (if available)
+          example: 100
+
+    CursorFormat:
+      type: object
+      description: |
+        Cursor format specification for pagination.
+        All cursors must be Base64 encoded JSON with this structure.
+      required:
+        - createdAt
+        - id
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of the item
+          example: "2025-10-06T12:00:00.000Z"
+        id:
+          type: string
+          format: uuid
+          description: UUID of the item
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+  parameters:
+    LastIndexParameter:
+      name: lastIndex
+      in: query
+      description: |
+        Cursor for pagination - Base64 encoded JSON containing createdAt (ISO date) and id (UUID).
+        Use the nextCursor value from previous response for next page.
+      required: false
+      schema:
+        type: string
+        example: "eyJjcmVhdGVkQXQiOiIyMDI1LTEwLTA2VDEyOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9"
+
+    LimitParameter:
+      name: limit
+      in: query
+      description: Number of items to return per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+        example: 20
+
+  responses:
+    SuccessResponse:
+      description: Standard success response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/StandardResponse"
+
+    ValidationErrorResponse:
+      description: Bad Request - Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            validation_error:
+              summary: Validation error example
+              value:
+                success: false
+                message: "Validation failed"
+                error:
+                  code: "VALIDATION_ERROR"
+                  details:
+                    - field: "email"
+                      message: "Invalid email format"
+
+    UnauthorizedResponse:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            unauthorized:
+              summary: Unauthorized access example
+              value:
+                success: false
+                message: "Authentication required"
+                error:
+                  code: "UNAUTHORIZED"
+                  details: "Valid JWT token required"
+
+    ForbiddenResponse:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            forbidden:
+              summary: Insufficient permissions example
+              value:
+                success: false
+                message: "Insufficient permissions"
+                error:
+                  code: "FORBIDDEN"
+                  details: "User does not have required permissions"
+
+    NotFoundResponse:
+      description: Not Found - Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            not_found:
+              summary: Resource not found example
+              value:
+                success: false
+                message: "Resource not found"
+                error:
+                  code: "NOT_FOUND"
+                  details: "The requested resource does not exist"
+
+    InternalErrorResponse:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            internal_error:
+              summary: Internal server error example
+              value:
+                success: false
+                message: "Internal server error"
+                error:
+                  code: "INTERNAL_ERROR"
+                  details: "An unexpected error occurred"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Documentation Standards
+    description: API documentation standards and patterns
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Chatrooms
+    description: Chatroom management operations
+  - name: Companies
+    description: Company management operations
+  - name: Files
+    description: File upload and management operations
+  - name: Messages
+    description: Message operations and pagination
+  - name: Threads
+    description: Thread management operations

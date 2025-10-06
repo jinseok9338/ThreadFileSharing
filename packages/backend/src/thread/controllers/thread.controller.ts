@@ -19,6 +19,7 @@ import {
   ApiParam,
   ApiQuery,
   ApiResponse,
+  ApiExtraModels,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ThreadRoleGuard } from '../../auth/guards/thread-role.guard';
@@ -33,13 +34,22 @@ import {
   ThreadListResponseDto,
 } from '../dto/thread-response.dto';
 import { CursorPaginationQueryDto } from '../../common/dto';
-import { ApiResponse as SwaggerApiResponse } from '@nestjs/swagger';
+import {
+  ApiSuccessResponse,
+  ApiSuccessCursorResponse,
+} from '../../common/decorators';
 import { FileResponseDto } from '../../file/dto/file-response.dto';
 import { ThreadFileAssociationResponseDto } from '../dto/thread-file-association-response.dto';
 
 @ApiTags('Threads')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@ApiExtraModels(
+  ThreadResponseDto,
+  ThreadDetailResponseDto,
+  ThreadListResponseDto,
+  FileResponseDto,
+)
 @Controller('threads')
 export class ThreadController {
   constructor(private readonly threadService: ThreadService) {}
@@ -49,17 +59,25 @@ export class ThreadController {
     summary: 'Create a thread',
     description: 'Create a new thread in a chatroom',
   })
-  @SwaggerApiResponse({
+  @ApiSuccessResponse(ThreadResponseDto, {
     status: HttpStatus.CREATED,
     description: 'Thread created successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid thread data',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Access denied to chatroom',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error',
   })
   @HttpCode(HttpStatus.CREATED)
   async createThread(
@@ -96,15 +114,23 @@ export class ThreadController {
     required: false,
   })
   @ApiQuery({
-    name: 'cursor',
-    description: 'Cursor for pagination',
+    name: 'lastIndex',
+    description:
+      'Cursor for pagination - Base64 encoded JSON containing createdAt and id',
     example:
       'eyJjcmVhdGVkQXQiOiIyMDIzLTEyLTAxVDEwOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9',
     required: false,
   })
-  @SwaggerApiResponse({
-    status: HttpStatus.OK,
+  @ApiSuccessCursorResponse(ThreadResponseDto, {
     description: 'Threads retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error',
   })
   async getThreads(
     @Query() query: CursorPaginationQueryDto & { chatroomId?: string },
@@ -129,15 +155,15 @@ export class ThreadController {
     description: 'Thread ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.OK,
     description: 'Thread retrieved successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Thread not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Access denied to thread',
   })
@@ -167,15 +193,15 @@ export class ThreadController {
     description: 'Thread ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.OK,
     description: 'Thread updated successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Thread not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'You can only update threads you have permission for',
   })
@@ -208,15 +234,15 @@ export class ThreadController {
     description: 'Thread ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Thread deleted successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Thread not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'You can only delete threads you have permission for',
   })
@@ -243,15 +269,15 @@ export class ThreadController {
     description: 'User ID to add',
     example: '123e4567-e89b-12d3-a456-426614174001',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Participant added successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Thread or user not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description:
       'You can only add participants to threads you have permission for',
@@ -285,15 +311,15 @@ export class ThreadController {
     description: 'User ID to remove',
     example: '123e4567-e89b-12d3-a456-426614174001',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Participant removed successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Thread or user not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description:
       'You can only remove participants from threads you have permission for',
@@ -317,15 +343,15 @@ export class ThreadController {
     description: 'Thread ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.OK,
     description: 'Thread archived successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Thread not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Insufficient permissions to archive thread',
   })

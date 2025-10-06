@@ -18,6 +18,8 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiResponse,
+  ApiExtraModels,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ChatRoomService } from '../chatroom.service';
@@ -28,11 +30,15 @@ import {
   ChatroomListResponseDto,
 } from '../dto/chatroom-response.dto';
 import { CursorPaginationQueryDto } from '../../common/dto';
-import { ApiResponse as SwaggerApiResponse } from '@nestjs/swagger';
+import {
+  ApiSuccessResponse,
+  ApiSuccessCursorResponse,
+} from '../../common/decorators';
 
 @ApiTags('Chatrooms')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@ApiExtraModels(ChatroomResponseDto, ChatroomListResponseDto)
 @Controller('chatrooms')
 export class ChatroomController {
   constructor(private readonly chatRoomService: ChatRoomService) {}
@@ -42,13 +48,25 @@ export class ChatroomController {
     summary: 'Create a chatroom',
     description: 'Create a new chatroom',
   })
-  @SwaggerApiResponse({
+  @ApiSuccessResponse(ChatroomResponseDto, {
     status: HttpStatus.CREATED,
     description: 'Chatroom created successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid chatroom data',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Insufficient permissions',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error',
   })
   @HttpCode(HttpStatus.CREATED)
   async createChatroom(
@@ -80,15 +98,23 @@ export class ChatroomController {
     required: false,
   })
   @ApiQuery({
-    name: 'cursor',
-    description: 'Cursor for pagination',
+    name: 'lastIndex',
+    description:
+      'Cursor for pagination - Base64 encoded JSON containing createdAt and id',
     example:
       'eyJjcmVhdGVkQXQiOiIyMDIzLTEyLTAxVDEwOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9',
     required: false,
   })
-  @SwaggerApiResponse({
-    status: HttpStatus.OK,
+  @ApiSuccessCursorResponse(ChatroomResponseDto, {
     description: 'Chatrooms retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Internal server error',
   })
   async getChatrooms(
     @Query() query: CursorPaginationQueryDto,
@@ -116,15 +142,15 @@ export class ChatroomController {
     description: 'Chatroom ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.OK,
     description: 'Chatroom retrieved successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Chatroom not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Access denied to chatroom',
   })
@@ -154,15 +180,15 @@ export class ChatroomController {
     description: 'Chatroom ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.OK,
     description: 'Chatroom updated successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Chatroom not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'You can only update chatrooms you have permission for',
   })
@@ -195,15 +221,15 @@ export class ChatroomController {
     description: 'Chatroom ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Chatroom deleted successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Chatroom not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'You can only delete chatrooms you have permission for',
   })
@@ -230,15 +256,15 @@ export class ChatroomController {
     description: 'User ID to add',
     example: '123e4567-e89b-12d3-a456-426614174001',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Member added successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Chatroom or user not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description:
       'You can only add members to chatrooms you have permission for',
@@ -272,15 +298,15 @@ export class ChatroomController {
     description: 'User ID to remove',
     example: '123e4567-e89b-12d3-a456-426614174001',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Member removed successfully',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Chatroom or user not found',
   })
-  @SwaggerApiResponse({
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description:
       'You can only remove members from chatrooms you have permission for',

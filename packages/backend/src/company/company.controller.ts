@@ -49,6 +49,9 @@ export class CompanyController {
   @Get('me')
   @ApiOperation({ summary: 'Get current company' })
   @ApiSuccessResponse(CompanyResponseDto, { description: 'Company info' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Company not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   async getMyCompany(@CurrentUser() user: any) {
     const company = await this.companyService.findById(user.companyId);
     return CompanyResponseDto.fromEntity(company);
@@ -61,6 +64,9 @@ export class CompanyController {
   @Get('me/members')
   @ApiOperation({ summary: 'Get company members' })
   @ApiSuccessCursorResponse(UserResponseDto, { description: 'List of members' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Insufficient permissions' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   async getCompanyMembers(
     @CurrentUser() user: User,
     @Query() query: CursorPaginationQueryDto,
