@@ -82,6 +82,14 @@ export class WebSocketGateway
         authenticatedSocket.userId,
       );
       await authenticatedSocket.join(userRoomId);
+
+      // Send connection established event to client
+      client.emit('connection_established', {
+        userId: authenticatedSocket.userId,
+        companyId: authenticatedSocket.companyId,
+        username: authenticatedSocket.username,
+        timestamp: new Date(),
+      });
     } catch (error) {
       this.logger.error(`Connection failed: ${error.message}`);
       client.disconnect();
@@ -130,6 +138,12 @@ export class WebSocketGateway
         `User ${client.username} joined company room: ${room.id}`,
       );
 
+      // Notify the client that they joined the company
+      client.emit('user_joined_company', {
+        user: this.authService.getSocketInfo(client),
+        joinedAt: new Date(),
+      });
+
       // Notify others in the company
       client.to(room.id).emit('user_joined_company', {
         user: this.authService.getSocketInfo(client),
@@ -155,6 +169,13 @@ export class WebSocketGateway
       await client.join(room.id);
 
       this.logger.log(`User ${client.username} joined chatroom: ${room.id}`);
+
+      // Notify the client that they joined the chatroom
+      client.emit('user_joined_chatroom', {
+        chatroomId: data.chatroomId,
+        user: this.authService.getSocketInfo(client),
+        joinedAt: new Date(),
+      });
 
       // Notify others in the chatroom
       client.to(room.id).emit('user_joined_chatroom', {
@@ -182,6 +203,15 @@ export class WebSocketGateway
       await client.join(room.id);
 
       this.logger.log(`User ${client.username} joined thread: ${room.id}`);
+
+      // Notify the client that they joined the thread
+      client.emit('user_joined_thread', {
+        threadId: data.threadId,
+        user: this.authService.getSocketInfo(client),
+        threadRole: 'MEMBER', // TODO: Get actual role from ThreadService
+        accessType: 'MEMBER',
+        joinedAt: new Date(),
+      });
 
       // Notify others in the thread
       client.to(room.id).emit('user_joined_thread', {
@@ -214,6 +244,15 @@ export class WebSocketGateway
       this.logger.log(
         `User ${client.username} joined upload session: ${room.id}`,
       );
+
+      // Notify the client that they joined the upload session
+      client.emit('room_joined', {
+        roomId: room.id,
+        roomType: 'upload_session',
+        sessionId: data.sessionId,
+        context: data.context,
+        joinedAt: new Date(),
+      });
     } catch (error) {
       this.logger.error(`Failed to join upload session: ${error.message}`);
       client.emit('error', { message: error.message });
@@ -289,8 +328,23 @@ export class WebSocketGateway
 
       // TODO: Save message to database via MessageService
 
-      // Broadcast message to chatroom
-      this.server.to(roomId).emit('chatroom_message_received', {
+      // Send message confirmation to sender
+      client.emit('chatroom_message_received', {
+        messageId: 'temp-id', // TODO: Use actual message ID from database
+        chatroomId: data.chatroomId,
+        sender: this.authService.getSocketInfo(client),
+        content: data.content,
+        messageType: data.messageType || 'TEXT',
+        replyTo: data.replyToId
+          ? {
+              /* TODO: Get reply data */
+            }
+          : undefined,
+        createdAt: new Date(),
+      });
+
+      // Broadcast message to chatroom (excluding sender)
+      client.to(roomId).emit('chatroom_message_received', {
         messageId: 'temp-id', // TODO: Use actual message ID from database
         chatroomId: data.chatroomId,
         sender: this.authService.getSocketInfo(client),
@@ -319,8 +373,23 @@ export class WebSocketGateway
 
       // TODO: Save message to database via MessageService
 
-      // Broadcast message to thread
-      this.server.to(roomId).emit('thread_message_received', {
+      // Send message confirmation to sender
+      client.emit('thread_message_received', {
+        messageId: 'temp-id', // TODO: Use actual message ID from database
+        threadId: data.threadId,
+        sender: this.authService.getSocketInfo(client),
+        content: data.content,
+        messageType: data.messageType || 'TEXT',
+        replyTo: data.replyToId
+          ? {
+              /* TODO: Get reply data */
+            }
+          : undefined,
+        createdAt: new Date(),
+      });
+
+      // Broadcast message to thread (excluding sender)
+      client.to(roomId).emit('thread_message_received', {
         messageId: 'temp-id', // TODO: Use actual message ID from database
         threadId: data.threadId,
         sender: this.authService.getSocketInfo(client),
@@ -347,6 +416,15 @@ export class WebSocketGateway
     @MessageBody() data: TypingIndicatorDto,
   ) {
     const roomId = this.roomService.generateRoomId('chatroom', data.roomId);
+
+    // Send typing confirmation to sender
+    client.emit('chatroom_typing', {
+      chatroomId: data.roomId,
+      user: this.authService.getSocketInfo(client),
+      isTyping: true,
+    });
+
+    // Broadcast typing to others in chatroom
     client.to(roomId).emit('chatroom_typing', {
       chatroomId: data.roomId,
       user: this.authService.getSocketInfo(client),
@@ -360,6 +438,15 @@ export class WebSocketGateway
     @MessageBody() data: TypingIndicatorDto,
   ) {
     const roomId = this.roomService.generateRoomId('chatroom', data.roomId);
+
+    // Send typing stop confirmation to sender
+    client.emit('chatroom_typing', {
+      chatroomId: data.roomId,
+      user: this.authService.getSocketInfo(client),
+      isTyping: false,
+    });
+
+    // Broadcast typing stop to others in chatroom
     client.to(roomId).emit('chatroom_typing', {
       chatroomId: data.roomId,
       user: this.authService.getSocketInfo(client),
@@ -373,6 +460,15 @@ export class WebSocketGateway
     @MessageBody() data: TypingIndicatorDto,
   ) {
     const roomId = this.roomService.generateRoomId('thread', data.roomId);
+
+    // Send typing confirmation to sender
+    client.emit('thread_typing', {
+      threadId: data.roomId,
+      user: this.authService.getSocketInfo(client),
+      isTyping: true,
+    });
+
+    // Broadcast typing to others in thread
     client.to(roomId).emit('thread_typing', {
       threadId: data.roomId,
       user: this.authService.getSocketInfo(client),
@@ -386,6 +482,15 @@ export class WebSocketGateway
     @MessageBody() data: TypingIndicatorDto,
   ) {
     const roomId = this.roomService.generateRoomId('thread', data.roomId);
+
+    // Send typing stop confirmation to sender
+    client.emit('thread_typing', {
+      threadId: data.roomId,
+      user: this.authService.getSocketInfo(client),
+      isTyping: false,
+    });
+
+    // Broadcast typing stop to others in thread
     client.to(roomId).emit('thread_typing', {
       threadId: data.roomId,
       user: this.authService.getSocketInfo(client),

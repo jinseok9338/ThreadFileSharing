@@ -1,0 +1,609 @@
+openapi: 3.0.3
+info:
+  title: WebSocket Events Contract
+  description: WebSocket event schemas for real-time communication testing
+  version: 1.0.0
+
+components:
+  schemas:
+    # Client to Server Events
+    JoinCompanyEvent:
+      type: object
+      required:
+        - companyId
+      properties:
+        companyId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440001
+
+    JoinChatroomEvent:
+      type: object
+      required:
+        - chatroomId
+      properties:
+        chatroomId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440002
+
+    JoinThreadEvent:
+      type: object
+      required:
+        - threadId
+      properties:
+        threadId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440003
+
+    JoinUploadSessionEvent:
+      type: object
+      required:
+        - sessionId
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440004
+
+    LeaveRoomEvent:
+      type: object
+      required:
+        - roomId
+      properties:
+        roomId:
+          type: string
+          example: company_550e8400-e29b-41d4-a716-446655440001
+
+    SendChatroomMessageEvent:
+      type: object
+      required:
+        - chatroomId
+        - content
+      properties:
+        chatroomId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440002
+        content:
+          type: string
+          example: Hello, this is a test message
+        messageType:
+          type: string
+          enum: [TEXT, FILE, SYSTEM]
+          default: TEXT
+        replyTo:
+          type: string
+          format: uuid
+          description: Message ID to reply to (optional)
+
+    SendThreadMessageEvent:
+      type: object
+      required:
+        - threadId
+        - content
+      properties:
+        threadId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440003
+        content:
+          type: string
+          example: This is a thread message
+        messageType:
+          type: string
+          enum: [TEXT, FILE, SYSTEM]
+          default: TEXT
+        replyTo:
+          type: string
+          format: uuid
+          description: Message ID to reply to (optional)
+
+    EditMessageEvent:
+      type: object
+      required:
+        - messageId
+        - newContent
+      properties:
+        messageId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440005
+        newContent:
+          type: string
+          example: This is the edited message content
+
+    DeleteMessageEvent:
+      type: object
+      required:
+        - messageId
+      properties:
+        messageId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440005
+
+    TypingIndicatorEvent:
+      type: object
+      required:
+        - roomId
+        - isTyping
+      properties:
+        roomId:
+          type: string
+          example: chatroom_550e8400-e29b-41d4-a716-446655440002
+        isTyping:
+          type: boolean
+          example: true
+
+    ShareThreadEvent:
+      type: object
+      required:
+        - threadId
+        - targetUserId
+      properties:
+        threadId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440003
+        targetUserId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440006
+
+    AddThreadParticipantEvent:
+      type: object
+      required:
+        - threadId
+        - userId
+      properties:
+        threadId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440003
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440006
+        role:
+          type: string
+          enum: [MEMBER, READ_ONLY]
+          default: MEMBER
+
+    UpdateThreadParticipantEvent:
+      type: object
+      required:
+        - threadId
+        - userId
+        - newRole
+      properties:
+        threadId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440003
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440006
+        newRole:
+          type: string
+          enum: [MEMBER, READ_ONLY]
+
+    RemoveThreadParticipantEvent:
+      type: object
+      required:
+        - threadId
+        - userId
+      properties:
+        threadId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440003
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440006
+
+    CancelUploadEvent:
+      type: object
+      required:
+        - sessionId
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440004
+
+    UpdateUserStatusEvent:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [online, away, busy, offline]
+          example: online
+
+    # Server to Client Events
+    ConnectionEstablishedEvent:
+      type: object
+      required:
+        - userId
+        - companyId
+        - timestamp
+      properties:
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        companyId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440001
+        username:
+          type: string
+          example: test-user
+        timestamp:
+          type: string
+          format: date-time
+
+    RoomJoinedEvent:
+      type: object
+      required:
+        - roomId
+        - roomType
+        - timestamp
+      properties:
+        roomId:
+          type: string
+          example: company_550e8400-e29b-41d4-a716-446655440001
+        roomType:
+          type: string
+          enum: [company, chatroom, thread, user_session]
+        roomName:
+          type: string
+          example: Test Company
+        participantCount:
+          type: integer
+          example: 5
+        timestamp:
+          type: string
+          format: date-time
+
+    RoomLeftEvent:
+      type: object
+      required:
+        - roomId
+        - timestamp
+      properties:
+        roomId:
+          type: string
+          example: company_550e8400-e29b-41d4-a716-446655440001
+        timestamp:
+          type: string
+          format: date-time
+
+    MessageReceivedEvent:
+      type: object
+      required:
+        - messageId
+        - content
+        - senderId
+        - roomId
+        - timestamp
+      properties:
+        messageId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440005
+        content:
+          type: string
+          example: Hello, this is a test message
+        senderId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        senderName:
+          type: string
+          example: Test User
+        roomId:
+          type: string
+          example: chatroom_550e8400-e29b-41d4-a716-446655440002
+        messageType:
+          type: string
+          enum: [TEXT, FILE, SYSTEM]
+          example: TEXT
+        replyTo:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440007
+        timestamp:
+          type: string
+          format: date-time
+
+    MessageEditedEvent:
+      type: object
+      required:
+        - messageId
+        - newContent
+        - editedBy
+        - timestamp
+      properties:
+        messageId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440005
+        newContent:
+          type: string
+          example: This is the edited message content
+        editedBy:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        timestamp:
+          type: string
+          format: date-time
+
+    MessageDeletedEvent:
+      type: object
+      required:
+        - messageId
+        - deletedBy
+        - timestamp
+      properties:
+        messageId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440005
+        deletedBy:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        timestamp:
+          type: string
+          format: date-time
+
+    TypingIndicatorReceivedEvent:
+      type: object
+      required:
+        - userId
+        - roomId
+        - isTyping
+        - timestamp
+      properties:
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        username:
+          type: string
+          example: Test User
+        roomId:
+          type: string
+          example: chatroom_550e8400-e29b-41d4-a716-446655440002
+        isTyping:
+          type: boolean
+          example: true
+        timestamp:
+          type: string
+          format: date-time
+
+    FileUploadProgressEvent:
+      type: object
+      required:
+        - sessionId
+        - progress
+        - timestamp
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440004
+        fileName:
+          type: string
+          example: test-file.txt
+        progress:
+          type: number
+          minimum: 0
+          maximum: 100
+          example: 50
+        bytesUploaded:
+          type: integer
+          example: 512
+        totalBytes:
+          type: integer
+          example: 1024
+        timestamp:
+          type: string
+          format: date-time
+
+    FileUploadCompletedEvent:
+      type: object
+      required:
+        - sessionId
+        - fileId
+        - timestamp
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440004
+        fileId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440008
+        fileName:
+          type: string
+          example: test-file.txt
+        fileSize:
+          type: integer
+          example: 1024
+        downloadUrl:
+          type: string
+          format: uri
+          example: http://localhost:3001/api/v1/files/550e8400-e29b-41d4-a716-446655440008/download
+        timestamp:
+          type: string
+          format: date-time
+
+    FileUploadFailedEvent:
+      type: object
+      required:
+        - sessionId
+        - error
+        - timestamp
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440004
+        fileName:
+          type: string
+          example: test-file.txt
+        error:
+          type: string
+          example: File size exceeds limit
+        timestamp:
+          type: string
+          format: date-time
+
+    ThreadParticipantAddedEvent:
+      type: object
+      required:
+        - threadId
+        - userId
+        - addedBy
+        - timestamp
+      properties:
+        threadId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440003
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440006
+        username:
+          type: string
+          example: New User
+        role:
+          type: string
+          enum: [MEMBER, READ_ONLY]
+          example: MEMBER
+        addedBy:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        timestamp:
+          type: string
+          format: date-time
+
+    ThreadParticipantRemovedEvent:
+      type: object
+      required:
+        - threadId
+        - userId
+        - removedBy
+        - timestamp
+      properties:
+        threadId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440003
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440006
+        username:
+          type: string
+          example: Removed User
+        removedBy:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        timestamp:
+          type: string
+          format: date-time
+
+    UserStatusChangedEvent:
+      type: object
+      required:
+        - userId
+        - status
+        - timestamp
+      properties:
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        username:
+          type: string
+          example: Test User
+        status:
+          type: string
+          enum: [online, away, busy, offline]
+          example: online
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorEvent:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          example: UNAUTHORIZED
+        message:
+          type: string
+          example: Invalid authentication token
+        details:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+
+    # Acknowledgment Events
+    MessageAcknowledgedEvent:
+      type: object
+      required:
+        - messageId
+        - acknowledgedBy
+        - timestamp
+      properties:
+        messageId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440005
+        acknowledgedBy:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        timestamp:
+          type: string
+          format: date-time
+
+    OperationAcknowledgedEvent:
+      type: object
+      required:
+        - operationId
+        - success
+        - timestamp
+      properties:
+        operationId:
+          type: string
+          example: join_room_123
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Successfully joined room
+        timestamp:
+          type: string
+          format: date-time

@@ -14,6 +14,8 @@ Auto-generated from all feature plans. Last updated: 2025-09-28
 - PostgreSQL for test data, Redis for session testing, File storage for upload testing (011-api-api)
 - JavaScript/Node.js (existing test infrastructure) + Bruno API testing, Jest, existing test helpers (012-)
 - N/A (test improvements only) (012-)
+- Node.js 18+ with Socket.io-client 4.8+ + socket.io-client, axios, form-data, jsonwebtoken (013-)
+- N/A (테스트는 기존 백엔드와 통신) (013-)
 
 ## Project Structure
 ```
@@ -29,9 +31,9 @@ npm test [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNO
 Node.js 18+, TypeScript 5+: Follow standard conventions
 
 ## Recent Changes
+- 013-: Added Node.js 18+ with Socket.io-client 4.8+ + socket.io-client, axios, form-data, jsonwebtoken
 - 012-: Added JavaScript/Node.js (existing test infrastructure) + Bruno API testing, Jest, existing test helpers
 - 011-api-api: Added Node.js 20+, TypeScript 5.0+, Bruno API Testing Framework + Bruno, Jest, NestJS Testing utilities, PostgreSQL, Redis
-- 010-chatroom-chat-thread: Added TypeScript 5.x, Node.js 18+ + NestJS, React 18+, Socket.io, TypeORM, PostgreSQL, Redis
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

@@ -1,53 +1,77 @@
 const { io } = require("socket.io-client");
+const AuthHelper = require("./helpers/auth-helper");
 
 console.log("🔌 WebSocket 인증 연결 테스트 시작...");
 
-// 새로운 JWT 토큰
-const TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjNGRmNGUwOC1mODgyLTQyYTAtYTY3Mi0zZmEwOGU4ZTY5NWIiLCJjb21wYW55SWQiOiI0MTYzYzNjOC1lNWIzLTRhMzEtYWUxYy00M2U3Y2RjZjk0OGIiLCJjb21wYW55Um9sZSI6Im93bmVyIiwiaWF0IjoxNzU5NDkxNzA1LCJleHAiOjE3NTk0OTI2MDV9.jzHFz7fOHyEuniIj_d30XeKpduMAd4OXtUw_Hx3qm2k";
+async function testWebSocketAuth() {
+  const authHelper = new AuthHelper();
 
-// Socket.IO 클라이언트 생성 (인증 포함)
-const socket = io("http://localhost:3001", {
-  transports: ["polling", "websocket"],
-  timeout: 10000,
-  forceNew: true,
-  reconnection: false,
-  autoConnect: true,
-  query: {
-    token: TOKEN,
-  },
-});
+  try {
+    // 1. 테스트 사용자 등록
+    console.log("🔐 테스트 사용자 등록 중...");
+    const user = await authHelper.registerTestUser();
+    console.log(`✅ 사용자 등록 성공: ${user.email}`);
 
-socket.on("connect", () => {
-  console.log("✅ WebSocket 인증 연결 성공!");
-  console.log("📡 Socket ID:", socket.id);
-  console.log("🔐 인증된 사용자로 연결됨");
+    // 2. WebSocket 연결 테스트
+    console.log("🔌 WebSocket 연결 테스트...");
+    const socket = io("http://localhost:3001", {
+      transports: ["polling", "websocket"],
+      timeout: 10000,
+      forceNew: true,
+      reconnection: false,
+      autoConnect: true,
+      query: {
+        token: user.accessToken,
+      },
+    });
 
-  // 5초 후 연결 해제
-  setTimeout(() => {
-    console.log("🔌 연결 해제 중...");
+    // 3. 연결 성공 검증
+    const connectionPromise = new Promise((resolve, reject) => {
+      socket.on("connect", () => {
+        console.log("✅ WebSocket 연결 성공!");
+        console.log("📡 Socket ID:", socket.id);
+        console.log("🔐 인증된 사용자로 연결됨");
+        resolve(true);
+      });
+
+      socket.on("connect_error", (error) => {
+        console.log("❌ WebSocket 연결 실패:", error.message);
+        reject(error);
+      });
+
+      setTimeout(() => reject(new Error("Connection timeout")), 10000);
+    });
+
+    await connectionPromise;
+
+    // 4. 인증 상태 검증
+    socket.on("connection_established", (data) => {
+      console.log("✅ 인증 성공:", data);
+      if (data.userId === user.userId && data.companyId === user.companyId) {
+        console.log("✅ 사용자 정보 일치");
+      } else {
+        console.log("❌ 사용자 정보 불일치");
+      }
+    });
+
+    // 5. 서버로부터 메시지 수신
+    socket.onAny((event, ...args) => {
+      console.log(`📨 수신된 이벤트: ${event}`, args.length > 0 ? args[0] : "");
+    });
+
+    // 6. 테스트 완료 대기
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    // 7. 정리
     socket.disconnect();
-  }, 5000);
-});
+    authHelper.cleanup();
+    console.log("✅ 인증 테스트 완료");
+  } catch (error) {
+    console.error("❌ 테스트 실패:", error.message);
+    authHelper.cleanup();
+    process.exit(1);
+  }
+}
 
-socket.on("connect_error", (error) => {
-  console.log("❌ WebSocket 연결 실패:", error.message);
-  process.exit(1);
-});
-
-socket.on("disconnect", (reason) => {
-  console.log("🔌 WebSocket 연결 해제:", reason);
-  process.exit(0);
-});
-
-// 서버로부터 메시지 수신
-socket.onAny((event, ...args) => {
-  console.log(`📨 수신된 이벤트: ${event}`, args.length > 0 ? args[0] : "");
-});
-
-// 15초 후 타임아웃
-setTimeout(() => {
-  console.log("⏰ 연결 타임아웃");
-  socket.disconnect();
-  process.exit(1);
-}, 15000);
+// 테스트 실행
+testWebSocketAuth();
