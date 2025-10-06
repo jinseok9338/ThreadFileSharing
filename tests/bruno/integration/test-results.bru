@@ -1,0 +1,59 @@
+meta {
+  name: Test Results API
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{API_BASE_URL}}/test/results/{{testId}}
+  body: none
+  auth: inherit
+  params {
+    includeMetrics: true
+    includeLogs: true
+    includeErrors: true
+  }
+}
+
+get {
+  url: {{API_BASE_URL}}/test/results
+  body: none
+  auth: inherit
+  params {
+    scenarioId: {{scenarioId}}
+    userId: {{userId}}
+    status: PASSED
+    startTime: {{startTime}}
+    endTime: {{endTime}}
+    limit: 100
+    offset: 0
+  }
+}
+
+post {
+  url: {{API_BASE_URL}}/test/results/{{testId}}/export
+  body: json
+  auth: inherit
+  params {
+    format: json
+    includeDetails: true
+  }
+}
+
+vars:pre-request {
+  testId: 789e0123-e89b-12d3-a456-426614174002
+  scenarioId: 123e4567-e89b-12d3-a456-426614174000
+  userId: 456e7890-e89b-12d3-a456-426614174001
+  startTime: 2025-10-06T00:00:00Z
+  endTime: 2025-10-06T23:59:59Z
+}
+
+body:json {
+  {
+    "format": "json",
+    "includeDetails": true,
+    "includePerformanceMetrics": true,
+    "includeErrorDetails": true,
+    "includeLogs": true
+  }
+}

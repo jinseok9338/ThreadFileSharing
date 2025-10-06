@@ -1,0 +1,60 @@
+meta {
+  name: Performance Metrics API
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{API_BASE_URL}}/test/performance/metrics
+  body: none
+  auth: inherit
+  params {
+    startTime: {{startTime}}
+    endTime: {{endTime}}
+    metricType: API_RESPONSE
+    operation: login
+    limit: 1000
+    offset: 0
+  }
+}
+
+get {
+  url: {{API_BASE_URL}}/test/performance/metrics/summary
+  body: none
+  auth: inherit
+  params {
+    startTime: {{startTime}}
+    endTime: {{endTime}}
+    groupBy: operation
+    aggregateBy: average
+  }
+}
+
+post {
+  url: {{API_BASE_URL}}/test/performance/metrics/export
+  body: json
+  auth: inherit
+  params {
+    format: csv
+    includeDetails: true
+  }
+}
+
+vars:pre-request {
+  startTime: 2025-10-06T00:00:00Z
+  endTime: 2025-10-06T23:59:59Z
+}
+
+body:json {
+  {
+    "format": "csv",
+    "includeDetails": true,
+    "includeThresholds": true,
+    "includeTrends": true,
+    "filters": {
+      "metricType": ["API_RESPONSE", "WEBSOCKET_DELIVERY", "MEMORY_USAGE"],
+      "operation": ["login", "send_message", "file_upload", "websocket_connect"],
+      "thresholdViolations": true
+    }
+  }
+}

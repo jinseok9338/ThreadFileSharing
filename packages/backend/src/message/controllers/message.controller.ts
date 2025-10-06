@@ -89,10 +89,10 @@ export class MessageController {
     required: false,
   })
   @ApiQuery({
-    name: 'cursor',
-    description: 'Cursor for pagination',
-    example:
-      'eyJjcmVhdGVkQXQiOiIyMDIzLTEyLTAxVDEwOjAwOjAwLjAwMFoiLCJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMCJ9',
+    name: 'lastIndex',
+    description:
+      'Cursor for pagination - last item identifier from previous response',
+    example: '2025-10-01T12:00:00.000Z',
     required: false,
   })
   @SwaggerApiResponse({

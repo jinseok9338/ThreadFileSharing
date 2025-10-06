@@ -1,0 +1,580 @@
+openapi: 3.0.0
+info:
+  title: WebSocket and API Integration Test API
+  description: API contracts for comprehensive integration testing of WebSocket and REST API functionality
+  version: 1.0.0
+  contact:
+    name: ThreadFileSharing Team
+    email: dev@threadfilesharing.com
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local development server
+  - url: https://api.threadfilesharing.com/api/v1
+    description: Production server
+
+paths:
+  /auth/register:
+    post:
+      summary: Register test user
+      description: Register a new test user for integration testing
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestUserRegistration"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestUserResponse"
+        "400":
+          description: Invalid registration data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      summary: Login test user
+      description: Authenticate test user and obtain tokens
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestUserLogin"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestUserResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /test/scenarios:
+    get:
+      summary: Get test scenarios
+      description: Retrieve all available test scenarios for integration testing
+      tags:
+        - Test Management
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Test scenarios retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TestScenario"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /test/scenarios/{scenarioId}/execute:
+    post:
+      summary: Execute test scenario
+      description: Execute a specific test scenario with comprehensive validation
+      tags:
+        - Test Management
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: scenarioId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Test scenario ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestExecutionRequest"
+      responses:
+        "200":
+          description: Test execution started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestExecutionResponse"
+        "400":
+          description: Invalid test parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Test scenario not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /test/results/{testId}:
+    get:
+      summary: Get test result
+      description: Retrieve detailed test execution results
+      tags:
+        - Test Management
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Test execution ID
+      responses:
+        "200":
+          description: Test result retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestResult"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Test result not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /test/performance/metrics:
+    get:
+      summary: Get performance metrics
+      description: Retrieve performance metrics for all test executions
+      tags:
+        - Performance Testing
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: startTime
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start time for metrics collection
+        - name: endTime
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End time for metrics collection
+        - name: metricType
+          in: query
+          schema:
+            $ref: "#/components/schemas/MetricType"
+          description: Filter by metric type
+      responses:
+        "200":
+          description: Performance metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PerformanceMetric"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /test/integration/events:
+    get:
+      summary: Get integration events
+      description: Retrieve integration events for API-WebSocket synchronization validation
+      tags:
+        - Integration Testing
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: startTime
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start time for event collection
+        - name: endTime
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End time for event collection
+        - name: eventType
+          in: query
+          schema:
+            type: string
+          description: Filter by event type
+        - name: source
+          in: query
+          schema:
+            $ref: "#/components/schemas/EventSource"
+          description: Filter by event source
+      responses:
+        "200":
+          description: Integration events retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IntegrationEvent"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    TestUserRegistration:
+      type: object
+      required:
+        - email
+        - password
+        - companyName
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          minLength: 8
+          description: User password
+        companyName:
+          type: string
+          description: Company name for test user
+        fullName:
+          type: string
+          description: User's full name
+
+    TestUserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          description: User password
+
+    TestUserResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        data:
+          type: object
+          properties:
+            user:
+              $ref: "#/components/schemas/TestUser"
+            accessToken:
+              type: string
+              description: JWT access token
+            refreshToken:
+              type: string
+              description: JWT refresh token
+            company:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+
+    TestUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        companyId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [OWNER, ADMIN, MEMBER, GUEST]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        lastLoginAt:
+          type: string
+          format: date-time
+
+    TestScenario:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [API_ONLY, WEBSOCKET_ONLY, INTEGRATION]
+        priority:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        category:
+          type: string
+        apiEndpoints:
+          type: array
+          items:
+            type: string
+        websocketEvents:
+          type: array
+          items:
+            type: string
+        expectedResults:
+          type: object
+        timeout:
+          type: integer
+          minimum: 1000
+        retryCount:
+          type: integer
+          minimum: 0
+          maximum: 5
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    TestExecutionRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Test execution user ID
+        parameters:
+          type: object
+          description: Test-specific parameters
+        timeout:
+          type: integer
+          minimum: 1000
+          description: Custom timeout in milliseconds
+        retryCount:
+          type: integer
+          minimum: 0
+          maximum: 5
+          description: Custom retry count
+
+    TestExecutionResponse:
+      type: object
+      properties:
+        testId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING, RUNNING, COMPLETED, FAILED, ERROR]
+        message:
+          type: string
+        estimatedDuration:
+          type: integer
+          description: Estimated duration in milliseconds
+
+    TestResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scenarioId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PASSED, FAILED, SKIPPED, ERROR]
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+          description: Duration in milliseconds
+        apiResponses:
+          type: array
+          items:
+            type: object
+        websocketEvents:
+          type: array
+          items:
+            type: object
+        performanceMetrics:
+          type: object
+        errorDetails:
+          type: object
+        validationResults:
+          type: array
+          items:
+            type: object
+        logs:
+          type: array
+          items:
+            type: string
+
+    PerformanceMetric:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        testId:
+          type: string
+          format: uuid
+        metricType:
+          $ref: "#/components/schemas/MetricType"
+        operation:
+          type: string
+        value:
+          type: number
+        unit:
+          type: string
+        threshold:
+          type: number
+        isWithinThreshold:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+        context:
+          type: object
+
+    MetricType:
+      type: string
+      enum: [API_RESPONSE, WEBSOCKET_DELIVERY, MEMORY_USAGE, CPU_USAGE]
+
+    IntegrationEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        source:
+          $ref: "#/components/schemas/EventSource"
+        target:
+          $ref: "#/components/schemas/EventSource"
+        userId:
+          type: string
+          format: uuid
+        resourceId:
+          type: string
+          format: uuid
+        resourceType:
+          type: string
+        eventData:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+        isProcessed:
+          type: boolean
+        processingTime:
+          type: integer
+          description: Processing time in milliseconds
+        retryCount:
+          type: integer
+        errorMessage:
+          type: string
+
+    EventSource:
+      type: string
+      enum: [API, WEBSOCKET]
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [error]
+        message:
+          type: string
+        code:
+          type: string
+        details:
+          type: object
+
+tags:
+  - name: Authentication
+    description: Test user authentication and authorization
+  - name: Test Management
+    description: Test scenario and execution management
+  - name: Performance Testing
+    description: Performance metrics and benchmarking
+  - name: Integration Testing
+    description: API-WebSocket integration validation

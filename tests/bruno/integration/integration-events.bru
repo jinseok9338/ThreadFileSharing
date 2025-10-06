@@ -1,0 +1,61 @@
+meta {
+  name: Integration Events API
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{API_BASE_URL}}/test/integration/events
+  body: none
+  auth: inherit
+  params {
+    startTime: {{startTime}}
+    endTime: {{endTime}}
+    eventType: message_sent
+    source: API
+    target: WEBSOCKET
+    limit: 1000
+    offset: 0
+  }
+}
+
+get {
+  url: {{API_BASE_URL}}/test/integration/events/sync-status
+  body: none
+  auth: inherit
+  params {
+    userId: {{userId}}
+    resourceId: {{resourceId}}
+    resourceType: chatroom
+  }
+}
+
+post {
+  url: {{API_BASE_URL}}/test/integration/events/validate
+  body: json
+  auth: inherit
+  params {
+    eventId: {{eventId}}
+    validateSync: true
+  }
+}
+
+vars:pre-request {
+  startTime: 2025-10-06T00:00:00Z
+  endTime: 2025-10-06T23:59:59Z
+  userId: 456e7890-e89b-12d3-a456-426614174001
+  resourceId: 321e6543-e89b-12d3-a456-426614174003
+  eventId: 654e9876-e89b-12d3-a456-426614174004
+}
+
+body:json {
+  {
+    "eventId": "654e9876-e89b-12d3-a456-426614174004",
+    "validateSync": true,
+    "checkOrdering": true,
+    "checkTiming": true,
+    "checkDataConsistency": true,
+    "expectedSyncTime": 100,
+    "tolerance": 50
+  }
+}

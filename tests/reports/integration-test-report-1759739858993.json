@@ -1,0 +1,91 @@
+{
+  "metadata": {
+    "generatedAt": "2025-10-06T08:37:38.993Z",
+    "reportVersion": "1.0.0",
+    "testFramework": "WebSocket and API Integration Testing",
+    "totalTests": 0,
+    "totalMetrics": 0,
+    "totalErrors": 0,
+    "totalLogs": 0,
+    "totalCoverage": 0
+  },
+  "summary": {
+    "overall": {
+      "successRate": 0,
+      "totalTests": 0,
+      "successfulTests": 0,
+      "failedTests": 0,
+      "skippedTests": 0
+    },
+    "performance": {
+      "totalMetrics": 0,
+      "thresholdViolations": 0,
+      "violationRate": 0
+    },
+    "errors": {
+      "totalErrors": 0,
+      "criticalErrors": 0,
+      "warningErrors": 0,
+      "errorRate": 0
+    },
+    "coverage": {
+      "totalCoverage": 0,
+      "coverageRate": 0
+    }
+  },
+  "testResults": {
+    "byCategory": {},
+    "byPriority": {},
+    "byType": {},
+    "byStatus": {},
+    "executionTime": {
+      "total": 0,
+      "average": 0,
+      "min": 0,
+      "max": 0
+    }
+  },
+  "performanceMetrics": {
+    "byType": {},
+    "thresholdViolations": [],
+    "overall": {
+      "totalMetrics": 0,
+      "totalViolations": 0,
+      "violationRate": 0
+    }
+  },
+  "errorAnalysis": {
+    "byType": {},
+    "bySeverity": {},
+    "byTest": {},
+    "overall": {
+      "totalErrors": 0,
+      "criticalErrors": 0,
+      "warningErrors": 0,
+      "infoErrors": 0
+    }
+  },
+  "coverageAnalysis": {
+    "byType": {},
+    "overall": {
+      "totalCoverage": 0,
+      "coverageRate": 0
+    }
+  },
+  "recommendations": [
+    {
+      "type": "COVERAGE",
+      "priority": "MEDIUM",
+      "message": "Test coverage below target",
+      "details": "0% coverage rate (target: 90%)",
+      "action": "Add additional test cases to improve coverage"
+    },
+    {
+      "type": "TEST_QUALITY",
+      "priority": "HIGH",
+      "message": "Test success rate below target",
+      "details": "0% success rate (target: 95%)",
+      "action": "Review and fix failing tests"
+    }
+  ]
+}

@@ -1,0 +1,191 @@
+{
+  "testUsers": [
+    {
+      "id": "456e7890-e89b-12d3-a456-426614174001",
+      "email": "test-user-1@example.com",
+      "password": "testpassword123",
+      "fullName": "Test User One",
+      "companyId": "123e4567-e89b-12d3-a456-426614174000",
+      "role": "OWNER",
+      "isActive": true
+    },
+    {
+      "id": "789e0123-e89b-12d3-a456-426614174002",
+      "email": "test-user-2@example.com",
+      "password": "testpassword123",
+      "fullName": "Test User Two",
+      "companyId": "123e4567-e89b-12d3-a456-426614174000",
+      "role": "ADMIN",
+      "isActive": true
+    },
+    {
+      "id": "012e3456-e89b-12d3-a456-426614174003",
+      "email": "test-user-3@example.com",
+      "password": "testpassword123",
+      "fullName": "Test User Three",
+      "companyId": "123e4567-e89b-12d3-a456-426614174000",
+      "role": "MEMBER",
+      "isActive": true
+    }
+  ],
+  "testScenarios": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "name": "API-WebSocket Authentication Integration",
+      "description": "Test authentication flow between API and WebSocket connections",
+      "type": "INTEGRATION",
+      "priority": "HIGH",
+      "category": "auth",
+      "apiEndpoints": ["/auth/register", "/auth/login", "/websocket/connect"],
+      "websocketEvents": [
+        "connection_established",
+        "authentication_success",
+        "user_joined_company"
+      ],
+      "expectedResults": {
+        "apiResponseTime": "< 500ms",
+        "websocketDeliveryTime": "< 100ms",
+        "authenticationSuccess": true,
+        "connectionStability": true
+      },
+      "timeout": 30000,
+      "retryCount": 3,
+      "isActive": true
+    },
+    {
+      "id": "234e5678-e89b-12d3-a456-426614174001",
+      "name": "Real-time Messaging Integration",
+      "description": "Test real-time messaging between API and WebSocket",
+      "type": "INTEGRATION",
+      "priority": "HIGH",
+      "category": "messaging",
+      "apiEndpoints": [
+        "/messages/send",
+        "/messages/list",
+        "/websocket/send_message"
+      ],
+      "websocketEvents": [
+        "message_received",
+        "typing_indicator",
+        "message_delivered"
+      ],
+      "expectedResults": {
+        "apiResponseTime": "< 500ms",
+        "websocketDeliveryTime": "< 100ms",
+        "messageDelivery": true,
+        "realTimeSync": true
+      },
+      "timeout": 30000,
+      "retryCount": 3,
+      "isActive": true
+    },
+    {
+      "id": "345e6789-e89b-12d3-a456-426614174002",
+      "name": "File Upload Integration",
+      "description": "Test file upload with WebSocket progress updates",
+      "type": "INTEGRATION",
+      "priority": "MEDIUM",
+      "category": "file_upload",
+      "apiEndpoints": [
+        "/files/upload/initiate",
+        "/files/upload/chunk",
+        "/files/upload/complete"
+      ],
+      "websocketEvents": [
+        "file_upload_progress",
+        "file_upload_completed",
+        "file_processed"
+      ],
+      "expectedResults": {
+        "apiResponseTime": "< 500ms",
+        "websocketDeliveryTime": "< 100ms",
+        "uploadSuccess": true,
+        "progressUpdates": true
+      },
+      "timeout": 300000,
+      "retryCount": 2,
+      "isActive": true
+    }
+  ],
+  "performanceBenchmarks": {
+    "apiResponseTime": {
+      "threshold": 500,
+      "unit": "ms",
+      "description": "Maximum acceptable API response time"
+    },
+    "websocketDeliveryTime": {
+      "threshold": 100,
+      "unit": "ms",
+      "description": "Maximum acceptable WebSocket event delivery time"
+    },
+    "concurrentUsers": {
+      "threshold": 100,
+      "unit": "users",
+      "description": "Maximum concurrent users supported"
+    },
+    "connectionRecovery": {
+      "threshold": 30000,
+      "unit": "ms",
+      "description": "Maximum acceptable connection recovery time"
+    },
+    "memoryUsage": {
+      "threshold": 50,
+      "unit": "MB",
+      "description": "Maximum acceptable memory usage increase"
+    }
+  },
+  "testData": {
+    "messages": [
+      {
+        "content": "Hello, this is a test message for integration testing.",
+        "messageType": "TEXT",
+        "chatroomId": "321e6543-e89b-12d3-a456-426614174003",
+        "threadId": "654e9876-e89b-12d3-a456-426614174004"
+      },
+      {
+        "content": "This is a longer test message to validate message handling with more content and ensure proper WebSocket event delivery and API synchronization.",
+        "messageType": "TEXT",
+        "chatroomId": "321e6543-e89b-12d3-a456-426614174003",
+        "threadId": "654e9876-e89b-12d3-a456-426614174004"
+      }
+    ],
+    "files": [
+      {
+        "fileName": "test-document.pdf",
+        "fileSize": 1048576,
+        "mimeType": "application/pdf",
+        "chunks": 4
+      },
+      {
+        "fileName": "test-image.jpg",
+        "fileSize": 2097152,
+        "mimeType": "image/jpeg",
+        "chunks": 8
+      }
+    ],
+    "companies": [
+      {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "name": "Test Company One",
+        "description": "Test company for integration testing"
+      }
+    ],
+    "chatrooms": [
+      {
+        "id": "321e6543-e89b-12d3-a456-426614174003",
+        "name": "Test Chatroom",
+        "description": "Test chatroom for integration testing",
+        "companyId": "123e4567-e89b-12d3-a456-426614174000"
+      }
+    ],
+    "threads": [
+      {
+        "id": "654e9876-e89b-12d3-a456-426614174004",
+        "title": "Test Thread",
+        "description": "Test thread for integration testing",
+        "chatroomId": "321e6543-e89b-12d3-a456-426614174003",
+        "companyId": "123e4567-e89b-12d3-a456-426614174000"
+      }
+    ]
+  }
+}

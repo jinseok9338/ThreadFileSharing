@@ -1,0 +1,82 @@
+meta {
+  name: Test Scenarios API
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/test/scenarios
+  body: none
+  auth: inherit
+  params {
+    category: auth
+    priority: HIGH
+    type: INTEGRATION
+  }
+}
+
+post {
+  url: {{API_BASE_URL}}/test/scenarios
+  body: json
+  auth: inherit
+  params {
+    category: auth
+    priority: HIGH
+    type: INTEGRATION
+  }
+}
+
+put {
+  url: {{API_BASE_URL}}/test/scenarios/{{scenarioId}}
+  body: json
+  auth: inherit
+  params {
+    category: auth
+    priority: HIGH
+    type: INTEGRATION
+  }
+}
+
+delete {
+  url: {{API_BASE_URL}}/test/scenarios/{{scenarioId}}
+  body: none
+  auth: inherit
+  params {
+    category: auth
+    priority: HIGH
+    type: INTEGRATION
+  }
+}
+
+vars:pre-request {
+  scenarioId: 123e4567-e89b-12d3-a456-426614174000
+}
+
+body:json {
+  {
+    "name": "API-WebSocket Authentication Integration",
+    "description": "Test authentication flow between API and WebSocket connections",
+    "type": "INTEGRATION",
+    "priority": "HIGH",
+    "category": "auth",
+    "apiEndpoints": [
+      "/auth/register",
+      "/auth/login",
+      "/websocket/connect"
+    ],
+    "websocketEvents": [
+      "connection_established",
+      "authentication_success",
+      "user_joined_company"
+    ],
+    "expectedResults": {
+      "apiResponseTime": "< 500ms",
+      "websocketDeliveryTime": "< 100ms",
+      "authenticationSuccess": true,
+      "connectionStability": true
+    },
+    "timeout": 30000,
+    "retryCount": 3,
+    "isActive": true
+  }
+}

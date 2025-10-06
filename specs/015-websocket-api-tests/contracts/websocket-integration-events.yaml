@@ -1,0 +1,498 @@
+openapi: 3.0.0
+info:
+  title: WebSocket Integration Events
+  description: WebSocket event schemas for API-WebSocket integration testing
+  version: 1.0.0
+  contact:
+    name: ThreadFileSharing Team
+    email: dev@threadfilesharing.com
+
+servers:
+  - url: ws://localhost:3001
+    description: Local WebSocket server
+  - url: wss://api.threadfilesharing.com
+    description: Production WebSocket server
+
+paths:
+  /socket.io/:
+    get:
+      summary: WebSocket connection endpoint
+      description: Socket.io connection endpoint for real-time communication
+      tags:
+        - WebSocket Events
+      responses:
+        "101":
+          description: WebSocket connection established
+        "400":
+          description: Invalid connection parameters
+        "401":
+          description: Unauthorized connection attempt
+
+components:
+  schemas:
+    # Client-to-Server Events
+    ClientEvents:
+      type: object
+      discriminator:
+        propertyName: event
+      oneOf:
+        - $ref: "#/components/schemas/ConnectionEvent"
+        - $ref: "#/components/schemas/AuthenticationEvent"
+        - $ref: "#/components/schemas/JoinRoomEvent"
+        - $ref: "#/components/schemas/LeaveRoomEvent"
+        - $ref: "#/components/schemas/SendMessageEvent"
+        - $ref: "#/components/schemas/TypingEvent"
+        - $ref: "#/components/schemas/FileUploadEvent"
+        - $ref: "#/components/schemas/UserStatusEvent"
+
+    # Server-to-Client Events
+    ServerEvents:
+      type: object
+      discriminator:
+        propertyName: event
+      oneOf:
+        - $ref: "#/components/schemas/ConnectionEstablishedEvent"
+        - $ref: "#/components/schemas/AuthenticationSuccessEvent"
+        - $ref: "#/components/schemas/RoomJoinedEvent"
+        - $ref: "#/components/schemas/RoomLeftEvent"
+        - $ref: "#/components/schemas/MessageReceivedEvent"
+        - $ref: "#/components/schemas/TypingIndicatorEvent"
+        - $ref: "#/components/schemas/FileUploadProgressEvent"
+        - $ref: "#/components/schemas/UserStatusUpdateEvent"
+        - $ref: "#/components/schemas/ErrorEvent"
+
+    # Connection Events
+    ConnectionEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [connect]
+        token:
+          type: string
+          description: JWT authentication token
+        userId:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+
+    ConnectionEstablishedEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [connection_established]
+        userId:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        socketId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    # Authentication Events
+    AuthenticationEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [authenticate]
+        token:
+          type: string
+          description: JWT authentication token
+
+    AuthenticationSuccessEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [authentication_success]
+        user:
+          $ref: "#/components/schemas/UserInfo"
+        timestamp:
+          type: string
+          format: date-time
+
+    # Room Management Events
+    JoinRoomEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [join_company, join_chatroom, join_thread, join_upload_session]
+        roomId:
+          type: string
+          format: uuid
+        roomType:
+          type: string
+          enum: [company, chatroom, thread, upload_session]
+
+    RoomJoinedEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum:
+            [
+              user_joined_company,
+              user_joined_chatroom,
+              user_joined_thread,
+              room_joined,
+            ]
+        roomId:
+          type: string
+          format: uuid
+        roomType:
+          type: string
+          enum: [company, chatroom, thread, upload_session]
+        user:
+          $ref: "#/components/schemas/UserInfo"
+        accessType:
+          type: string
+          enum: [OWNER, ADMIN, MEMBER, GUEST]
+        joinedAt:
+          type: string
+          format: date-time
+
+    LeaveRoomEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum:
+            [leave_company, leave_chatroom, leave_thread, leave_upload_session]
+        roomId:
+          type: string
+          format: uuid
+        roomType:
+          type: string
+          enum: [company, chatroom, thread, upload_session]
+
+    RoomLeftEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum:
+            [user_left_company, user_left_chatroom, user_left_thread, room_left]
+        roomId:
+          type: string
+          format: uuid
+        roomType:
+          type: string
+          enum: [company, chatroom, thread, upload_session]
+        user:
+          $ref: "#/components/schemas/UserInfo"
+        leftAt:
+          type: string
+          format: date-time
+
+    # Messaging Events
+    SendMessageEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [send_chatroom_message, send_thread_message]
+        chatroomId:
+          type: string
+          format: uuid
+        threadId:
+          type: string
+          format: uuid
+        content:
+          type: string
+        messageType:
+          type: string
+          enum: [TEXT, SYSTEM, FILE, IMAGE]
+        replyToId:
+          type: string
+          format: uuid
+
+    MessageReceivedEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [chatroom_message_received, thread_message_received]
+        messageId:
+          type: string
+          format: uuid
+        chatroomId:
+          type: string
+          format: uuid
+        threadId:
+          type: string
+          format: uuid
+        sender:
+          $ref: "#/components/schemas/UserInfo"
+        content:
+          type: string
+        messageType:
+          type: string
+          enum: [TEXT, SYSTEM, FILE, IMAGE]
+        replyTo:
+          $ref: "#/components/schemas/ReplyInfo"
+        createdAt:
+          type: string
+          format: date-time
+
+    # Typing Events
+    TypingEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum:
+            [
+              chatroom_typing_start,
+              chatroom_typing_stop,
+              thread_typing_start,
+              thread_typing_stop,
+            ]
+        chatroomId:
+          type: string
+          format: uuid
+        threadId:
+          type: string
+          format: uuid
+
+    TypingIndicatorEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [chatroom_typing, thread_typing]
+        chatroomId:
+          type: string
+          format: uuid
+        threadId:
+          type: string
+          format: uuid
+        user:
+          $ref: "#/components/schemas/UserInfo"
+        isTyping:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+
+    # File Upload Events
+    FileUploadEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum:
+            [
+              file_upload_start,
+              file_upload_chunk,
+              file_upload_complete,
+              file_upload_cancel,
+            ]
+        uploadSessionId:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+        chunkIndex:
+          type: integer
+        chunkData:
+          type: string
+          format: base64
+        totalChunks:
+          type: integer
+
+    FileUploadProgressEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum:
+            [
+              file_upload_progress,
+              file_upload_completed,
+              file_upload_failed,
+              file_processed,
+            ]
+        uploadSessionId:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        progress:
+          type: number
+          minimum: 0
+          maximum: 100
+        uploadedBytes:
+          type: integer
+        totalBytes:
+          type: integer
+        fileId:
+          type: string
+          format: uuid
+        downloadUrl:
+          type: string
+        error:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    # User Status Events
+    UserStatusEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [update_user_status]
+        status:
+          type: string
+          enum: [online, offline, away, busy]
+        message:
+          type: string
+
+    UserStatusUpdateEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [user_status_updated]
+        user:
+          $ref: "#/components/schemas/UserInfo"
+        status:
+          type: string
+          enum: [online, offline, away, busy]
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    # Error Events
+    ErrorEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [error]
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+
+    # Common Schemas
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        avatarUrl:
+          type: string
+        role:
+          type: string
+          enum: [OWNER, ADMIN, MEMBER, GUEST]
+
+    ReplyInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        sender:
+          $ref: "#/components/schemas/UserInfo"
+        createdAt:
+          type: string
+          format: date-time
+
+    # Integration Test Specific Events
+    IntegrationTestEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum:
+            [
+              integration_test_start,
+              integration_test_complete,
+              integration_test_error,
+            ]
+        testId:
+          type: string
+          format: uuid
+        scenarioId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PASSED, FAILED, ERROR]
+        message:
+          type: string
+        metrics:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+
+    PerformanceMetricEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [performance_metric]
+        testId:
+          type: string
+          format: uuid
+        metricType:
+          type: string
+          enum: [API_RESPONSE, WEBSOCKET_DELIVERY, MEMORY_USAGE, CPU_USAGE]
+        operation:
+          type: string
+        value:
+          type: number
+        unit:
+          type: string
+        threshold:
+          type: number
+        isWithinThreshold:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+
+tags:
+  - name: WebSocket Events
+    description: Real-time WebSocket event schemas for integration testing
+  - name: Connection Management
+    description: WebSocket connection and authentication events
+  - name: Room Management
+    description: Room joining and leaving events
+  - name: Messaging
+    description: Real-time messaging events
+  - name: File Upload
+    description: File upload progress and completion events
+  - name: User Status
+    description: User presence and status events
+  - name: Integration Testing
+    description: Integration test specific events

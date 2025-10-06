@@ -1,0 +1,231 @@
+{
+  "timestamp": "2025-10-06T08:37:38.997Z",
+  "summary": {
+    "timestamp": "2025-10-06T08:37:38.997Z",
+    "summary": {
+      "totalMetrics": 5,
+      "apiResponses": 0,
+      "websocketDeliveries": 0,
+      "concurrentUserRecords": 0,
+      "systemMetrics": 5
+    },
+    "apiPerformance": {
+      "average": 0,
+      "min": 0,
+      "max": 0,
+      "p95": 0,
+      "p99": 0,
+      "withinThreshold": 0
+    },
+    "websocketPerformance": {
+      "average": 0,
+      "min": 0,
+      "max": 0,
+      "p95": 0,
+      "p99": 0,
+      "withinThreshold": 0
+    },
+    "concurrentUsers": {
+      "average": 0,
+      "min": 0,
+      "max": 0,
+      "withinThreshold": 0
+    },
+    "systemPerformance": {
+      "memoryUsage": {
+        "average": 5,
+        "min": 5,
+        "max": 5
+      },
+      "cpuUsage": {
+        "average": 6,
+        "min": 5,
+        "max": 6
+      },
+      "loadAverage": {
+        "average": 3.34,
+        "min": 3.25,
+        "max": 3.71044921875
+      }
+    },
+    "thresholdViolations": []
+  },
+  "metrics": [
+    {
+      "timestamp": 1759739854561,
+      "memory": {
+        "rss": 44728320,
+        "heapTotal": 9748480,
+        "heapUsed": 5257464,
+        "external": 1859640,
+        "arrayBuffers": 25147
+      },
+      "cpu": {
+        "user": 41870,
+        "system": 7640
+      },
+      "system": {
+        "loadAverage": [
+          3.25,
+          2.908203125,
+          2.91455078125
+        ],
+        "uptime": 531241,
+        "totalMemory": 34359738368,
+        "freeMemory": 227770368
+      },
+      "process": {
+        "pid": 42922,
+        "uptime": 1.031319416,
+        "version": "v20.19.2",
+        "platform": "darwin"
+      },
+      "memoryUsageMB": 5,
+      "memoryUsagePercent": 54,
+      "cpuUsagePercent": 5,
+      "loadAverage": 3.25
+    },
+    {
+      "timestamp": 1759739855562,
+      "memory": {
+        "rss": 44843008,
+        "heapTotal": 9748480,
+        "heapUsed": 5340200,
+        "external": 1859640,
+        "arrayBuffers": 25147
+      },
+      "cpu": {
+        "user": 46458,
+        "system": 8021
+      },
+      "system": {
+        "loadAverage": [
+          3.25,
+          2.908203125,
+          2.91455078125
+        ],
+        "uptime": 531242,
+        "totalMemory": 34359738368,
+        "freeMemory": 225591296
+      },
+      "process": {
+        "pid": 42922,
+        "uptime": 2.032124625,
+        "version": "v20.19.2",
+        "platform": "darwin"
+      },
+      "memoryUsageMB": 5,
+      "memoryUsagePercent": 55,
+      "cpuUsagePercent": 5,
+      "loadAverage": 3.25
+    },
+    {
+      "timestamp": 1759739856562,
+      "memory": {
+        "rss": 44957696,
+        "heapTotal": 9748480,
+        "heapUsed": 5640288,
+        "external": 1859640,
+        "arrayBuffers": 25147
+      },
+      "cpu": {
+        "user": 50056,
+        "system": 8456
+      },
+      "system": {
+        "loadAverage": [
+          3.25,
+          2.908203125,
+          2.91455078125
+        ],
+        "uptime": 531243,
+        "totalMemory": 34359738368,
+        "freeMemory": 240680960
+      },
+      "process": {
+        "pid": 42922,
+        "uptime": 3.0324645,
+        "version": "v20.19.2",
+        "platform": "darwin"
+      },
+      "memoryUsageMB": 5,
+      "memoryUsagePercent": 58,
+      "cpuUsagePercent": 6,
+      "loadAverage": 3.25
+    },
+    {
+      "timestamp": 1759739857563,
+      "memory": {
+        "rss": 44990464,
+        "heapTotal": 9748480,
+        "heapUsed": 5689768,
+        "external": 1859640,
+        "arrayBuffers": 25147
+      },
+      "cpu": {
+        "user": 52124,
+        "system": 8684
+      },
+      "system": {
+        "loadAverage": [
+          3.25,
+          2.908203125,
+          2.91455078125
+        ],
+        "uptime": 531244,
+        "totalMemory": 34359738368,
+        "freeMemory": 240680960
+      },
+      "process": {
+        "pid": 42922,
+        "uptime": 4.033650583,
+        "version": "v20.19.2",
+        "platform": "darwin"
+      },
+      "memoryUsageMB": 5,
+      "memoryUsagePercent": 58,
+      "cpuUsagePercent": 6,
+      "loadAverage": 3.25
+    },
+    {
+      "timestamp": 1759739858564,
+      "memory": {
+        "rss": 45006848,
+        "heapTotal": 9748480,
+        "heapUsed": 5736728,
+        "external": 1859640,
+        "arrayBuffers": 25147
+      },
+      "cpu": {
+        "user": 54059,
+        "system": 8890
+      },
+      "system": {
+        "loadAverage": [
+          3.71044921875,
+          3.00927734375,
+          2.9501953125
+        ],
+        "uptime": 531245,
+        "totalMemory": 34359738368,
+        "freeMemory": 261947392
+      },
+      "process": {
+        "pid": 42922,
+        "uptime": 5.034533041,
+        "version": "v20.19.2",
+        "platform": "darwin"
+      },
+      "memoryUsageMB": 5,
+      "memoryUsagePercent": 59,
+      "cpuUsagePercent": 6,
+      "loadAverage": 3.71044921875
+    }
+  ],
+  "thresholds": {
+    "apiResponseTime": 500,
+    "websocketDeliveryTime": 100,
+    "memoryUsage": 50,
+    "cpuUsage": 80
+  }
+}

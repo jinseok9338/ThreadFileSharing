@@ -1,0 +1,57 @@
+meta {
+  name: Test Execution API
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_BASE_URL}}/test/scenarios/{{scenarioId}}/execute
+  body: json
+  auth: inherit
+  params {
+    userId: {{userId}}
+    timeout: 30000
+    retryCount: 3
+  }
+}
+
+get {
+  url: {{API_BASE_URL}}/test/scenarios/{{scenarioId}}/execute/status
+  body: none
+  auth: inherit
+  params {
+    testId: {{testId}}
+  }
+}
+
+put {
+  url: {{API_BASE_URL}}/test/scenarios/{{scenarioId}}/execute/{{testId}}/cancel
+  body: none
+  auth: inherit
+  params {
+    reason: "User requested cancellation"
+  }
+}
+
+vars:pre-request {
+  scenarioId: 123e4567-e89b-12d3-a456-426614174000
+  userId: 456e7890-e89b-12d3-a456-426614174001
+  testId: 789e0123-e89b-12d3-a456-426614174002
+}
+
+body:json {
+  {
+    "userId": "456e7890-e89b-12d3-a456-426614174001",
+    "parameters": {
+      "concurrentUsers": 10,
+      "testDuration": 30000,
+      "performanceThresholds": {
+        "apiResponseTime": 500,
+        "websocketDeliveryTime": 100,
+        "memoryUsage": 50
+      }
+    },
+    "timeout": 30000,
+    "retryCount": 3
+  }
+}
