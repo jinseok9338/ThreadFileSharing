@@ -15,6 +15,8 @@ import { JwtService } from '@nestjs/jwt';
 import type { AuthenticatedSocket } from '../interfaces/websocket-client.interface';
 import { WebSocketAuthService } from '../services/websocket-auth.service';
 import { WebSocketRoomService } from '../services/websocket-room.service';
+import { ThreadService } from '../../thread/thread.service';
+import { MessageService } from '../../message/services/message.service';
 
 // Client to Server DTOs
 import {
@@ -55,6 +57,8 @@ export class WebSocketGateway
     private readonly jwtService: JwtService,
     private readonly authService: WebSocketAuthService,
     private readonly roomService: WebSocketRoomService,
+    private readonly threadService: ThreadService,
+    private readonly messageService: MessageService,
   ) {}
 
   afterInit(server: Server) {
@@ -204,11 +208,17 @@ export class WebSocketGateway
 
       this.logger.log(`User ${client.username} joined thread: ${room.id}`);
 
+      // Get actual user role from ThreadService
+      const threadRole = await this.threadService.getUserRole(
+        data.threadId,
+        client.userId,
+      );
+
       // Notify the client that they joined the thread
       client.emit('user_joined_thread', {
         threadId: data.threadId,
         user: this.authService.getSocketInfo(client),
-        threadRole: 'MEMBER', // TODO: Get actual role from ThreadService
+        threadRole: threadRole,
         accessType: 'MEMBER',
         joinedAt: new Date(),
       });
@@ -217,7 +227,7 @@ export class WebSocketGateway
       client.to(room.id).emit('user_joined_thread', {
         threadId: data.threadId,
         user: this.authService.getSocketInfo(client),
-        threadRole: 'MEMBER', // TODO: Get actual role from ThreadService
+        threadRole: threadRole,
         accessType: 'MEMBER',
         joinedAt: new Date(),
       });
@@ -326,36 +336,49 @@ export class WebSocketGateway
         data.chatroomId,
       );
 
-      // TODO: Save message to database via MessageService
+      // Save message to database via MessageService
+      const sendMessageDto = {
+        chatroomId: data.chatroomId,
+        content: data.content,
+        messageType: (data.messageType || 'TEXT') as any, // Convert to MessageType
+        replyToId: data.replyToId,
+      };
+
+      const savedMessage = await this.messageService.sendMessage(
+        sendMessageDto,
+        client.userId,
+      );
 
       // Send message confirmation to sender
       client.emit('chatroom_message_received', {
-        messageId: 'temp-id', // TODO: Use actual message ID from database
+        messageId: savedMessage.id,
         chatroomId: data.chatroomId,
         sender: this.authService.getSocketInfo(client),
         content: data.content,
         messageType: data.messageType || 'TEXT',
         replyTo: data.replyToId
           ? {
-              /* TODO: Get reply data */
+              id: data.replyToId,
+              content: 'Reply data will be implemented',
             }
           : undefined,
-        createdAt: new Date(),
+        createdAt: savedMessage.createdAt,
       });
 
       // Broadcast message to chatroom (excluding sender)
       client.to(roomId).emit('chatroom_message_received', {
-        messageId: 'temp-id', // TODO: Use actual message ID from database
+        messageId: savedMessage.id,
         chatroomId: data.chatroomId,
         sender: this.authService.getSocketInfo(client),
         content: data.content,
         messageType: data.messageType || 'TEXT',
         replyTo: data.replyToId
           ? {
-              /* TODO: Get reply data */
+              id: data.replyToId,
+              content: 'Reply data will be implemented',
             }
           : undefined,
-        createdAt: new Date(),
+        createdAt: savedMessage.createdAt,
       });
     } catch (error) {
       this.logger.error(`Failed to send chatroom message: ${error.message}`);
@@ -371,36 +394,60 @@ export class WebSocketGateway
     try {
       const roomId = this.roomService.generateRoomId('thread', data.threadId);
 
-      // TODO: Save message to database via MessageService
+      // Get thread info to get chatroomId
+      const thread = await this.threadService.getThreadById(
+        data.threadId,
+        client.userId,
+      );
+
+      if (!thread) {
+        throw new Error('Thread not found');
+      }
+
+      // Save message to database via MessageService
+      const sendMessageDto = {
+        chatroomId: thread.chatroomId,
+        threadId: data.threadId,
+        content: data.content,
+        messageType: (data.messageType || 'TEXT') as any, // Convert to MessageType
+        replyToId: data.replyToId,
+      };
+
+      const savedMessage = await this.messageService.sendMessage(
+        sendMessageDto,
+        client.userId,
+      );
 
       // Send message confirmation to sender
       client.emit('thread_message_received', {
-        messageId: 'temp-id', // TODO: Use actual message ID from database
+        messageId: savedMessage.id,
         threadId: data.threadId,
         sender: this.authService.getSocketInfo(client),
         content: data.content,
         messageType: data.messageType || 'TEXT',
         replyTo: data.replyToId
           ? {
-              /* TODO: Get reply data */
+              id: data.replyToId,
+              content: 'Reply data will be implemented',
             }
           : undefined,
-        createdAt: new Date(),
+        createdAt: savedMessage.createdAt,
       });
 
       // Broadcast message to thread (excluding sender)
       client.to(roomId).emit('thread_message_received', {
-        messageId: 'temp-id', // TODO: Use actual message ID from database
+        messageId: savedMessage.id,
         threadId: data.threadId,
         sender: this.authService.getSocketInfo(client),
         content: data.content,
         messageType: data.messageType || 'TEXT',
         replyTo: data.replyToId
           ? {
-              /* TODO: Get reply data */
+              id: data.replyToId,
+              content: 'Reply data will be implemented',
             }
           : undefined,
-        createdAt: new Date(),
+        createdAt: savedMessage.createdAt,
       });
     } catch (error) {
       this.logger.error(`Failed to send thread message: ${error.message}`);

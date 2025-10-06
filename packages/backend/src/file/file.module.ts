@@ -22,6 +22,9 @@ import { ChunkedUploadService } from './services/chunked-upload.service';
 import { StreamingUploadService } from './services/streaming-upload.service';
 import { FileManagementService } from './services/file-management.service';
 import { StorageModule } from '../storage/storage.module';
+import { CompanyModule } from '../company/company.module';
+import { MessageModule } from '../message/message.module';
+import { ThreadModule } from '../thread/thread.module';
 
 // Controllers
 import { FileUploadController } from './controllers/file-upload.controller';
@@ -49,6 +52,9 @@ import { WebSocketModule } from '../websocket/websocket.module';
     ]),
     ConfigModule,
     StorageModule,
+    forwardRef(() => CompanyModule),
+    forwardRef(() => MessageModule),
+    forwardRef(() => ThreadModule),
     // MulterModule.register(multerConfig), // Fastify multipart 사용으로 불필요
     forwardRef(() => WebSocketModule),
   ],

@@ -18,6 +18,7 @@ import { PermissionService } from '../permission/permission.service';
 import { AccessType, ThreadRole } from '../constants/permissions';
 import { FileResponseDto } from '../file/dto/file-response.dto';
 import { File } from '../file/entities/file.entity';
+import { User } from '../user/entities/user.entity';
 import { ThreadFileAssociationResponseDto } from './dto/thread-file-association-response.dto';
 
 @Injectable()
@@ -29,9 +30,33 @@ export class ThreadService {
     private readonly threadParticipantRepository: Repository<ThreadParticipant>,
     @InjectRepository(File)
     private readonly fileRepository: Repository<File>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly chatRoomService: ChatRoomService,
     private readonly permissionService: PermissionService,
   ) {}
+
+  /**
+   * Get user's role in a thread
+   */
+  async getUserRole(threadId: string, userId: string): Promise<string> {
+    const participation = await this.threadParticipantRepository.findOne({
+      where: { threadId, userId },
+    });
+
+    return participation?.role || 'MEMBER';
+  }
+
+  /**
+   * Check if user is participant of a thread
+   */
+  async isUserParticipant(threadId: string, userId: string): Promise<boolean> {
+    const participation = await this.threadParticipantRepository.findOne({
+      where: { threadId, userId },
+    });
+
+    return !!participation;
+  }
 
   /**
    * Create a new thread
@@ -587,8 +612,16 @@ export class ThreadService {
 
     // Check if user has access to the file (either uploaded by user or in same company)
     if (file.uploadedBy !== userId) {
-      // TODO: Add company-based access check if needed
-      throw new ForbiddenException('You can only associate files you uploaded');
+      // Check if user is in the same company as the file uploader
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      if (!user || user.companyId !== file.companyId) {
+        throw new ForbiddenException(
+          'You can only associate files you uploaded or files from your company',
+        );
+      }
     }
 
     // Update the file to associate it with the thread

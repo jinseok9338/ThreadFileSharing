@@ -26,6 +26,9 @@ import {
 import { StorageQuota } from '../entities/storage-quota.entity';
 import { User } from '../../user/entities/user.entity';
 import { Company } from '../../company/entities/company.entity';
+import { CompanyService } from '../../company/company.service';
+import { MessageService } from '../../message/services/message.service';
+import { ThreadService } from '../../thread/thread.service';
 import { S3ClientService } from './s3-client.service';
 import { MinIOService } from '../../storage/minio.service';
 import { StorageQuotaService } from '../../storage/storage-quota.service';
@@ -58,6 +61,9 @@ export class FileUploadService {
     private readonly minioService: MinIOService,
     private readonly storageQuotaService: StorageQuotaService,
     private readonly configService: ConfigService,
+    private readonly companyService: CompanyService,
+    private readonly messageService: MessageService,
+    private readonly threadService: ThreadService,
     @Inject(forwardRef(() => WebSocketGateway))
     private readonly webSocketGateway: WebSocketGateway,
   ) {}
@@ -538,9 +544,11 @@ export class FileUploadService {
         return;
       }
 
-      // Get user's company role (default to member for now)
-      // TODO: Implement proper company role lookup when CompanyMember entity is available
-      const companyRole = 'member';
+      // Get user's company role from CompanyService
+      const companyRole = await this.companyService.getUserRole(
+        user.companyId,
+        userId,
+      );
 
       const completionData = {
         sessionId: null, // Single file upload doesn't have session
@@ -603,9 +611,11 @@ export class FileUploadService {
         return;
       }
 
-      // Get user's company role (default to member for now)
-      // TODO: Implement proper company role lookup when CompanyMember entity is available
-      const companyRole = 'member';
+      // Get user's company role from CompanyService
+      const companyRole = await this.companyService.getUserRole(
+        user.companyId,
+        userId,
+      );
 
       const completionData = {
         sessionId,
@@ -659,23 +669,45 @@ export class FileUploadService {
     try {
       // Auto-generate chatroom message if sharing to chatroom (not creating thread)
       if (uploadRequest.chatroomId && !uploadRequest.createThread) {
-        // TODO: Create actual chatroom message via MessageService
-        autoActions.chatroomMessage = {
-          messageId: 'temp-message-id', // TODO: Use actual message ID
+        // Create actual chatroom message via MessageService
+        const sendMessageDto = {
+          chatroomId: uploadRequest.chatroomId,
           content: `파일이 업로드되었습니다: ${file.originalName}`,
-          messageType: 'FILE_SHARE',
+          messageType: 'FILE_SHARE' as any,
+        };
+
+        const savedMessage = await this.messageService.sendMessage(
+          sendMessageDto,
+          userId,
+        );
+
+        autoActions.chatroomMessage = {
+          messageId: savedMessage.id,
+          content: savedMessage.content,
+          messageType: savedMessage.messageType,
         };
       }
 
       // Auto-create thread if requested
-      if (uploadRequest.createThread) {
-        // TODO: Create actual thread via ThreadService
-        autoActions.threadCreated = {
-          threadId: 'temp-thread-id', // TODO: Use actual thread ID
+      if (uploadRequest.createThread && uploadRequest.chatroomId) {
+        // Create actual thread via ThreadService
+        const createThreadDto = {
+          chatroomId: uploadRequest.chatroomId,
           title: uploadRequest.threadTitle || file.originalName,
           description:
             uploadRequest.threadDescription ||
             `${file.originalName}에 대한 논의`,
+        };
+
+        const createdThread = await this.threadService.createThread(
+          createThreadDto,
+          userId,
+        );
+
+        autoActions.threadCreated = {
+          threadId: createdThread.id,
+          title: createdThread.title,
+          description: createdThread.description,
         };
       }
     } catch (error) {

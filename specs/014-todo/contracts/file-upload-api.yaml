@@ -1,0 +1,345 @@
+openapi: 3.0.3
+info:
+  title: File Upload API
+  description: 파일 업로드 및 체크섬 검증을 위한 API 스펙
+  version: 1.0.0
+  contact:
+    name: ThreadFileSharing Team
+    email: dev@threadfilesharing.com
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local development server
+  - url: https://api.threadfilesharing.com/api/v1
+    description: Production server
+
+paths:
+  /files/upload/chunks/{sessionId}/validate:
+    post:
+      summary: Validate chunk checksum
+      description: 파일 청크의 체크섬 검증
+      tags:
+        - File Upload
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Upload session ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChunkValidationRequest"
+      responses:
+        "200":
+          description: Chunk validation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChunkValidationResponse"
+        "400":
+          description: Invalid chunk data or checksum mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Upload session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /files/upload/{fileId}/auto-actions:
+    post:
+      summary: Create auto-actions after file upload
+      description: 파일 업로드 완료 후 자동 생성 작업 (채팅방 메시지, 스레드 생성)
+      tags:
+        - File Upload
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: File ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AutoActionRequest"
+      responses:
+        "201":
+          description: Auto-actions created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoActionResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /files/upload/progress/{sessionId}:
+    get:
+      summary: Get upload progress
+      description: 업로드 진행률 조회
+      tags:
+        - File Upload
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Upload session ID
+      responses:
+        "200":
+          description: Upload progress retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadProgressResponse"
+        "404":
+          description: Upload session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    ChunkValidationRequest:
+      type: object
+      required:
+        - chunkIndex
+        - chunkData
+        - expectedChecksum
+      properties:
+        chunkIndex:
+          type: integer
+          minimum: 0
+          description: Chunk index
+        chunkData:
+          type: string
+          format: base64
+          description: Chunk data in base64 format
+        expectedChecksum:
+          type: string
+          pattern: "^[a-f0-9]{64}$"
+          description: Expected SHA-256 checksum (64 hex characters)
+        chunkSize:
+          type: integer
+          minimum: 1
+          description: Chunk size in bytes
+
+    ChunkValidationResponse:
+      type: object
+      properties:
+        chunkIndex:
+          type: integer
+          description: Chunk index
+        isValid:
+          type: boolean
+          description: Whether checksum validation passed
+        calculatedChecksum:
+          type: string
+          description: Calculated SHA-256 checksum
+        expectedChecksum:
+          type: string
+          description: Expected SHA-256 checksum
+        chunkSize:
+          type: integer
+          description: Chunk size in bytes
+        validatedAt:
+          type: string
+          format: date-time
+          description: Validation timestamp
+
+    AutoActionRequest:
+      type: object
+      required:
+        - userId
+        - action
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: User ID who uploaded the file
+        action:
+          type: string
+          enum: [CREATE_CHATROOM_MESSAGE, CREATE_THREAD, BOTH]
+          description: Type of auto-action to perform
+        chatroomId:
+          type: string
+          format: uuid
+          description: Chatroom ID for message creation
+        threadTitle:
+          type: string
+          description: Thread title (if creating thread)
+        threadDescription:
+          type: string
+          description: Thread description (if creating thread)
+        messageContent:
+          type: string
+          description: Custom message content (optional)
+
+    AutoActionResponse:
+      type: object
+      properties:
+        fileId:
+          type: string
+          format: uuid
+          description: File ID
+        actions:
+          type: object
+          description: Created actions
+          properties:
+            chatroomMessage:
+              $ref: "#/components/schemas/CreatedMessage"
+            thread:
+              $ref: "#/components/schemas/CreatedThread"
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+
+    CreatedMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Message ID
+        chatroomId:
+          type: string
+          format: uuid
+          description: Chatroom ID
+        content:
+          type: string
+          description: Message content
+        messageType:
+          type: string
+          enum: [TEXT, FILE_SHARE, SYSTEM]
+          description: Message type
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+
+    CreatedThread:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Thread ID
+        title:
+          type: string
+          description: Thread title
+        description:
+          type: string
+          description: Thread description
+        createdBy:
+          type: string
+          format: uuid
+          description: Creator user ID
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+
+    UploadProgressResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          description: Upload session ID
+        totalChunks:
+          type: integer
+          description: Total number of chunks
+        uploadedChunks:
+          type: integer
+          description: Number of uploaded chunks
+        progress:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Upload progress percentage
+        status:
+          type: string
+          enum: [ACTIVE, COMPLETED, FAILED, CANCELLED]
+          description: Upload status
+        estimatedTimeRemaining:
+          type: integer
+          description: Estimated time remaining in seconds
+        uploadSpeed:
+          type: number
+          format: float
+          description: Upload speed in bytes per second
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Error message
+        details:
+          type: object
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: File Upload
+    description: File upload and validation

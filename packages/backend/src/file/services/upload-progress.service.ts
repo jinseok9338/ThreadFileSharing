@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan, In } from 'typeorm';
 import { FileUploadSession } from '../entities/file-upload-session.entity';
 import { UploadStatus } from '../../common/enums/upload-status.enum';
+import { WebSocketGateway } from '../../websocket/gateway/websocket.gateway';
 
 @Injectable()
 export class UploadProgressService {
@@ -11,6 +12,8 @@ export class UploadProgressService {
   constructor(
     @InjectRepository(FileUploadSession)
     private readonly uploadSessionRepository: Repository<FileUploadSession>,
+    @Inject(forwardRef(() => WebSocketGateway))
+    private readonly webSocketGateway: WebSocketGateway,
   ) {}
 
   async updateProgress(uploadSession: FileUploadSession): Promise<void> {
@@ -37,17 +40,19 @@ export class UploadProgressService {
 
   async broadcastProgress(uploadSession: FileUploadSession): Promise<void> {
     try {
-      // TODO: Implement WebSocket broadcasting
-      // This would typically emit events to connected clients
-      // await this.webSocketGateway.server
-      //   .to(`upload_session_${uploadSession.sessionId}`)
-      //   .emit('upload_progress', {
-      //     sessionId: uploadSession.sessionId,
-      //     progress: uploadSession.progressPercentage,
-      //     status: uploadSession.status,
-      //     uploadedBytes: uploadSession.uploadedBytes,
-      //     totalBytes: uploadSession.totalSizeBytes,
-      //   });
+      // Implement WebSocket broadcasting
+      this.webSocketGateway.server
+        .to(`upload_session:${uploadSession.sessionId}`)
+        .emit('file_upload_progress', {
+          sessionId: uploadSession.sessionId,
+          progress: uploadSession.progressPercentage,
+          status: uploadSession.status,
+          uploadedBytes: uploadSession.uploadedBytes,
+          totalBytes: uploadSession.totalSizeBytes,
+          uploadedChunks: uploadSession.uploadedChunks,
+          totalChunks: uploadSession.totalChunks,
+          timestamp: new Date(),
+        });
 
       this.logger.debug(
         `Broadcasting progress for session ${uploadSession.sessionId}: ${uploadSession.progressPercentage}%`,

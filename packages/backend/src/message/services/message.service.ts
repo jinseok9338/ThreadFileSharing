@@ -248,13 +248,51 @@ export class MessageService {
     userId: string,
     query: CursorPaginationQueryDto,
   ): Promise<MessageListResponseDto> {
-    // TODO: Implement thread message filtering when thread integration is complete
-    // For now, return empty result
+    // Validate thread access
+    const thread = await this.threadService.getThreadById(threadId, userId);
+
+    // Build query for thread messages
+    const queryBuilder = this.messageRepository
+      .createQueryBuilder('message')
+      .leftJoinAndSelect('message.sender', 'sender')
+      .where('message.threadId = :threadId', { threadId })
+      .orderBy('message.createdAt', 'DESC');
+
+    // Apply cursor pagination
+    if (query.lastIndex) {
+      try {
+        const cursorDate = new Date(query.lastIndex);
+        if (!isNaN(cursorDate.getTime())) {
+          queryBuilder.andWhere('message.createdAt < :cursor', {
+            cursor: cursorDate,
+          });
+        }
+      } catch (error) {
+        // Invalid cursor format, ignore
+      }
+    }
+
+    // Apply limit
+    const limit = Math.min(query.limit || 20, 100);
+    queryBuilder.limit(limit + 1); // +1 to check if there are more
+
+    const messages = await queryBuilder.getMany();
+    const hasMore = messages.length > limit;
+    const resultMessages = hasMore ? messages.slice(0, limit) : messages;
+
+    // Convert to response format
+    const messageResponses = resultMessages.map((message) =>
+      this.toMessageResponseDto(message),
+    );
+
     return {
-      messages: [],
-      total: 0,
-      count: 0,
-      hasMore: false,
+      messages: messageResponses,
+      total: resultMessages.length,
+      count: resultMessages.length,
+      hasMore,
+      nextCursor: hasMore
+        ? resultMessages[resultMessages.length - 1].createdAt.toISOString()
+        : undefined,
     };
   }
 

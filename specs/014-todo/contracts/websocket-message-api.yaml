@@ -1,0 +1,287 @@
+openapi: 3.0.3
+info:
+  title: WebSocket Message API
+  description: WebSocket 메시지 저장 및 조회를 위한 API 스펙
+  version: 1.0.0
+  contact:
+    name: ThreadFileSharing Team
+    email: dev@threadfilesharing.com
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local development server
+  - url: https://api.threadfilesharing.com/api/v1
+    description: Production server
+
+paths:
+  /messages:
+    post:
+      summary: Create a new message
+      description: WebSocket 메시지를 데이터베이스에 저장
+      tags:
+        - Messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMessageRequest"
+      responses:
+        "201":
+          description: Message created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /messages/{messageId}:
+    get:
+      summary: Get message by ID
+      description: 특정 메시지의 상세 정보 조회
+      tags:
+        - Messages
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Message ID
+      responses:
+        "200":
+          description: Message retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "404":
+          description: Message not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /messages/{messageId}/reply:
+    get:
+      summary: Get reply message data
+      description: 답글 메시지의 원본 메시지 데이터 조회
+      tags:
+        - Messages
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Reply message ID
+      responses:
+        "200":
+          description: Reply data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReplyDataResponse"
+        "404":
+          description: Message or reply data not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    CreateMessageRequest:
+      type: object
+      required:
+        - chatroomId
+        - senderId
+        - content
+        - messageType
+      properties:
+        chatroomId:
+          type: string
+          format: uuid
+          description: Chatroom ID
+        threadId:
+          type: string
+          format: uuid
+          description: Thread ID (optional)
+        senderId:
+          type: string
+          format: uuid
+          description: Sender user ID
+        content:
+          type: string
+          minLength: 1
+          maxLength: 4000
+          description: Message content
+        messageType:
+          type: string
+          enum: [TEXT, FILE_SHARE, SYSTEM]
+          description: Message type
+        replyToId:
+          type: string
+          format: uuid
+          description: Original message ID for replies
+
+    MessageResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Message ID
+        chatroomId:
+          type: string
+          format: uuid
+          description: Chatroom ID
+        threadId:
+          type: string
+          format: uuid
+          description: Thread ID (nullable)
+        senderId:
+          type: string
+          format: uuid
+          description: Sender user ID
+        content:
+          type: string
+          description: Message content
+        messageType:
+          type: string
+          enum: [TEXT, FILE_SHARE, SYSTEM]
+          description: Message type
+        replyToId:
+          type: string
+          format: uuid
+          description: Original message ID for replies
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        sender:
+          $ref: "#/components/schemas/UserInfo"
+        replyTo:
+          $ref: "#/components/schemas/ReplyMessageInfo"
+
+    ReplyDataResponse:
+      type: object
+      properties:
+        originalMessage:
+          $ref: "#/components/schemas/MessageResponse"
+        replyMessage:
+          $ref: "#/components/schemas/MessageResponse"
+        threadContext:
+          type: object
+          properties:
+            threadId:
+              type: string
+              format: uuid
+            threadTitle:
+              type: string
+            chatroomId:
+              type: string
+              format: uuid
+            chatroomName:
+              type: string
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        fullName:
+          type: string
+        avatarUrl:
+          type: string
+        status:
+          type: string
+          enum: [online, offline, away, busy]
+
+    ReplyMessageInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        sender:
+          $ref: "#/components/schemas/UserInfo"
+        createdAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Error message
+        details:
+          type: object
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Messages
+    description: WebSocket message management

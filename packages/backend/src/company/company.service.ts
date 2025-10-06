@@ -39,6 +39,23 @@ export class CompanyService {
   ) {}
 
   /**
+   * Get user's role in a company
+   */
+  async getUserRole(companyId: string, userId: string): Promise<string> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId, companyId },
+    });
+
+    if (!user) {
+      return 'member'; // Default role if user not found
+    }
+
+    // For now, return 'member' as default
+    // Note: CompanyMember entity will be implemented in future version
+    return 'member';
+  }
+
+  /**
    * Create a new company
    * - Generates slug from name
    * - Sets default plan and limits

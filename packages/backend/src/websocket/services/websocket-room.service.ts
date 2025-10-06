@@ -7,11 +7,18 @@ import {
   AuthenticatedSocket,
   RoomInfo,
 } from '../interfaces/websocket-client.interface';
+import { ChatRoomService } from '../../chatroom/chatroom.service';
+import { ThreadService } from '../../thread/thread.service';
 
 @Injectable()
 export class WebSocketRoomService {
   private rooms: Map<string, RoomInfo> = new Map();
   private userRooms: Map<string, Set<string>> = new Map(); // userId -> Set<roomId>
+
+  constructor(
+    private readonly chatRoomService: ChatRoomService,
+    private readonly threadService: ThreadService,
+  ) {}
 
   /**
    * Generate room ID based on type and entity ID
@@ -144,23 +151,33 @@ export class WebSocketRoomService {
 
       case 'chatroom':
         // Chatroom rooms: only chatroom members can join
-        // For now, allow access if user is in the same company
-        // TODO: Implement proper chatroom membership check when ChatroomService is available
-        // This is a temporary solution - in production, check actual chatroom membership
+        const isChatroomMember =
+          await this.chatRoomService.isUserMemberOfChatRoom(socket.userId, id);
+        if (!isChatroomMember) {
+          throw new ForbiddenException('Not a member of this chatroom');
+        }
         break;
 
       case 'thread':
         // Thread rooms: only thread participants can join
-        // For now, allow access for same company users
-        // TODO: Implement proper thread participation check when ThreadService is available
-        // This is a temporary solution - in production, check actual thread participation
+        const isThreadParticipant = await this.threadService.isUserParticipant(
+          id,
+          socket.userId,
+        );
+        if (!isThreadParticipant) {
+          throw new ForbiddenException('Not a participant of this thread');
+        }
         break;
 
       case 'upload_session':
         // Upload session rooms: session participants and observers can join
-        // For now, allow access for same company users
-        // TODO: Implement proper upload session access check when upload session service is available
-        // This is a temporary solution - in production, check actual upload session access
+        // Basic validation: allow if user is authenticated
+        if (!socket.userId) {
+          throw new ForbiddenException(
+            'Authentication required for upload session access',
+          );
+        }
+        // Note: Full upload session access validation will be implemented when UploadSessionService is available
         break;
 
       case 'user_session':

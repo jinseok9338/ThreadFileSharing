@@ -1,0 +1,428 @@
+openapi: 3.0.3
+info:
+  title: Role and Membership API
+  description: 사용자 역할 및 멤버십 검증을 위한 API 스펙
+  version: 1.0.0
+  contact:
+    name: ThreadFileSharing Team
+    email: dev@threadfilesharing.com
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local development server
+  - url: https://api.threadfilesharing.com/api/v1
+    description: Production server
+
+paths:
+  /threads/{threadId}/users/{userId}/role:
+    get:
+      summary: Get user thread role
+      description: 특정 스레드에서 사용자의 실제 역할 조회
+      tags:
+        - Thread Roles
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Thread ID
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        "200":
+          description: Thread role retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreadRoleResponse"
+        "404":
+          description: Thread role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /companies/{companyId}/users/{userId}/role:
+    get:
+      summary: Get user company role
+      description: 특정 회사에서 사용자의 실제 역할 조회
+      tags:
+        - Company Roles
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Company ID
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        "200":
+          description: Company role retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyRoleResponse"
+        "404":
+          description: Company role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /chatrooms/{chatroomId}/members/{userId}:
+    get:
+      summary: Check chatroom membership
+      description: 채팅방 멤버십 검증
+      tags:
+        - Chatroom Membership
+      parameters:
+        - name: chatroomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Chatroom ID
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        "200":
+          description: Membership status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatroomMembershipResponse"
+        "404":
+          description: Membership not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /threads/{threadId}/participants/{userId}:
+    get:
+      summary: Check thread participation
+      description: 스레드 참여 검증
+      tags:
+        - Thread Participation
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Thread ID
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        "200":
+          description: Participation status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreadParticipationResponse"
+        "404":
+          description: Participation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /upload-sessions/{sessionId}/access:
+    get:
+      summary: Check upload session access
+      description: 업로드 세션 접근 권한 검증
+      tags:
+        - Upload Session Access
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Upload session ID
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        "200":
+          description: Access status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadSessionAccessResponse"
+        "404":
+          description: Session or access not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    ThreadRoleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Thread role ID
+        threadId:
+          type: string
+          format: uuid
+          description: Thread ID
+        userId:
+          type: string
+          format: uuid
+          description: User ID
+        role:
+          type: string
+          enum: [CREATOR, ADMIN, MEMBER, OBSERVER]
+          description: User role in thread
+        permissions:
+          type: object
+          description: Detailed permissions
+          properties:
+            canEdit:
+              type: boolean
+            canDelete:
+              type: boolean
+            canInvite:
+              type: boolean
+            canManageFiles:
+              type: boolean
+        grantedAt:
+          type: string
+          format: date-time
+          description: Role granted timestamp
+        grantedBy:
+          $ref: "#/components/schemas/UserInfo"
+
+    CompanyRoleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Company role ID
+        companyId:
+          type: string
+          format: uuid
+          description: Company ID
+        userId:
+          type: string
+          format: uuid
+          description: User ID
+        role:
+          type: string
+          enum: [OWNER, ADMIN, MEMBER]
+          description: User role in company
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED]
+          description: Role status
+        grantedAt:
+          type: string
+          format: date-time
+          description: Role granted timestamp
+        grantedBy:
+          $ref: "#/components/schemas/UserInfo"
+
+    ChatroomMembershipResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Membership ID
+        chatroomId:
+          type: string
+          format: uuid
+          description: Chatroom ID
+        userId:
+          type: string
+          format: uuid
+          description: User ID
+        role:
+          type: string
+          enum: [OWNER, ADMIN, MEMBER]
+          description: User role in chatroom
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, BANNED]
+          description: Membership status
+        joinedAt:
+          type: string
+          format: date-time
+          description: Join timestamp
+        isMember:
+          type: boolean
+          description: Whether user is an active member
+
+    ThreadParticipationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Participation ID
+        threadId:
+          type: string
+          format: uuid
+          description: Thread ID
+        userId:
+          type: string
+          format: uuid
+          description: User ID
+        role:
+          type: string
+          enum: [CREATOR, ADMIN, MEMBER, OBSERVER]
+          description: User role in thread
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, LEFT]
+          description: Participation status
+        joinedAt:
+          type: string
+          format: date-time
+          description: Join timestamp
+        isParticipant:
+          type: boolean
+          description: Whether user is an active participant
+
+    UploadSessionAccessResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          description: Upload session ID
+        userId:
+          type: string
+          format: uuid
+          description: User ID
+        hasAccess:
+          type: boolean
+          description: Whether user has access to session
+        accessType:
+          type: string
+          enum: [CREATOR, PARTICIPANT, OBSERVER]
+          description: Type of access
+        sessionStatus:
+          type: string
+          enum: [ACTIVE, COMPLETED, FAILED, CANCELLED, EXPIRED]
+          description: Session status
+        expiresAt:
+          type: string
+          format: date-time
+          description: Session expiration timestamp
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        fullName:
+          type: string
+        avatarUrl:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Error message
+        details:
+          type: object
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Thread Roles
+    description: Thread role management
+  - name: Company Roles
+    description: Company role management
+  - name: Chatroom Membership
+    description: Chatroom membership verification
+  - name: Thread Participation
+    description: Thread participation verification
+  - name: Upload Session Access
+    description: Upload session access control

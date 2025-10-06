@@ -107,11 +107,13 @@ export class ChunkedUploadService {
       throw new BadRequestException('Invalid chunk size');
     }
 
-    // TODO: Validate chunk checksum
-    // const calculatedChecksum = await this.calculateChunkChecksum(chunkDto.chunkData);
-    // if (calculatedChecksum !== chunkDto.chunkChecksum) {
-    //   throw new BadRequestException("Chunk checksum validation failed");
-    // }
+    // Validate chunk checksum
+    const calculatedChecksum = await this.calculateChunkChecksum(
+      chunkDto.chunkData,
+    );
+    if (calculatedChecksum !== chunkDto.chunkChecksum) {
+      throw new BadRequestException('Chunk checksum validation failed');
+    }
 
     // Create chunk metadata
     const chunkMetadata: ChunkMetadata = {
@@ -239,8 +241,9 @@ export class ChunkedUploadService {
   }
 
   private async calculateChunkChecksum(chunkData: string): Promise<string> {
-    // TODO: Implement actual checksum calculation
-    // This would typically use crypto.createHash('sha256').update(buffer).digest('hex')
-    return `sha256:${chunkData.slice(0, 16)}`;
+    // Implement actual checksum calculation using crypto
+    const crypto = require('crypto');
+    const buffer = Buffer.from(chunkData, 'base64');
+    return crypto.createHash('sha256').update(buffer).digest('hex');
   }
 }
