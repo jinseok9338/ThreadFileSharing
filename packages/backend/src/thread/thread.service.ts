@@ -27,6 +27,8 @@ export class ThreadService {
     private readonly threadRepository: Repository<Thread>,
     @InjectRepository(ThreadParticipant)
     private readonly threadParticipantRepository: Repository<ThreadParticipant>,
+    @InjectRepository(File)
+    private readonly fileRepository: Repository<File>,
     private readonly chatRoomService: ChatRoomService,
     private readonly permissionService: PermissionService,
   ) {}
@@ -527,14 +529,39 @@ export class ThreadService {
     // Validate access
     await this.getThreadById(threadId, userId);
 
-    // TODO: Implement actual file-thread association query
-    // This would typically:
-    // 1. Query files table with threadId filter
-    // 2. Join with thread_files junction table
-    // 3. Return files associated with this thread
+    // Query files directly associated with this thread
+    const files = await this.fileRepository.find({
+      where: { threadId },
+      relations: ['uploader'],
+    });
 
-    // For now, return empty array since file-thread association is not fully implemented
-    return [];
+    // Convert to FileResponseDto format
+    return files.map((file) => ({
+      id: file.id,
+      companyId: file.companyId,
+      threadId: file.threadId,
+      chatroomId: file.chatroomId,
+      uploadedBy: file.uploadedBy,
+      originalName: file.originalName,
+      displayName: file.displayName,
+      mimeType: file.mimeType,
+      sizeBytes: file.sizeBytes,
+      hash: file.hash,
+      storageKey: file.storageKey,
+      storageBucket: file.storageBucket,
+      downloadUrl: file.downloadUrl,
+      metadata: file.metadata,
+      isProcessed: file.isProcessed,
+      processingStatus: file.processingStatus,
+      createdAt: file.createdAt,
+      updatedAt: file.updatedAt,
+      uploader: {
+        id: file.uploader.id,
+        email: file.uploader.email,
+        fullName: file.uploader.fullName,
+        avatarUrl: file.uploader.avatarUrl,
+      },
+    }));
   }
 
   /**
@@ -545,16 +572,31 @@ export class ThreadService {
     fileId: string,
     userId: string,
   ): Promise<ThreadFileAssociationResponseDto> {
-    // Validate access
+    // Validate access to thread
     await this.getThreadById(threadId, userId);
 
-    // TODO: Implement actual file-thread association
-    // This would typically:
-    // 1. Validate that the file exists and user has access to it
-    // 2. Create a record in a thread_files junction table
-    // 3. Update thread file count
+    // Validate that the file exists and user has access to it
+    const file = await this.fileRepository.findOne({
+      where: { id: fileId },
+      relations: ['uploader'],
+    });
 
-    // For now, return success response
+    if (!file) {
+      throw new NotFoundException('File not found');
+    }
+
+    // Check if user has access to the file (either uploaded by user or in same company)
+    if (file.uploadedBy !== userId) {
+      // TODO: Add company-based access check if needed
+      throw new ForbiddenException('You can only associate files you uploaded');
+    }
+
+    // Update the file to associate it with the thread
+    await this.fileRepository.update(fileId, { threadId });
+
+    // Update thread file count
+    await this.threadRepository.increment({ id: threadId }, 'fileCount', 1);
+
     const response = new ThreadFileAssociationResponseDto();
     response.threadId = threadId;
     response.fileId = fileId;
@@ -572,15 +614,39 @@ export class ThreadService {
     fileId: string,
     userId: string,
   ): Promise<void> {
-    // Validate access
+    // Validate access to thread
     await this.getThreadById(threadId, userId);
 
-    // TODO: Implement actual file-thread association removal
-    // This would typically:
-    // 1. Validate that the file-thread association exists
-    // 2. Remove the record from a thread_files junction table
-    // 3. Update thread file count
+    // Validate that the file exists and is associated with this thread
+    const file = await this.fileRepository.findOne({
+      where: { id: fileId, threadId },
+      relations: ['uploader'],
+    });
 
-    // For now, just return success
+    if (!file) {
+      throw new NotFoundException(
+        'File not found or not associated with this thread',
+      );
+    }
+
+    // Check if user has permission to remove the file
+    // User can remove if they uploaded the file or have thread admin permissions
+    const hasAdminPermission = await this.permissionService.hasThreadPermission(
+      userId,
+      threadId,
+      'UPDATE_METADATA',
+    );
+
+    if (file.uploadedBy !== userId && !hasAdminPermission) {
+      throw new ForbiddenException(
+        'You can only remove files you uploaded or have admin permissions',
+      );
+    }
+
+    // Remove the file-thread association
+    await this.fileRepository.update(fileId, { threadId: undefined });
+
+    // Update thread file count
+    await this.threadRepository.decrement({ id: threadId }, 'fileCount', 1);
   }
 }

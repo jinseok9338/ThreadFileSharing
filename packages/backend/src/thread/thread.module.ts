@@ -7,11 +7,12 @@ import { ThreadParticipant } from './entities/thread-participant.entity';
 import { ChatRoomModule } from '../chatroom/chatroom.module';
 
 import { User } from '../user/entities/user.entity';
+import { File } from '../file/entities/file.entity';
 import { PermissionModule } from 'src/permission/permission.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Thread, ThreadParticipant, User]),
+    TypeOrmModule.forFeature([Thread, ThreadParticipant, User, File]),
     forwardRef(() => ChatRoomModule),
     PermissionModule,
   ],

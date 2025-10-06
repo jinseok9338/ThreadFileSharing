@@ -307,6 +307,41 @@ export class ThreadController {
     await this.threadService.removeParticipant(threadId, userId, req.user.id);
   }
 
+  @Put(':threadId/archive')
+  @ApiOperation({
+    summary: 'Archive a thread',
+    description: 'Archive a thread to hide it from active threads',
+  })
+  @ApiParam({
+    name: 'threadId',
+    description: 'Thread ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Thread archived successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Thread not found',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Insufficient permissions to archive thread',
+  })
+  @HttpCode(HttpStatus.OK)
+  async archiveThread(
+    @Param('threadId') threadId: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<any> {
+    await this.threadService.archiveThread(threadId, req.user.id);
+
+    return {
+      success: true,
+      message: 'Thread archived successfully',
+    };
+  }
+
   @Get(':id/files')
   @ApiOperation({ summary: 'Get files associated with thread' })
   @ApiParam({

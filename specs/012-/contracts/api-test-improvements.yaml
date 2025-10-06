@@ -1,0 +1,630 @@
+openapi: 3.0.3
+info:
+  title: API Test Improvements Contract
+  description: Contract for improving existing API scenario tests to match backend implementation
+  version: 1.0.0
+  contact:
+    name: ThreadFileSharing API Team
+    email: api@threadfilesharing.com
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local development server
+  - url: https://api.threadfilesharing.com/api/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # File Management APIs (Previously Expected as Unimplemented)
+  /files/{fileId}:
+    delete:
+      summary: Delete file (Previously Expected 404)
+      description: Delete a file by ID. This endpoint is implemented but tests expect 404 error.
+      operationId: deleteFile
+      tags:
+        - File Management
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the file to delete
+      responses:
+        "200":
+          description: File deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteFileResponse"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # File Upload Completion API (Previously Expected as Unimplemented)
+  /files/upload/complete:
+    post:
+      summary: Complete file upload (Previously Expected 404)
+      description: Complete a file upload session. This endpoint is implemented but tests expect 404 error.
+      operationId: completeFileUpload
+      tags:
+        - File Upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteUploadRequest"
+      responses:
+        "200":
+          description: Upload completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompleteUploadResponse"
+        "400":
+          description: Invalid upload session or data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Upload session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # Thread-File Relationship APIs (Previously Expected as Unimplemented)
+  /threads/{threadId}/files:
+    get:
+      summary: Get thread files (Previously Expected 404)
+      description: Get files associated with a thread. This endpoint is implemented but tests expect 404 error.
+      operationId: getThreadFiles
+      tags:
+        - Thread Management
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the thread
+      responses:
+        "200":
+          description: Thread files retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreadFilesResponse"
+        "404":
+          description: Thread not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Associate file with thread (Previously Expected 404)
+      description: Associate a file with a thread. This endpoint is implemented but tests expect 404 error.
+      operationId: associateFileWithThread
+      tags:
+        - Thread Management
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the thread
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssociateFileRequest"
+      responses:
+        "201":
+          description: File associated with thread successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssociateFileResponse"
+        "404":
+          description: Thread or file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /threads/{threadId}/files/{fileId}:
+    delete:
+      summary: Remove file from thread (Previously Expected 404)
+      description: Remove a file association from a thread. This endpoint is implemented but tests expect 404 error.
+      operationId: removeFileFromThread
+      tags:
+        - Thread Management
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the thread
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the file
+      responses:
+        "200":
+          description: File removed from thread successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoveFileResponse"
+        "404":
+          description: Thread or file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # User Role Management API (Previously Expected as Unimplemented)
+  /users/{userId}/role:
+    put:
+      summary: Update user role (Previously Expected 404)
+      description: Update user role within a company. This endpoint is implemented but tests expect 404 error.
+      operationId: updateUserRole
+      tags:
+        - User Management
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRoleRequest"
+      responses:
+        "200":
+          description: User role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateUserRoleResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions to update role
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # Company Member Management APIs (Previously Expected as Unimplemented)
+  /companies/me/members:
+    get:
+      summary: Get company members (Previously Expected 404)
+      description: Get list of company members. This endpoint is implemented but tests expect 404 error.
+      operationId: getCompanyMembers
+      tags:
+        - Company Management
+      responses:
+        "200":
+          description: Company members retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyMembersResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Add company member (Previously Expected 404)
+      description: Add a new member to the company. This endpoint is implemented but tests expect 404 error.
+      operationId: addCompanyMember
+      tags:
+        - Company Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddMemberRequest"
+      responses:
+        "201":
+          description: Member added successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddMemberResponse"
+        "400":
+          description: Invalid member data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # Storage Quota Management APIs (Previously Expected as Unimplemented)
+  /files/storage/quota:
+    get:
+      summary: Get storage quota (Previously Expected 404)
+      description: Get storage quota information for the user/company. This endpoint is implemented but tests expect 404 error.
+      operationId: getStorageQuota
+      tags:
+        - Storage Management
+      responses:
+        "200":
+          description: Storage quota retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageQuotaResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /files/storage/quota/recalculate:
+    post:
+      summary: Recalculate storage quota (Previously Expected 404)
+      description: Recalculate storage quota usage. This endpoint is implemented but tests expect 404 error.
+      operationId: recalculateStorageQuota
+      tags:
+        - Storage Management
+      responses:
+        "200":
+          description: Storage quota recalculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecalculateQuotaResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # File Management Schemas
+    DeleteFileResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "File deleted successfully"
+        data:
+          type: object
+          properties:
+            fileId:
+              type: string
+              example: "file-123"
+
+    CompleteUploadRequest:
+      type: object
+      required:
+        - sessionId
+      properties:
+        sessionId:
+          type: string
+          description: Upload session ID
+          example: "session-123"
+        createThread:
+          type: boolean
+          description: Whether to create a new thread for this file
+          example: false
+
+    CompleteUploadResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Upload completed successfully"
+        data:
+          type: object
+          properties:
+            fileId:
+              type: string
+              example: "file-123"
+            fileName:
+              type: string
+              example: "document.pdf"
+            fileSize:
+              type: integer
+              example: 1024000
+
+    # Thread-File Relationship Schemas
+    ThreadFilesResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        data:
+          type: object
+          properties:
+            files:
+              type: array
+              items:
+                $ref: "#/components/schemas/FileInfo"
+
+    FileInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "file-123"
+        fileName:
+          type: string
+          example: "document.pdf"
+        fileSize:
+          type: integer
+          example: 1024000
+        mimeType:
+          type: string
+          example: "application/pdf"
+        uploadedAt:
+          type: string
+          format: date-time
+
+    AssociateFileRequest:
+      type: object
+      required:
+        - fileId
+      properties:
+        fileId:
+          type: string
+          description: ID of the file to associate
+          example: "file-123"
+
+    AssociateFileResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "File associated with thread successfully"
+        data:
+          type: object
+          properties:
+            threadId:
+              type: string
+              example: "thread-123"
+            fileId:
+              type: string
+              example: "file-123"
+
+    RemoveFileResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "File removed from thread successfully"
+        data:
+          type: object
+          properties:
+            threadId:
+              type: string
+              example: "thread-123"
+            fileId:
+              type: string
+              example: "file-123"
+
+    # User Role Management Schemas
+    UpdateUserRoleRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum: [ADMIN, MEMBER, VIEWER]
+          description: New role for the user
+          example: "ADMIN"
+
+    UpdateUserRoleResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "User role updated successfully"
+        data:
+          type: object
+          properties:
+            userId:
+              type: string
+              example: "user-123"
+            role:
+              type: string
+              example: "ADMIN"
+
+    # Company Member Management Schemas
+    CompanyMembersResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        data:
+          type: object
+          properties:
+            members:
+              type: array
+              items:
+                $ref: "#/components/schemas/MemberInfo"
+
+    MemberInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "user-123"
+        email:
+          type: string
+          example: "user@example.com"
+        role:
+          type: string
+          example: "ADMIN"
+        joinedAt:
+          type: string
+          format: date-time
+
+    AddMemberRequest:
+      type: object
+      required:
+        - email
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email address of the user to add
+          example: "newuser@example.com"
+        role:
+          type: string
+          enum: [ADMIN, MEMBER, VIEWER]
+          description: Role to assign to the new member
+          example: "MEMBER"
+
+    AddMemberResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Member added successfully"
+        data:
+          type: object
+          properties:
+            memberId:
+              type: string
+              example: "user-456"
+
+    # Storage Quota Management Schemas
+    StorageQuotaResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        data:
+          type: object
+          properties:
+            totalQuota:
+              type: integer
+              description: Total storage quota in bytes
+              example: 10737418240
+            usedQuota:
+              type: integer
+              description: Used storage in bytes
+              example: 5368709120
+            availableQuota:
+              type: integer
+              description: Available storage in bytes
+              example: 5368709120
+            quotaPercentage:
+              type: number
+              description: Percentage of quota used
+              example: 50.0
+
+    RecalculateQuotaResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Storage quota recalculated successfully"
+        data:
+          $ref: "#/components/schemas/StorageQuotaResponse/data"
+
+    # Error Response Schema
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        message:
+          type: string
+          example: "Error description"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "FILE_NOT_FOUND"
+            details:
+              type: string
+              example: "The requested file could not be found"
+
+tags:
+  - name: File Management
+    description: File management operations
+  - name: File Upload
+    description: File upload operations
+  - name: Thread Management
+    description: Thread and file association operations
+  - name: User Management
+    description: User role and permission management
+  - name: Company Management
+    description: Company member management
+  - name: Storage Management
+    description: Storage quota and usage management
