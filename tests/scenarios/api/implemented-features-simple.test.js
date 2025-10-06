@@ -44,13 +44,13 @@ class ImplementedFeaturesSimpleTest {
 
     const result = await this.helper.registerUser(testData.user);
 
-    if (result.success && result.data.status === "success") {
+    if (result.success && result.data?.status === "success") {
       const userData = {
         email: testData.user.email,
         password: testData.user.password,
-        userData: result.data.data.user,
-        token: result.data.data.accessToken,
-        companyId: result.data.data.company.id,
+        userData: result.data.data?.user,
+        token: result.data.data?.accessToken,
+        companyId: result.data.data?.company?.id,
       };
 
       this.testUsers.push(userData);

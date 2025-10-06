@@ -135,7 +135,7 @@ class RolePermissionFlowTest {
 
     console.log(`  ✅ ${testName}`);
 
-    // 3개의 추가 사용자 생성 (각각 다른 회사)
+    // 3개의 추가 사용자 생성 (각각 다른 회사 - 보안 테스트용)
     for (let i = 1; i <= 3; i++) {
       const testData = this.helper.generateTestData();
       testData.user.email = `roleuser${i}-${Date.now()}@example.com`;
@@ -149,8 +149,8 @@ class RolePermissionFlowTest {
         this.testUsers[`user${i}`] = {
           email: testData.user.email,
           password: testData.user.password,
-          userData: result.result.data.user,
-          companyData: result.result.data.company,
+          userData: result.result.data.data.user,
+          companyData: result.result.data.data.company,
         };
 
         // 사용자로 로그인하여 토큰 설정
@@ -160,7 +160,7 @@ class RolePermissionFlowTest {
         );
 
         console.log(`    ✓ 사용자 ${i} 생성 성공: ${testData.user.email}`);
-        const userRole = result.result?.data?.user?.companyRole || "N/A";
+        const userRole = result.result?.data?.data?.user?.companyRole || "N/A";
         console.log(`    📝 회사 역할: ${userRole}`);
       } else {
         console.log(`    ✗ 사용자 ${i} 생성 실패: ${result.result.status}`);
@@ -523,28 +523,29 @@ class RolePermissionFlowTest {
       return;
     }
 
-    console.log(`  ❌ ${testName}`);
+    console.log(`  ✅ ${testName}`);
 
     const roleChangeData = {
-      role: "admin",
-      userId: this.testUsers.user1.userData?.id || "test-user-id",
+      role: "admin", // 백엔드에서 확인한 올바른 역할 값
     };
+
+    const userId = this.testUsers.user1?.userData?.id;
+    if (!userId) {
+      console.log(`    ⚠️ 사용자 ID를 찾을 수 없음`);
+      return;
+    }
 
     const result = await this.helper.measureExecutionTime(async () => {
       return await this.helper.authenticatedRequest(
         "PUT",
-        `/api/v1/users/${
-          this.testUsers.user1.userData?.id || "test-user-id"
-        }/role`,
+        `/api/v1/users/${userId}/role`,
         roleChangeData,
         this.testUsers.owner.email
       );
     });
 
-    // 사용자 역할 변경 API는 400 에러 또는 404 에러 예상
-    const validation1 = this.helper.validateErrorResponse(result.result, 404);
-    const validation2 = this.helper.validateErrorResponse(result.result, 400);
-    const validation = validation1.overall ? validation1 : validation2;
+    // 백엔드에서 확인한 결과: 다른 회사의 사용자 역할 변경 시 403 에러 (올바른 보안 동작)
+    const validation = this.helper.validateErrorResponse(result.result, 403);
 
     this.recordTestResult(testName, {
       success: validation.overall,
@@ -554,9 +555,17 @@ class RolePermissionFlowTest {
     });
 
     if (validation.overall) {
-      console.log(`    ✓ 사용자 역할 변경 API 미구현 확인 (에러 정상 처리)`);
+      console.log(
+        `    ✓ 사용자 역할 변경 보안 검증 성공 (다른 회사 사용자 접근 차단)`
+      );
+      console.log(`    📝 응답 상태: ${result.result.status}`);
+      console.log(`    📝 에러 메시지: ${result.result.data.error.message}`);
     } else {
-      console.log(`    ✗ 사용자 역할 변경 테스트 실패: ${validation.error}`);
+      console.log(`    ✗ 사용자 역할 변경 보안 검증 실패: ${validation.error}`);
+      console.log(`    📝 응답 상태: ${result.result.status}`);
+      console.log(
+        `    📝 응답 내용: ${JSON.stringify(result.result, null, 2)}`
+      );
     }
   }
 
@@ -671,7 +680,7 @@ class RolePermissionFlowTest {
       return;
     }
 
-    console.log(`  ❌ ${testName}`);
+    console.log(`  ✅ ${testName}`);
 
     const result = await this.helper.measureExecutionTime(async () => {
       return await this.helper.authenticatedRequest(
@@ -682,10 +691,12 @@ class RolePermissionFlowTest {
       );
     });
 
-    // 회사 멤버 관리 API는 200 성공 또는 404 에러 예상
-    const validation1 = this.helper.validateResponse(result.result, 200);
-    const validation2 = this.helper.validateErrorResponse(result.result, 404);
-    const validation = validation1.overall ? validation1 : validation2;
+    // 백엔드에서 확인한 결과: 이 API는 구현되어 있고 200 성공을 반환함
+    const validation = this.helper.validateResponse(result.result, 200, [
+      "status",
+      "data.items",
+      "data.pagination",
+    ]);
 
     this.recordTestResult(testName, {
       success: validation.overall,
@@ -695,7 +706,12 @@ class RolePermissionFlowTest {
     });
 
     if (validation.overall) {
-      console.log(`    ✓ 회사 멤버 권한 관리 API 정상 처리`);
+      const membersData = result.result.data.data;
+      console.log(`    ✓ 회사 멤버 권한 관리 API 성공`);
+      console.log(`    📝 멤버 수: ${membersData.items.length}`);
+      console.log(
+        `    📝 페이지네이션: hasNext=${membersData.pagination.hasNext}`
+      );
     } else {
       console.log(`    ✗ 회사 멤버 권한 관리 테스트 실패: ${validation.error}`);
     }
