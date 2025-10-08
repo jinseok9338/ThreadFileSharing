@@ -63,7 +63,7 @@ const LoginForm = () => {
   };
 
   return (
-    <Card className="max-w-md w-full p-8 bg-card rounded-lg shadow-lg">
+    <Card className="w-full p-8 bg-card rounded-lg shadow-lg">
       <Heading1 className="mb-2">{t("auth.loginTitle")}</Heading1>
       <BodyText className="text-muted-foreground mb-6">
         {t("auth.loginDescription")}

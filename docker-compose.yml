@@ -31,6 +31,8 @@ services:
       dockerfile: Dockerfile
       target: development
     container_name: threadfilesharing-backend
+    env_file:
+      - .env.local
     environment:
       NODE_ENV: ${NODE_ENV:-local}
       DATABASE_HOST: postgres
@@ -39,6 +41,8 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-dev_password}
       DATABASE_NAME: ${DATABASE_NAME:-threadfilesharing_local}
       PORT: ${PORT:-3001}
+      CORS_ORIGIN: "http://localhost:5173"
+      FRONTEND_BASE_URL: "http://localhost:5173"
     ports:
       - "${PORT:-3001}:${PORT:-3001}"
     volumes:
