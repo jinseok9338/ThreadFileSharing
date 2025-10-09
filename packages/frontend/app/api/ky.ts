@@ -5,7 +5,7 @@ import useUserStore from "~/stores/userStore";
 import type { ApiResponse } from "~/utils/api";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
-const REFRESH_TOKEN_URL = "/api/v1/auth/refresh";
+const REFRESH_TOKEN_URL = "/auth/refresh";
 const AUTH_LOGIN_PATH = "/auth/login";
 const DEFAULT_ERROR_MESSAGE = "인증이 만료되었습니다. 다시 로그인 해주세요.";
 

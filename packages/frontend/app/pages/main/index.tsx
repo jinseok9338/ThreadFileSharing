@@ -5,11 +5,12 @@ import {
   ResizablePanelGroup,
 } from "~/components/ui/resizable";
 import { Heading3, BodyTextSmall } from "~/components/typography";
-import { ChatRoomList } from "~/components/chat/ChatRoomList";
+
 import { ChatRoomContent } from "~/components/chat/ChatRoomContent";
 import { ThreadPanel } from "~/components/thread/ThreadPanel";
 import { useTranslation } from "react-i18next";
 import type { Thread, UserStatus } from "~/pages/chat/types/types";
+import { ChatRoomList } from "../chat/components/chat/ChatRoomList";
 
 // Mock file data for testing
 interface FileNode {
@@ -28,9 +29,6 @@ interface FileNode {
     status: UserStatus;
   };
 }
-
-// Simple mock files (using mockFilesTabData for rich data)
-const mockFiles: FileNode[] = [];
 
 // Mock data for different tabs
 // Threads tab mock data
@@ -427,7 +425,6 @@ const mockChatTabData = [
 ];
 
 export default function MainPage() {
-  const { t } = useTranslation();
   const [selectedChatRoomId, setSelectedChatRoomId] = useState<string>("1");
   const [selectedThreadId, setSelectedThreadId] = useState<string>("thread-1");
   const [isThreadsOpen, setIsThreadsOpen] = useState<boolean>(false);
@@ -458,8 +455,9 @@ export default function MainPage() {
         className="bg-muted/30"
       >
         <ChatRoomList
-          selectedChatRoomId={selectedChatRoomId}
-          onChatRoomSelect={setSelectedChatRoomId}
+          onCreateNewRoom={() => {
+            console.log("새 채팅방 생성");
+          }}
         />
       </ResizablePanel>
 

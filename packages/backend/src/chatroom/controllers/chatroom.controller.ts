@@ -73,17 +73,11 @@ export class ChatroomController {
     @Body() createChatroomDto: CreateChatroomDto,
     @Request() req: any,
   ): Promise<any> {
-    const chatroom = await this.chatRoomService.createChatRoom(
+    return this.chatRoomService.createChatRoom(
       createChatroomDto,
       req.user.id,
       req.user.companyId,
     );
-
-    return {
-      success: true,
-      message: 'Chatroom created successfully',
-      data: chatroom,
-    };
   }
 
   @Get()
@@ -120,16 +114,10 @@ export class ChatroomController {
     @Query() query: CursorPaginationQueryDto,
     @Request() req: any,
   ): Promise<any> {
-    const chatrooms = await this.chatRoomService.getChatRoomsByCompany(
+    return this.chatRoomService.getChatRoomsByCompany(
       req.user.companyId,
       query,
     );
-
-    return {
-      success: true,
-      message: 'Chatrooms retrieved successfully',
-      data: chatrooms,
-    };
   }
 
   @Get(':chatroomId')
@@ -158,16 +146,7 @@ export class ChatroomController {
     @Param('chatroomId') chatroomId: string,
     @Request() req: any,
   ): Promise<any> {
-    const chatroom = await this.chatRoomService.getChatRoomById(
-      chatroomId,
-      req.user.id,
-    );
-
-    return {
-      success: true,
-      message: 'Chatroom retrieved successfully',
-      data: chatroom,
-    };
+    return this.chatRoomService.getChatRoomById(chatroomId, req.user.id);
   }
 
   @Put(':chatroomId')
@@ -198,17 +177,11 @@ export class ChatroomController {
     @Body() updateChatroomDto: UpdateChatroomDto,
     @Request() req: any,
   ): Promise<any> {
-    const chatroom = await this.chatRoomService.updateChatRoom(
+    return this.chatRoomService.updateChatRoom(
       chatroomId,
       updateChatroomDto,
       req.user.id,
     );
-
-    return {
-      success: true,
-      message: 'Chatroom updated successfully',
-      data: chatroom,
-    };
   }
 
   @Delete(':chatroomId')
@@ -274,13 +247,8 @@ export class ChatroomController {
     @Param('chatroomId') chatroomId: string,
     @Param('userId') userId: string,
     @Request() req: any,
-  ): Promise<any> {
+  ): Promise<void> {
     await this.chatRoomService.addMember(chatroomId, userId, req.user.id);
-
-    return {
-      success: true,
-      message: 'Member added successfully',
-    };
   }
 
   @Delete(':chatroomId/members/:userId')

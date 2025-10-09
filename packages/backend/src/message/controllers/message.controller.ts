@@ -75,16 +75,7 @@ export class MessageController {
     @Body() sendMessageDto: SendMessageDto,
     @Request() req: AuthenticatedRequest,
   ): Promise<any> {
-    const message = await this.messageService.sendMessage(
-      sendMessageDto,
-      req.user.id,
-    );
-
-    return {
-      success: true,
-      message: 'Message sent successfully',
-      data: message,
-    };
+    return this.messageService.sendMessage(sendMessageDto, req.user.id);
   }
 
   @Get('chatroom/:chatroomId')
@@ -131,17 +122,11 @@ export class MessageController {
     @Query() query: CursorPaginationQueryDto,
     @Request() req: AuthenticatedRequest,
   ): Promise<any> {
-    const messages = await this.messageService.getChatroomMessages(
+    return this.messageService.getChatroomMessages(
       chatroomId,
       req.user.id,
       query,
     );
-
-    return {
-      success: true,
-      message: 'Messages retrieved successfully',
-      data: messages,
-    };
   }
 
   @Get(':messageId')
@@ -177,16 +162,7 @@ export class MessageController {
     @Param('messageId') messageId: string,
     @Request() req: AuthenticatedRequest,
   ): Promise<any> {
-    const message = await this.messageService.getMessage(
-      messageId,
-      req.user.id,
-    );
-
-    return {
-      success: true,
-      message: 'Message retrieved successfully',
-      data: message,
-    };
+    return this.messageService.getMessage(messageId, req.user.id);
   }
 
   @Put(':messageId')
@@ -217,17 +193,11 @@ export class MessageController {
     @Body() editMessageDto: EditMessageDto,
     @Request() req: AuthenticatedRequest,
   ): Promise<any> {
-    const message = await this.messageService.editMessage(
+    return this.messageService.editMessage(
       messageId,
       editMessageDto,
       req.user.id,
     );
-
-    return {
-      success: true,
-      message: 'Message edited successfully',
-      data: message,
-    };
   }
 
   @Delete(':messageId')
@@ -298,16 +268,6 @@ export class MessageController {
     @Query() query: CursorPaginationQueryDto,
     @Request() req: AuthenticatedRequest,
   ): Promise<any> {
-    const messages = await this.messageService.getThreadMessages(
-      threadId,
-      req.user.id,
-      query,
-    );
-
-    return {
-      success: true,
-      message: 'Thread messages retrieved successfully',
-      data: messages,
-    };
+    return this.messageService.getThreadMessages(threadId, req.user.id, query);
   }
 }

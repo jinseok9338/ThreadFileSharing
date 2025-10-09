@@ -58,13 +58,13 @@ export class FileUploadController {
   async initiateUpload(
     @Body() initiateDto: InitiateUploadDto,
     @Request() req: any,
-  ): Promise<any> {
+  ): Promise<UploadSessionResponseDto> {
     const uploadSession = await this.chunkedUploadService.initiateUpload(
       initiateDto,
       req.user.id,
     );
 
-    const response: UploadSessionResponseDto = {
+    return {
       sessionId: uploadSession.sessionId,
       fileName: uploadSession.originalFileName,
       totalSizeBytes: uploadSession.totalSizeBytes,
@@ -79,12 +79,6 @@ export class FileUploadController {
       expiresAt: uploadSession.expiresAt,
       chatroomId: uploadSession.chatroomId,
       threadId: uploadSession.threadId,
-    };
-
-    return {
-      success: true,
-      message: 'Upload session created successfully',
-      data: response,
     };
   }
 
@@ -154,11 +148,13 @@ export class FileUploadController {
     status: HttpStatus.NOT_FOUND,
     description: 'Upload session not found',
   })
-  async getUploadSession(@Param('sessionId') sessionId: string): Promise<any> {
+  async getUploadSession(
+    @Param('sessionId') sessionId: string,
+  ): Promise<UploadSessionResponseDto> {
     const uploadSession =
       await this.chunkedUploadService.getUploadSession(sessionId);
 
-    const response: UploadSessionResponseDto = {
+    return {
       sessionId: uploadSession.sessionId,
       fileName: uploadSession.originalFileName,
       totalSizeBytes: uploadSession.totalSizeBytes,
@@ -173,12 +169,6 @@ export class FileUploadController {
       expiresAt: uploadSession.expiresAt,
       chatroomId: uploadSession.chatroomId,
       threadId: uploadSession.threadId,
-    };
-
-    return {
-      success: true,
-      message: 'Upload session status retrieved successfully',
-      data: response,
     };
   }
 
@@ -205,11 +195,13 @@ export class FileUploadController {
     status: HttpStatus.NOT_FOUND,
     description: 'Upload session not found',
   })
-  async cancelUpload(@Param('sessionId') sessionId: string): Promise<any> {
+  async cancelUpload(
+    @Param('sessionId') sessionId: string,
+  ): Promise<UploadSessionResponseDto> {
     const uploadSession =
       await this.chunkedUploadService.cancelUpload(sessionId);
 
-    const response: UploadSessionResponseDto = {
+    return {
       sessionId: uploadSession.sessionId,
       fileName: uploadSession.originalFileName,
       totalSizeBytes: uploadSession.totalSizeBytes,
@@ -224,12 +216,6 @@ export class FileUploadController {
       expiresAt: uploadSession.expiresAt,
       chatroomId: uploadSession.chatroomId,
       threadId: uploadSession.threadId,
-    };
-
-    return {
-      success: true,
-      message: 'Upload session cancelled successfully',
-      data: response,
     };
   }
 
@@ -252,14 +238,7 @@ export class FileUploadController {
     description: 'Upload session not found',
   })
   async getStreamingStats(@Param('sessionId') sessionId: string) {
-    const stats =
-      await this.streamingUploadService.getStreamingStats(sessionId);
-
-    return {
-      success: true,
-      message: 'Streaming statistics retrieved successfully',
-      data: stats,
-    };
+    return this.streamingUploadService.getStreamingStats(sessionId);
   }
 
   @Post('streaming/:sessionId/resume')
@@ -285,13 +264,6 @@ export class FileUploadController {
     description: 'Upload session not found',
   })
   async resumeStreamingUpload(@Param('sessionId') sessionId: string) {
-    const resumeInfo =
-      await this.streamingUploadService.resumeStreamingUpload(sessionId);
-
-    return {
-      success: true,
-      message: 'Upload session resume information retrieved',
-      data: resumeInfo,
-    };
+    return this.streamingUploadService.resumeStreamingUpload(sessionId);
   }
 }

@@ -13,7 +13,7 @@ import type {
 export const loginAPI = async (
   credentials: LoginRequest
 ): Promise<AuthResponse> => {
-  const response = await API.post("api/v1/auth/login", {
+  const response = await API.post("auth/login", {
     json: credentials,
   }).json<ApiResponse<AuthResponse>>();
 
@@ -27,7 +27,7 @@ export const loginAPI = async (
 export const registerAPI = async (
   data: RegisterRequest
 ): Promise<AuthResponse> => {
-  const response = await API.post("api/v1/auth/register", {
+  const response = await API.post("auth/register", {
     json: data,
   }).json<ApiResponse<AuthResponse>>();
 
@@ -39,7 +39,7 @@ export const registerAPI = async (
  * POST /api/v1/auth/logout
  */
 export const logoutAPI = async (refreshToken: string): Promise<void> => {
-  await API.post("api/v1/auth/logout", {
+  await API.post("auth/logout", {
     json: { refreshToken },
   });
 };
@@ -49,7 +49,6 @@ export const logoutAPI = async (refreshToken: string): Promise<void> => {
  * GET /api/v1/auth/me
  */
 export const getMeAPI = async () => {
-  const response =
-    await API.get("api/v1/auth/me").json<ApiResponse<AuthResponse>>();
+  const response = await API.get("auth/me").json<ApiResponse<AuthResponse>>();
   return getResponseData(response);
 };

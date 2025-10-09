@@ -84,16 +84,7 @@ export class ThreadController {
     @Body() createThreadDto: CreateThreadDto,
     @Request() req: AuthenticatedRequest,
   ): Promise<any> {
-    const thread = await this.threadService.createThread(
-      createThreadDto,
-      req.user.id,
-    );
-
-    return {
-      success: true,
-      message: 'Thread created successfully',
-      data: thread,
-    };
+    return this.threadService.createThread(createThreadDto, req.user.id);
   }
 
   @Get()
@@ -136,13 +127,7 @@ export class ThreadController {
     @Query() query: CursorPaginationQueryDto & { chatroomId?: string },
     @Request() req: AuthenticatedRequest,
   ): Promise<any> {
-    const threads = await this.threadService.getThreads(req.user.id, query);
-
-    return {
-      success: true,
-      message: 'Threads retrieved successfully',
-      data: threads,
-    };
+    return this.threadService.getThreads(req.user.id, query);
   }
 
   @Get(':threadId')
@@ -171,16 +156,7 @@ export class ThreadController {
     @Param('threadId') threadId: string,
     @Request() req: AuthenticatedRequest,
   ): Promise<any> {
-    const thread = await this.threadService.getThreadById(
-      threadId,
-      req.user.id,
-    );
-
-    return {
-      success: true,
-      message: 'Thread retrieved successfully',
-      data: thread,
-    };
+    return this.threadService.getThreadById(threadId, req.user.id);
   }
 
   @Put(':threadId')
@@ -211,17 +187,11 @@ export class ThreadController {
     @Body() updateThreadDto: UpdateThreadDto,
     @Request() req: AuthenticatedRequest,
   ): Promise<any> {
-    const thread = await this.threadService.updateThread(
+    return this.threadService.updateThread(
       threadId,
       updateThreadDto,
       req.user.id,
     );
-
-    return {
-      success: true,
-      message: 'Thread updated successfully',
-      data: thread,
-    };
   }
 
   @Delete(':threadId')
@@ -287,13 +257,8 @@ export class ThreadController {
     @Param('threadId') threadId: string,
     @Param('userId') userId: string,
     @Request() req: AuthenticatedRequest,
-  ): Promise<any> {
+  ): Promise<void> {
     await this.threadService.addParticipant(threadId, userId, req.user.id);
-
-    return {
-      success: true,
-      message: 'Participant added successfully',
-    };
   }
 
   @Delete(':threadId/participants/:userId')
@@ -359,13 +324,8 @@ export class ThreadController {
   async archiveThread(
     @Param('threadId') threadId: string,
     @Request() req: AuthenticatedRequest,
-  ): Promise<any> {
+  ): Promise<void> {
     await this.threadService.archiveThread(threadId, req.user.id);
-
-    return {
-      success: true,
-      message: 'Thread archived successfully',
-    };
   }
 
   @Get(':id/files')
