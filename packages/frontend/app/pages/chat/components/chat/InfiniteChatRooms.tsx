@@ -57,10 +57,8 @@ export function InfiniteChatRooms({
   const realtimeDataMap = useChatRoomRealtimeSocket(chatroomIds);
 
   // 3️⃣ 두 데이터 병합 + 정렬
-  const allChatRooms = useMemo(() => {
-    const merged = mergeChatRoomData(apiChatRooms, realtimeDataMap);
-    return sortChatRoomsByLastMessage(merged);
-  }, [apiChatRooms, realtimeDataMap]);
+  const merged = mergeChatRoomData(apiChatRooms, realtimeDataMap);
+  const allChatRooms = sortChatRoomsByLastMessage(merged);
 
   // TanStack Virtual 설정
   const rowVirtualizer = useVirtualizer({
