@@ -44,7 +44,7 @@ export class WebSocketAuthService {
     }
 
     // Try query parameters
-    const token = socket.handshake.query.token as string;
+    const token = socket.handshake.auth.token as string;
     if (token) {
       return token;
     }

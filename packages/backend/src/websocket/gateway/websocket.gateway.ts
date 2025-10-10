@@ -37,6 +37,11 @@ import {
   CancelUploadDto,
   UpdateUserStatusDto,
 } from '../dto/websocket-events.dto';
+import {
+  ClientToServerEvent,
+  ServerToClientEvent,
+} from '../enums/websocket-events.enum';
+import { ChatRoomService } from '../../chatroom/chatroom.service';
 
 @NestWebSocketGateway({
   cors: {
@@ -59,6 +64,7 @@ export class WebSocketGateway
     private readonly roomService: WebSocketRoomService,
     private readonly threadService: ThreadService,
     private readonly messageService: MessageService,
+    private readonly chatRoomService: ChatRoomService,
   ) {}
 
   afterInit(server: Server) {
@@ -319,6 +325,51 @@ export class WebSocketGateway
       });
     } catch (error) {
       this.logger.error(`Failed to leave room: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // ===== Realtime Data Sync =====
+
+  @SubscribeMessage(ClientToServerEvent.SYNC_CHATROOM_REALTIME_DATA)
+  async handleSyncChatroomRealtimeData(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() data: { chatroomIds: string[] },
+  ) {
+    this.logger.log(
+      `🚨 [SYNC_CHATROOM_REALTIME_DATA] EVENT RECEIVED! Client: ${client.id}, User: ${client.userId}`,
+    );
+    this.logger.log(`🚨 [SYNC_CHATROOM_REALTIME_DATA] Data received:`, data);
+
+    try {
+      this.logger.log(
+        `🔄 [SYNC_CHATROOM_REALTIME_DATA] User ${client.userId} requesting realtime data for chatrooms: ${data.chatroomIds.join(', ')}`,
+      );
+
+      const realtimeData =
+        await this.chatRoomService.getBulkChatroomRealtimeData(
+          data.chatroomIds,
+          client.userId,
+        );
+
+      this.logger.log(
+        `📤 [SYNC_CHATROOM_REALTIME_DATA] Sending response to user ${client.userId}:`,
+        realtimeData,
+      );
+
+      // 클라이언트에게 실시간 데이터 동기화 완료 알림
+      client.emit(
+        ServerToClientEvent.CHATROOM_REALTIME_DATA_SYNCED,
+        realtimeData,
+      );
+
+      this.logger.log(
+        `✅ [SYNC_CHATROOM_REALTIME_DATA] Realtime data synced for user ${client.userId}, ${realtimeData.length} chatrooms`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `❌ [SYNC_CHATROOM_REALTIME_DATA] Failed to sync realtime data: ${error.message}`,
+      );
       client.emit('error', { message: error.message });
     }
   }

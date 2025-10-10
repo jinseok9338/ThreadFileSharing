@@ -25,6 +25,9 @@ export class ChatRoomMember {
   @CreateDateColumn()
   joinedAt: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  lastReadAt: Date;
+
   // Relations
   @ManyToOne('ChatRoom', 'members')
   @JoinColumn({ name: 'chatroomId' })

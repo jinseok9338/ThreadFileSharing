@@ -15,6 +15,8 @@ import { UpdateChatroomDto } from './dto/update-chatroom.dto';
 import { ChatroomResponseDto } from './dto/chatroom-response.dto';
 import { PermissionService } from '../permission/permission.service';
 import { CompanyRole } from '../constants/permissions';
+import { Message } from '../message/entities/message.entity';
+import { ChatroomRealtimeDataDto } from '../websocket/dto/websocket-events.dto';
 
 @Injectable()
 export class ChatRoomService {
@@ -23,6 +25,8 @@ export class ChatRoomService {
     private readonly chatRoomRepository: Repository<ChatRoom>,
     @InjectRepository(ChatRoomMember)
     private readonly chatRoomMemberRepository: Repository<ChatRoomMember>,
+    @InjectRepository(Message)
+    private readonly messageRepository: Repository<Message>,
     private readonly permissionService: PermissionService,
   ) {}
 
@@ -338,5 +342,71 @@ export class ChatRoomService {
       createdAt: chatroom.createdAt,
       updatedAt: chatroom.updatedAt,
     };
+  }
+
+  /**
+   * Get bulk chatroom realtime data for multiple chatrooms
+   */
+  async getBulkChatroomRealtimeData(
+    chatroomIds: string[],
+    userId: string,
+  ): Promise<ChatroomRealtimeDataDto[]> {
+    const realtimeDataPromises = chatroomIds.map(async (chatroomId) => {
+      // Get chatroom member info for lastReadAt
+      const member = await this.chatRoomMemberRepository.findOne({
+        where: { chatroomId, userId },
+      });
+
+      // Get last message
+      const lastMessage = await this.messageRepository.findOne({
+        where: { chatroomId },
+        order: { createdAt: 'DESC' },
+        relations: ['sender'],
+      });
+
+      // Calculate unread count
+      let unreadCount = 0;
+      if (member?.lastReadAt) {
+        unreadCount = await this.messageRepository.count({
+          where: {
+            chatroomId,
+            createdAt: MoreThan(member.lastReadAt),
+          },
+        });
+      } else {
+        // No lastReadAt means all messages are unread
+        unreadCount = await this.messageRepository.count({
+          where: { chatroomId },
+        });
+      }
+
+      return {
+        chatroomId,
+        lastMessage: lastMessage
+          ? {
+              id: lastMessage.id,
+              content: lastMessage.content,
+              senderName: lastMessage.sender?.username || 'Unknown',
+              senderId: lastMessage.senderId,
+              createdAt: lastMessage.createdAt.toISOString(),
+            }
+          : undefined,
+        unreadCount,
+        updatedAt:
+          lastMessage?.createdAt?.toISOString() || new Date().toISOString(),
+      };
+    });
+
+    return Promise.all(realtimeDataPromises);
+  }
+
+  /**
+   * Update last read timestamp for a user in a chatroom
+   */
+  async updateLastReadAt(chatroomId: string, userId: string): Promise<void> {
+    await this.chatRoomMemberRepository.update(
+      { chatroomId, userId },
+      { lastReadAt: new Date() },
+    );
   }
 }

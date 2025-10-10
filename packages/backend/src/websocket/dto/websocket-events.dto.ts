@@ -723,3 +723,29 @@ export class PermissionChangedDto {
   @ApiProperty({ description: 'Change timestamp' })
   changedAt: Date;
 }
+
+export class SyncChatroomRealtimeDataDto {
+  @ApiProperty({ description: 'Array of chatroom IDs' })
+  @IsUUID('4', { each: true })
+  chatroomIds: string[];
+}
+
+export class ChatroomRealtimeDataDto {
+  @ApiProperty({ description: 'Chatroom ID' })
+  chatroomId: string;
+
+  @ApiProperty({ description: 'Last message info', required: false })
+  lastMessage?: {
+    id: string;
+    content: string;
+    senderName: string;
+    senderId: string;
+    createdAt: string;
+  };
+
+  @ApiProperty({ description: 'Number of unread messages' })
+  unreadCount: number;
+
+  @ApiProperty({ description: 'Last update timestamp' })
+  updatedAt: string;
+}

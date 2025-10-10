@@ -1,6 +1,6 @@
 import { io, Socket } from "socket.io-client";
 
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:3000";
+const WS_URL = import.meta.env.VITE_WS_URL || "http://localhost:3001";
 
 let socket: Socket | null = null;
 
@@ -14,18 +14,20 @@ export const getSocket = (): Socket => {
       reconnectionAttempts: 5,
     });
 
-    // 연결 이벤트 로깅
-    socket.on("connect", () => {
-      console.log("Socket connected:", socket?.id);
-    });
+    // 연결 이벤트 로깅 (개발 환경에서만)
+    if (import.meta.env.DEV) {
+      socket.on("connect", () => {
+        console.log("Socket connected:", socket?.id);
+      });
 
-    socket.on("disconnect", (reason) => {
-      console.log("Socket disconnected:", reason);
-    });
+      socket.on("disconnect", (reason) => {
+        console.log("Socket disconnected:", reason);
+      });
 
-    socket.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
-    });
+      socket.on("connect_error", (error) => {
+        console.error("Socket connection error:", error);
+      });
+    }
   }
 
   return socket;

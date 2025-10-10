@@ -8,6 +8,7 @@ import { ChatRoomMember } from './entities/chatroom-member.entity';
 import { User } from '../user/entities/user.entity';
 import { ThreadParticipant } from '../thread/entities/thread-participant.entity';
 import { PermissionModule } from 'src/permission/permission.module';
+import { Message } from '../message/entities/message.entity';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PermissionModule } from 'src/permission/permission.module';
       ChatRoomMember,
       User,
       ThreadParticipant,
+      Message,
     ]),
     PermissionModule,
   ],
