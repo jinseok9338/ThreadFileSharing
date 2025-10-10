@@ -126,13 +126,13 @@ export class ChatRoomService {
   async getChatRoomById(
     id: string,
     userId?: string,
-  ): Promise<ChatroomResponseDto | null> {
+  ): Promise<ChatroomResponseDto> {
     const chatRoom = await this.chatRoomRepository.findOne({
       where: { id },
     });
 
     if (!chatRoom) {
-      return null;
+      throw new NotFoundException('Chatroom not found');
     }
 
     // If userId is provided, check membership

@@ -102,6 +102,8 @@ fileUpload,error,업로드 실패,Upload Failed
 fileUpload,tooLarge,파일 크기가 너무 큽니다,File size is too large
 fileUpload,invalidType,지원되지 않는 파일 형식입니다,Unsupported file type
 fileUpload,tooMany,최대 파일 개수를 초과했습니다,Too many files selected
+fileUpload,dragOverlayTitle,파일 업로드,File Upload
+fileUpload,dragOverlayDescription,'스레드 만들기' 또는 '파일 공유하기'를 선택해주세요,Please choose 'Create Thread' or 'Share File'
 commands,fileUpload,파일 업로드,File Upload
 commands,createThread,스레드 만들기,Create Thread
 commands,createThreadDescription,파일로 새로운 스레드를 생성합니다,Create a new thread with files

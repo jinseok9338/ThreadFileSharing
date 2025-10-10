@@ -11,7 +11,7 @@ import {
   Presentation,
   MessageCircle,
 } from "lucide-react";
-import { FileUpload } from "~/components/chat/FileUpload";
+
 import { FileExplorer } from "./FileExplorer";
 import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";

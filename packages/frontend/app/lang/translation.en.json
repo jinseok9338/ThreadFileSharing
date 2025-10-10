@@ -124,7 +124,9 @@
     "error": "Upload Failed",
     "tooLarge": "File size is too large",
     "invalidType": "Unsupported file type",
-    "tooMany": "Too many files selected"
+    "tooMany": "Too many files selected",
+    "dragOverlayTitle": "File Upload",
+    "dragOverlayDescription": "Please choose 'Create Thread' or 'Share File'"
   },
   "commands": {
     "fileUpload": "File Upload",

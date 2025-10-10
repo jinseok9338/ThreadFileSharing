@@ -33,16 +33,6 @@ export function useChatRoomRealtimeSocket(chatroomIds: string[]) {
       gcTime: Infinity, // 가비지 컬렉션 안 함
     });
 
-  // 실시간 데이터 변경 감지 (개발 환경에서만)
-  useEffect(() => {
-    if (import.meta.env.DEV && realtimeDataMap.size > 0) {
-      console.log("🗺️ [ChatRoom] Realtime data updated:", {
-        size: realtimeDataMap.size,
-        keys: Array.from(realtimeDataMap.keys()),
-      });
-    }
-  }, [realtimeDataMap]);
-
   // === 이벤트 핸들러 정의 ===
 
   // 실시간 데이터 업데이트 헬퍼 함수

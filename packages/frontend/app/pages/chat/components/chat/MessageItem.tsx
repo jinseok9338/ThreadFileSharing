@@ -2,9 +2,10 @@ import { Avatar } from "~/components/ui/avatar";
 import { BodyText, BodyTextSmall } from "~/components/typography";
 import { cn } from "~/lib/utils";
 import type { Message } from "~/pages/chat/types/types";
+import type { ChatRoomMessage } from "../../services/api";
 
 interface MessageItemProps {
-  message: Message;
+  message: ChatRoomMessage;
   showAvatar?: boolean;
   className?: string;
 }
@@ -18,9 +19,9 @@ export function MessageItem({
     <div className={cn("flex items-start space-x-3", className)}>
       {showAvatar && (
         <Avatar
-          src={message.sender.avatar}
-          alt={message.sender.displayName}
-          fallback={message.sender.displayName}
+          src={message.sender.avatarUrl}
+          alt={message.sender.fullName}
+          fallback={message.sender.fullName}
           size="sm"
           className="w-8 h-8 flex-shrink-0"
         />
@@ -30,7 +31,7 @@ export function MessageItem({
         {showAvatar && (
           <div className="flex items-center space-x-2 mb-1">
             <BodyTextSmall className="font-medium text-xs">
-              {message.sender.displayName}
+              {message.sender.fullName}
             </BodyTextSmall>
             <BodyTextSmall className="text-muted-foreground text-xs">
               {new Date(message.createdAt).toLocaleTimeString("ko-KR", {

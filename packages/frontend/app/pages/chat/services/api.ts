@@ -80,3 +80,117 @@ export const getChatRooms = async ({
   const data = getResponseData<ChatRoomsList>(result);
   return data;
 };
+
+export interface ChatRoomsDetailResponse {
+  status: string;
+  timestamp: Date;
+  data: ChatRoomDetail;
+}
+
+export interface ChatRoomDetail {
+  id: string;
+  companyId: string;
+  name: string;
+  description: string;
+  avatarUrl: string;
+  isPrivate: boolean;
+  createdBy: string;
+  creator: Creator;
+  memberCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Creator {
+  id: string;
+  username: string;
+  fullName: string;
+  avatarUrl: string;
+}
+
+export const getChatRoomDetail = async ({
+  chatRoomId,
+}: {
+  chatRoomId: string;
+}) => {
+  const response = await API.get<ChatRoomsDetailResponse>(
+    `chatrooms/${chatRoomId}`
+  );
+  const result = await response.json();
+  const data = getResponseData<ChatRoomDetail>(result);
+  return data;
+};
+
+export interface ChatRoomsMessagesResponse {
+  status: string;
+  timestamp: Date;
+  data: ChatRoomMessagesResult;
+}
+
+export interface ChatRoomMessagesResult {
+  items: ChatRoomMessage[];
+  pagination: Pagination;
+}
+
+export interface ChatRoomMessage {
+  id: string;
+  chatroomId: string;
+  sender: Sender;
+  content: string;
+  messageType: string;
+  isEdited: boolean;
+  editedAt: Date;
+  replyTo: ReplyTo;
+  threadId: string;
+  threadReferences: ThreadReference[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ReplyTo {
+  messageId: string;
+  content: string;
+  senderName: string;
+}
+
+export interface Sender {
+  id: string;
+  username: string;
+  fullName: string;
+  avatarUrl: string;
+}
+
+export interface ThreadReference {
+  threadId: string;
+  threadName: string;
+  originalText: string;
+}
+
+export interface Pagination {
+  hasNext: boolean;
+  nextIndex: Date;
+  limit: number;
+}
+
+export const getChatRoomMessages = async ({
+  chatRoomId,
+  limit = 20,
+  lastIndex,
+}: {
+  chatRoomId: string;
+  limit?: number;
+  lastIndex?: string;
+}) => {
+  const response = await API.get<ChatRoomsMessagesResponse>(
+    `messages/chatroom/${chatRoomId}`,
+    {
+      searchParams: {
+        limit,
+        lastIndex,
+      },
+    }
+  );
+  const result = await response.json();
+  const data = getResponseData<ChatRoomMessagesResult>(result);
+  return data;
+};

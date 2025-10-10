@@ -165,57 +165,45 @@ export class MessageService {
     chatroomId: string,
     userId: string,
     query: CursorPaginationQueryDto,
-  ): Promise<MessageListResponseDto> {
+  ): Promise<CursorBasedData<MessageResponseDto>> {
     // Validate chatroom access
     await this.validateChatroomAccess(chatroomId, userId);
 
-    // Build query
-    const queryBuilder = this.messageRepository
-      .createQueryBuilder('message')
-      .leftJoinAndSelect('message.sender', 'sender')
-      .where('message.chatroomId = :chatroomId', { chatroomId })
-      .orderBy('message.createdAt', 'DESC')
-      .limit(query.limit || 20);
+    const { limit = 20, lastIndex } = query;
 
-    // Apply cursor pagination
-    if (query.lastIndex) {
-      const cursorData = this.parseCursor(query.lastIndex);
-      queryBuilder.andWhere(
-        '(message.createdAt < :cursorDate OR (message.createdAt = :cursorDate AND message.id < :cursorId))',
-        {
-          cursorDate: cursorData.createdAt,
-          cursorId: cursorData.id,
-        },
-      );
+    // Build where condition for cursor-based pagination
+    const whereCondition: { chatroomId: string; createdAt?: any } = {
+      chatroomId,
+    };
+    if (lastIndex) {
+      // Parse lastIndex as ISO date string and use it for cursor
+      const lastDate = new Date(lastIndex);
+      whereCondition.createdAt = MoreThan(lastDate);
     }
 
-    // Execute query
-    const [messages, total] = await queryBuilder.getManyAndCount();
+    // Fetch one more item than requested to determine hasNext
+    const messages = await this.messageRepository.find({
+      where: whereCondition,
+      relations: ['sender'],
+      order: { createdAt: 'DESC' },
+      take: limit + 1,
+    });
 
-    // Generate cursors
-    const hasMore =
-      messages.length === (query.limit || 20) && total > messages.length;
-    const nextCursor =
-      hasMore && messages.length > 0
-        ? this.generateCursor(messages[messages.length - 1])
-        : undefined;
-    const previousCursor = query.lastIndex
-      ? this.generateCursor(messages[0])
-      : undefined;
+    const hasNext = messages.length > limit;
+    const items = hasNext ? messages.slice(0, limit) : messages;
 
-    // Convert to response DTOs
-    const messageDtos = messages.map((message) =>
+    // Convert to DTOs
+    const messageDtos = items.map((message) =>
       this.toMessageResponseDto(message),
     );
 
-    return {
-      messages: messageDtos,
-      total,
-      count: messageDtos.length,
-      nextCursor,
-      previousCursor,
-      hasMore,
-    };
+    // Get nextIndex from the last item's createdAt if there's a next page
+    const nextIndex =
+      hasNext && items.length > 0
+        ? items[items.length - 1].createdAt.toISOString()
+        : undefined;
+
+    return new CursorBasedData(messageDtos, hasNext, limit, nextIndex);
   }
 
   /**

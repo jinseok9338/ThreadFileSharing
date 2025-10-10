@@ -124,7 +124,9 @@
     "error": "업로드 실패",
     "tooLarge": "파일 크기가 너무 큽니다",
     "invalidType": "지원되지 않는 파일 형식입니다",
-    "tooMany": "최대 파일 개수를 초과했습니다"
+    "tooMany": "최대 파일 개수를 초과했습니다",
+    "dragOverlayTitle": "파일 업로드",
+    "dragOverlayDescription": "'스레드 만들기' 또는 '파일 공유하기'를 선택해주세요"
   },
   "commands": {
     "fileUpload": "파일 업로드",

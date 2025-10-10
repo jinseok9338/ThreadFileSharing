@@ -5,32 +5,45 @@ import { cn } from "~/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Users, MoreVertical, MessageSquare } from "lucide-react";
 import type { ChatRoom } from "~/pages/chat/types/types";
+import type { ChatRoomDetail } from "../../services/api";
+import {
+  IS_THREADS_OPEN,
+  SELECTED_CHATROOM_ID,
+} from "~/constants/queryStrings";
+import { useQueryState } from "~/lib/nuqs/useQueryState";
+import { parseAsBoolean, parseAsString } from "~/lib/nuqs/parsers";
+import { useGetChatRoomDetail } from "../../hooks/useGetChatRoomDetail";
 
-interface ChatRoomHeaderProps {
-  chatRoom?: ChatRoom;
-  onParticipantClick?: () => void;
-  onMoreClick?: () => void;
-  onToggleThreads?: () => void;
-  isThreadsOpen?: boolean;
-  className?: string;
-}
+interface ChatRoomHeaderProps {}
 
-export function ChatRoomHeader({
-  chatRoom,
-  onParticipantClick,
-  onMoreClick,
-  onToggleThreads,
-  isThreadsOpen = false,
-  className,
-}: ChatRoomHeaderProps) {
+export function ChatRoomHeader({}: ChatRoomHeaderProps) {
   const { t } = useTranslation();
+  const [selectedChatRoomId] = useQueryState(
+    SELECTED_CHATROOM_ID.key,
+    parseAsString.withDefault(SELECTED_CHATROOM_ID.defaultValue)
+  );
+  const { data: chatRoom } = useGetChatRoomDetail(selectedChatRoomId);
+  const handleParticipantClick = () => {
+    console.log("참여자 보기");
+  };
+  const handleMoreClick = () => {
+    console.log("더 많은 옵션");
+  };
+
+  const [isThreadsOpen, setIsThreadsOpen] = useQueryState(
+    IS_THREADS_OPEN.key,
+    parseAsBoolean.withDefault(IS_THREADS_OPEN.defaultValue)
+  );
+  const handleToggleThreads = () => {
+    setIsThreadsOpen(!isThreadsOpen);
+  };
 
   return (
-    <div className={cn("p-4 border-b", className)}>
+    <div className={cn("p-4 border-b")}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <Avatar
-            src={chatRoom?.avatar}
+            src={chatRoom?.avatarUrl}
             alt={chatRoom?.name}
             fallback={chatRoom?.name}
             size="md"
@@ -39,7 +52,7 @@ export function ChatRoomHeader({
           <div>
             <Heading3 className="text-sm">{chatRoom?.name}</Heading3>
             <BodyTextSmall className="text-muted-foreground">
-              {chatRoom?.participantCount} {t("chat.participants")}
+              {chatRoom?.memberCount} {t("chat.participants")}
             </BodyTextSmall>
           </div>
         </div>
@@ -47,7 +60,7 @@ export function ChatRoomHeader({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onToggleThreads}
+            onClick={handleToggleThreads}
             className={cn(isThreadsOpen && "bg-accent text-accent-foreground")}
             aria-label={t("chat.toggleThreads")}
           >
@@ -56,7 +69,7 @@ export function ChatRoomHeader({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onParticipantClick}
+            onClick={handleParticipantClick}
             aria-label={t("chat.showParticipants")}
           >
             <Users className="w-4 h-4" />
@@ -64,7 +77,7 @@ export function ChatRoomHeader({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onMoreClick}
+            onClick={handleMoreClick}
             aria-label={t("chat.moreOptions")}
           >
             <MoreVertical className="w-4 h-4" />

@@ -130,22 +130,25 @@ export class ChatroomController {
     description: 'Chatroom ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiSuccessResponse(ChatroomResponseDto, {
     description: 'Chatroom retrieved successfully',
   })
   @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Chatroom not found',
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
   })
   @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Access denied to chatroom',
   })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Chatroom not found',
+  })
   async getChatroom(
     @Param('chatroomId') chatroomId: string,
     @Request() req: any,
-  ): Promise<any> {
+  ): Promise<ChatroomResponseDto> {
     return this.chatRoomService.getChatRoomById(chatroomId, req.user.id);
   }
 

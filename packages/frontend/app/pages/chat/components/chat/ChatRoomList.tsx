@@ -7,19 +7,14 @@ import { InfiniteChatRooms } from "./InfiniteChatRooms";
 import type { ChatRoomSummary } from "~/pages/chat/types/types";
 
 interface ChatRoomListProps {
-  chatRooms?: ChatRoomSummary[];
-  onCreateNewRoom?: () => void;
-  onLoadMore?: () => void;
-  hasMore?: boolean;
-  isLoading?: boolean;
   className?: string;
 }
 
-export function ChatRoomList({
-  onCreateNewRoom,
-  className,
-}: ChatRoomListProps) {
+export function ChatRoomList({ className }: ChatRoomListProps) {
   const { t } = useTranslation();
+  const handleCreateNewRoom = () => {
+    console.log("create new room");
+  };
 
   return (
     <div className={cn("h-full flex flex-col bg-transparent", className)}>
@@ -32,7 +27,7 @@ export function ChatRoomList({
           <Button
             size="sm"
             variant="ghost"
-            onClick={onCreateNewRoom}
+            onClick={handleCreateNewRoom}
             className="h-6 w-6 p-0"
           >
             <Plus className="w-3 h-3" />

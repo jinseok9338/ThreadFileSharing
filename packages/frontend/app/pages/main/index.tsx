@@ -6,11 +6,11 @@ import {
 } from "~/components/ui/resizable";
 import { Heading3, BodyTextSmall } from "~/components/typography";
 
-import { ChatRoomContent } from "~/components/chat/ChatRoomContent";
 import { ThreadPanel } from "~/components/thread/ThreadPanel";
 import { useTranslation } from "react-i18next";
 import type { Thread, UserStatus } from "~/pages/chat/types/types";
 import { ChatRoomList } from "../chat/components/chat/ChatRoomList";
+import { ChatRoomContent } from "../chat/components/chat/ChatRoomContent";
 
 // Mock file data for testing
 interface FileNode {
@@ -454,11 +454,7 @@ export default function MainPage() {
         maxSize={25}
         className="bg-muted/30"
       >
-        <ChatRoomList
-          onCreateNewRoom={() => {
-            console.log("새 채팅방 생성");
-          }}
-        />
+        <ChatRoomList />
       </ResizablePanel>
 
       <ResizableHandle />
@@ -473,7 +469,6 @@ export default function MainPage() {
         className="bg-background"
       >
         <ChatRoomContent
-          selectedChatRoomId={selectedChatRoomId}
           onSendMessage={(message) => {
             console.log("메시지 전송:", message);
           }}
